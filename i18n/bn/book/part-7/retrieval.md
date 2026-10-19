@@ -1,33 +1,32 @@
 ---
 sourceHash: "a1b269df5930832f66aed4d536e9bea3248ee8513eda1576e9693f215f23089e"
 title: "Embedding, Vector Store ও Retrieval"
-translatedAt: "2026-10-13T03:03:57.011Z"
+translatedAt: "2026-10-19T07:58:04.113Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Embedding, Vector Store ও Retrieval {#ch-retrieval}
 
-> Text-কে vector-এ পরিণত করুন, যে database আগে থেকেই চালাচ্ছেন সেখানেই রাখুন, আর সেই অংশগুলো খুঁজে বের করুন যেগুলো প্রশ্নের উত্তর দেয়।
+> Text-কে vector বানান, সেগুলো রাখুন যে database আপনি আগে থেকেই চালান তাতে, আর খুঁজে বের করুন সেই passage-গুলো, যা প্রশ্নের উত্তর দেয়।
 
-**এই অধ্যায়ে:** vector কী আর তার score-এর মানে কী · pgvector বনাম একটি dedicated store · keyword, vector আর hybrid search · reranking আর *k* বাছাই · filter আর query rewriting
+**এই অধ্যায়ে:** vector কী, আর তার score কী বোঝায় · pgvector বনাম আলাদা store · keyword, vector আর hybrid search · reranking আর *k* বাছাই · filter আর query rewriting
 
 ## 💡 মূল ধারণা
 
-Embedding text-কে সংখ্যার একটি নির্দিষ্ট দৈর্ঘ্যের তালিকায় পরিণত করে: **space-এ একটি বিন্দু**। কাছাকাছি থাকা মানে
-অর্থ কাছাকাছি। "Cancel my subscription" আর "how do I close my account" কাছাকাছি গিয়ে পড়ে, যদিও দুটিতে কোনো
-গুরুত্বপূর্ণ শব্দ মেলে না। Keyword search string মেলায়। Embedding search অর্থ মেলায়।
+Embedding text-কে নির্দিষ্ট দৈর্ঘ্যের সংখ্যার একটি তালিকা বানিয়ে দেয়: **space-এর একটি বিন্দু**। কাছাকাছি থাকা মানে
+অর্থ কাছাকাছি। "Cancel my subscription" আর "how do I close my account" পাশাপাশি এসে পড়ে, যদিও দুটিতে কোনো
+গুরুত্বপূর্ণ শব্দ মেলে না। Keyword search string মেলায়। Embedding search মেলায় অর্থ।
 
-Document একবারই বিন্দু হয়, ingestion-এর সময়। Query প্রতিটি request-এ একটি বিন্দু হয়। Embedding নির্দিষ্ট token,
-যেমন একটি error code বা function-এর নাম, ঝাপসা করে ফেলে। তাই keyword search এখনো জরুরি। **Production
-retrieval দুটিই চালায়।** এর কাজ উত্তর দেওয়া নয়, বরং উত্তরটা window-এ ঢোকানো, ওপরের দিকে rank করে।
+Document বিন্দু হয় একবারই, ingestion-এর সময়। Query বিন্দু হয় প্রতিটি request-এ। Embedding নির্দিষ্ট token-কে
+ঝাপসা করে দেয়, যেমন error code বা function-এর নাম, তাই keyword search-এর দরকার এখনো থাকে। **Production-এর
+retrieval দুটিই চালায়।** এর কাজ উত্তর দেওয়া নয়, উত্তরটাকে window-এ পৌঁছে দেওয়া, তাও ওপরের দিকে।
 
 ## কীভাবে কাজ করে
 
 ### Vector একটি বিন্দু, আর আসল ব্যাপার হলো দিক
 
-Vector-এর কোনো একটি সংখ্যার এমন কোনো মানে নেই যেটা আপনি পড়ে বুঝতে পারবেন। মানেটা বহন করে **geometry**।
-Cosine similarity দুটি vector-এর মাঝের কোণ মাপে, তাদের মাথার মধ্যে দূরত্ব নয়। তাই একই কথা ভিন্ন দৈর্ঘ্যে বলা
-দুটি document-ও কাছাকাছি গণ্য হয়।
+Vector-এর কোনো একটি সংখ্যা আলাদা করে পড়ে কিছু বোঝা যায় না। অর্থ বহন করে তার **জ্যামিতি**। Cosine similarity দুটি
+vector-এর মধ্যের কোণ মাপে, তাদের মাথার দূরত্ব নয়। তাই একই কথা ভিন্ন দৈর্ঘ্যে বলা দুটি document-কেও কাছাকাছি ধরা হয়।
 
 **তিনটি phrase embed করে তুলনা করা**
 
@@ -45,24 +44,23 @@ cosineSimilarity(embeddings[0], embeddings[1]); // ~0.85 — same intent
 cosineSimilarity(embeddings[0], embeddings[2]); // ~0.55 — both account admin, different jobs
 ```
 
-**Score-গুলো rank, probability নয়।** 0.82 score মানে 82% প্রাসঙ্গিক নয়। অপ্রাসঙ্গিক text এক model-এ 0.1-এর কাছে
-থাকে, আরেকটায় 0.7-এর কাছে। শুধু **ক্রম**-এরই মানে আছে। তাই ওপরের *k*-টি নিন, অথবা নিজের label করা query দিয়ে
-একটি threshold মেপে নিন।
+**Score-গুলো ক্রম বোঝায়, সম্ভাবনা নয়।** 0.82 score মানে 82% প্রাসঙ্গিক নয়। সম্পর্কহীন text একটি model-এ 0.1-এর
+কাছে থাকে, আরেকটিতে 0.7-এর কাছে। অর্থ আছে শুধু **ক্রমের**, তাই ওপরের *k*-টা নিন, কিংবা নিজের label দেওয়া query
+দিয়ে threshold মেপে নিন।
 
 ### দুই দিকেই একটি model
 
-দুটি model-এর vector তুলনা করা যায় না। তাই query আর document একই model ব্যবহার করে, আর model বদলানো মানে সবকিছু
-re-embed করা। অনেক model একটি input type-ও নেয় (query বা document)। উল্টো দিলে নিঃশব্দে recall কমে যায়।
-প্রতিটি vector-এর পাশে model-এর নাম আর version রাখুন।
+দুটি model-এর vector তুলনা করা যায় না। তাই query আর document একই model ব্যবহার করে, আর model বদলানো মানে সবকিছু আবার
+embed করা। অনেক model একটি input type-ও নেয় (query নাকি document)। উল্টো দিলে চুপচাপ recall কমে যায়। প্রতিটি vector-এর
+পাশে model-এর নাম আর version রাখুন।
 
-### Vector কোথায় থাকে: Postgres দিয়ে শুরু করুন
+### Vector কোথায় থাকবে: শুরু করুন Postgres দিয়ে
 
-একটি vector store একটি query vector-এর সবচেয়ে কাছের *k*-টি vector ফেরত দেয়। বাকিটা, যেমন filter আর namespace,
-সাধারণ database-এর কাজ। pgvector vector-কে একটি column type বানায়, তাই vector আপনার backup, migration, access
-control আর transaction সব পেয়ে যায়। Documentation assistant তার chunk-গুলো সেই Postgres-এই রাখে, যেটা সে আগে
-থেকেই চালায়।
+Vector store একটি query vector-এর সবচেয়ে কাছের *k*-টা vector ফেরত দেয়। বাকি সব, যেমন filter আর namespace, সাধারণ
+database-এর কাজ। pgvector vector-কে একটি column type বানিয়ে দেয়, ফলে vector পেয়ে যায় আপনার backup, migration,
+access control আর transaction। Documentation assistant তার chunk রাখে সেই Postgres-এই, যা আগে থেকেই চলছে।
 
-**pgvector-এ chunk table, একটি index আর একটি filter করা query**
+**pgvector-এ chunks table, একটি index আর একটি filter করা query**
 
 ```sql
 CREATE TABLE chunks (
@@ -83,49 +81,49 @@ ORDER BY embedding <=> $1               -- the operator picks the distance: cosi
 LIMIT 20;
 ```
 
-Permission filter, similarity search আর data এক engine-এ থাকে। Index না থাকলে query প্রতিটি row-এর সাথে তুলনা করে।
-সেটা নিখুঁত, আর `O(n)`। **মোটামুটি 100,000 vector-এর নিচে exact search সাধারণত যথেষ্ট**, কয়েক দশ millisecond-এ।
-একটি approximate nearest-neighbour (ANN) index এক কোটি row-এও কয়েক millisecond-এ উত্তর দেয়। এটা সামান্য recall
-ছেড়ে দেয়, সাধারণত আসল neighbour-দের 1–5%। **HNSW**, neighbour-দের একটি graph, বাড়তে থাকা corpus-এ মানায়, কিন্তু
-বানাতে সময় লাগে আর memory লাগে। **IVFFlat** vector-গুলোকে শেখা cluster-এ ভাগ করে। এটা দ্রুত বানানো যায়, কিন্তু data
-বদলালে মান পড়ে যায়, তাই মাঝে মাঝে rebuild লাগে।
+Permission filter, similarity search আর data, তিনটিই থাকে একই engine-এ। Index না থাকলে query প্রতিটি row-এর সঙ্গে
+তুলনা করে। সেটা নিখুঁত, আর `O(n)`। **মোটামুটি 100,000 vector-এর নিচে exact search সাধারণত যথেষ্ট**, কয়েক দশ
+millisecond-এ। Approximate nearest-neighbour (ANN) index এক কোটি row-এও কয়েক millisecond-এ উত্তর দেয়। বদলে একটু
+recall ছাড়তে হয়, সাধারণত আসল প্রতিবেশীদের 1–5%। **HNSW** হলো প্রতিবেশীদের একটি graph। বাড়তে থাকা corpus-এ এটা
+মানায়, কিন্তু বানাতে সময় লাগে আর memory লাগে। **IVFFlat** vector-গুলোকে শেখা cluster-এ ভাগ করে। দ্রুত বানানো
+যায়, কিন্তু data সরে গেলে মান পড়ে যায়, তাই মাঝে মাঝে rebuild লাগে।
 
-> ⚠️ **Approximate index আর একটি selective filter একসাথে থাকলেই recall চুপচাপ ধসে পড়ে।** Index সব row নিয়ে
-> বানানো একটি graph ঘুরে দেখে। Filter-এ যদি অল্প row মেলে, যথেষ্ট match পাওয়ার আগেই search-এর candidate ফুরিয়ে
-> যায়। এটা কম বা খারাপ result ফেরত দেয়, আর কোনো error জানায় না। আপনার আসল filter দিয়ে recall পরীক্ষা করুন।
+> ⚠️ **Approximate index-এর সঙ্গে বাছাই করা filter মিললেই recall চুপচাপ ধসে পড়ে।** Index যে graph ধরে হাঁটে, সেটা
+> সব row-এর ওপর বানানো। Filter-এ যদি অল্প row মেলে, যথেষ্ট match পাওয়ার আগেই search-এর candidate ফুরিয়ে যায়।
+> ফল আসে কম বা খারাপ, আর কোনো error-ও দেখায় না। আপনার আসল filter দিয়ে recall পরীক্ষা করুন।
 
-### একটি dedicated store-এর খরচ
+### আলাদা store-এর দাম
 
-একটি dedicated vector database কয়েক কোটি vector ছাড়িয়ে scale, আর managed sharding এনে দেয়। খরচ হলো একটি দ্বিতীয়
-stateful system, যেখানে দুটির মধ্যে কোনো join বা transaction নেই। যে খরচ কেউ আগে থেকে হিসাব করে না, সেটা **sync**:
-প্রতিটি deletion আর permission-এর পরিবর্তন একটি distributed operation হয়ে যায়। Sync ব্যর্থ হলে একটি chunk তার মুছে
-ফেলা document-এর পরেও বেঁচে থাকে, আর পুরো আত্মবিশ্বাসের সাথে একজন user-এর কাছে cite হয়। Storage আরেকটি চমক।
-একটি 1536-dimension float32 vector 6 KB, তাই দশ লাখ chunk index-এর আগেই 6 GB। HNSW memory-তে এটা দ্বিগুণ করতে
-পারে। Dimension কমালে এটা কমে, যদি আপনার eval বলে recall-এর ক্ষতি মেনে নেওয়া যায়।
+আলাদা vector database দেয় কয়েক কোটি vector ছাড়িয়ে যাওয়ার মতো scale, আর managed sharding। দাম হলো দ্বিতীয় একটি
+stateful system, যার সঙ্গে প্রথমটার কোনো join বা transaction চলে না। যে খরচ কেউ আগে হিসাব করে না, তা হলো **sync**:
+প্রতিটি deletion আর permission-এর বদল তখন distributed operation হয়ে যায়। Sync ব্যর্থ হলে একটি chunk তার মুছে ফেলা
+document-এর পরেও টিকে থাকে, আর পুরো আত্মবিশ্বাস নিয়ে user-এর সামনে cite হয়। Storage হলো আরেকটি চমক। 1536-dimension-এর
+একটি float32 vector 6 KB, তাই index ছাড়াই দশ লাখ chunk মানে 6 GB। HNSW memory-তে এটা দ্বিগুণ করতে পারে। Dimension কমালে
+এটা কমে, যদি আপনার eval বলে recall-এর ক্ষতিটা মেনে নেওয়া যায়।
 
-Assistant-এর **re-embed job** একটি page বদলালে চলে। এটা page-এর পুরোনো chunk মুছে দেয় আর নতুনগুলো লেখে, এক
-transaction-এ। Embedding model বদলালে একই job প্রতিটি page-এর ওপর চলে, একটি parallel index-এ। একই প্রশ্নে দুটি
-index-এর score নেওয়া হয়ে গেলে read switch করে।
+Assistant-এর **re-embed job** চলে কোনো page বদলালে। সেটা page-এর পুরনো chunk মুছে নতুনগুলো লেখে, একটি transaction-এ।
+Embedding model বদলালে একই job প্রতিটি page-এর ওপর চলে, একটি সমান্তরাল index-এ লিখে। দুটি index-কেই একই প্রশ্নে score
+করার পরে read নতুনটায় সরে যায়।
 
-> ⚠️ **যা বদলাতে থাকে:** vendor-এর তালিকা দ্রুত পুরোনো হয়ে যায়, আর pgvector ফারাক কমিয়েই চলেছে। Quantised
-> (compressed) vector type আর index-এর উন্নতি প্রতি কয়েকটি release-এ আসে। নীতিটা টিকে থাকে: approximate index
-> recall-এর বিনিময়ে গতি কেনে, আর আপনার filter ছাড়া একটি benchmark কোনোটাই মাপে না।
+> ⚠️ **যা বদলাতে থাকে:** vendor-এর তালিকা দ্রুত পুরনো হয়, আর pgvector ব্যবধান কমিয়েই চলেছে। Quantised (সংকুচিত)
+> vector type আর index-এর উন্নতি প্রতি কয়েকটি release-এ আসে। নীতিটা টিকে থাকে: approximate index recall দিয়ে গতি
+> কেনে, আর আপনার filter ছাড়া চালানো benchmark এর কোনোটাই মাপে না।
 
 ### তিনটি search mode, তিনটি অন্ধ জায়গা
 
-| Mode | যা খুঁজে পায় | যা বাদ পড়ে | খরচ |
+| Mode | যা খুঁজে পায় | যা ফসকায় | খরচ |
 | --- | --- | --- | --- |
-| **Keyword (BM25)** | নির্দিষ্ট term, code, নাম, বিরল শব্দ | Paraphrase, সমার্থক শব্দ | সস্তা, কোনো embedding call নেই |
-| **Vector** | অর্থ, paraphrase, অন্য ভাষা | Identifier, সংখ্যা, negation | প্রতি query-তে একটি embedding call |
-| **Hybrid** | দুটিই | সামান্য; দুটির recall-ই পায় | দুটি search আর fusion |
+| **Keyword (BM25)** | হুবহু term, code, নাম, বিরল শব্দ | একই কথা অন্যভাবে বলা, সমার্থক শব্দ | সস্তা, embedding call লাগে না |
+| **Vector** | অর্থ, অন্যভাবে বলা কথা, অন্য ভাষা | Identifier, সংখ্যা, negation | প্রতি query-তে একটি embedding call |
+| **Hybrid** | দুটিই | সামান্য; দুটির recall-ই পায় | দুটি search, সঙ্গে fusion |
 
-Negation সেই অন্ধ জায়গা, যেটা সবাই ভুলে যায়: "deployments that do **not** use the cache" তার বিপরীতের কাছে
-embed হয়। সংখ্যা আর তারিখও খারাপভাবে embed হয়, তাই এদের জায়গা metadata filter-এ।
+Negation হলো ভুলে যাওয়া অন্ধ জায়গা: "deployments that do **not** use the cache" embed হয় তার উল্টো অর্থের কাছাকাছি।
+সংখ্যা আর তারিখও ভালো embed হয় না, তাই সেগুলোর জায়গা metadata filter-এ।
 
 ### Hybrid search, আর দুটি তালিকা মেলানো
 
-BM25, keyword-ranking-এর standard formula, সীমাহীন score দেয়, cosine দেয় না। তাই দুটিকে এক মাপকাঠিতে আনা
-ভঙ্গুর। **Reciprocal rank fusion** এর বদলে rank ব্যবহার করে, আর calibrate করার কিছু থাকে না।
+BM25, মানে keyword ranking-এর প্রচলিত formula, সীমাহীন score দেয়, cosine দেয় না। তাই দুটিকে এক মাপকাঠিতে আনা
+ভঙ্গুর। **Reciprocal rank fusion** score-এর বদলে ক্রম ব্যবহার করে, ফলে calibrate করার মতো কিছু থাকে না।
 
 **একটি keyword তালিকা আর একটি vector তালিকার ওপর reciprocal rank fusion**
 
@@ -145,24 +143,24 @@ function fuse(lists: string[][], k = 60): string[] {
 const merged = fuse([await keywordSearch(q, 50), await vectorSearch(q, 50)]).slice(0, 20);
 ```
 
-যে document-কে দুটি তালিকাই ওপরে rank করে, সে এমন document-এর ওপরে ওঠে যাকে শুধু একটি তালিকা পছন্দ করেছে।
+যে document দুটি তালিকাতেই ওপরের দিকে, সেটা উঠে যায় এমন document-এর ওপরে, যেটাকে শুধু একটি তালিকা পছন্দ করেছিল।
 
 ### Reranking আর *k* বাছাই
 
-Retriever **recall**-এর জন্য optimise করে। Reranker **precision**-এর জন্য optimise করে। একটি vector search আলাদাভাবে
-হিসাব করা দুটি embedding তুলনা করে, তাই document কখনো query-কে দেখে না। একটি cross-encoder reranker query আর
-passage **একসাথে** পড়ে, আর জোড়াটিকে score দেয়। এটা অনেক বেশি নিখুঁত, কিন্তু আগে থেকে হিসাব করে রাখা যায় না। এটা
-100–400 ms আর প্রতি document-এ একটি খরচ যোগ করে। ওপরের পাঁচটিতেই উত্তর থাকলে এটা বাদ দিন।
+Retriever optimise করে **recall**-এর জন্য। Reranker optimise করে **precision**-এর জন্য। Vector search আলাদা আলাদা
+হিসাব করা দুটি embedding তুলনা করে, তাই document কখনো query-টা দেখেই না। Cross-encoder reranker query আর passage
+**একসঙ্গে** পড়ে, আর জোড়াটাকে score দেয়। এটা অনেক বেশি নিখুঁত, কিন্তু আগে থেকে হিসাব করে রাখা যায় না। এতে
+100–400 ms যোগ হয়, সঙ্গে প্রতি document-এ একটি charge। ওপরের পাঁচটিতেই উত্তর থাকলে এটা বাদ দিন।
 
-পাঠানো প্রতিটি chunk window-এর জায়গা আর token খরচ করে, আর noise বাড়ায়। তাই **চওড়া আর সস্তায় retrieve করুন,
-সরু করে rerank করুন, অল্প পাঠান**: দুটি top-50 তালিকা fuse করুন, 20-টি rerank করুন, 5-টি পাঠান। Assistant
-`k = 5`-এ rerank করে।
+পরের ধাপে পাঠানো প্রতিটি chunk window-এর জায়গা আর token খায়, আর গোলমাল বাড়ায়। তাই **চওড়া আর সস্তায় retrieve
+করুন, সরু করে rerank করুন, পাঠান অল্প**: দুটি top-50 তালিকা মেলান, 20টি rerank করুন, পাঠান 5টি। Assistant rerank
+করে `k = 5` পর্যন্ত।
 
-### Filter-ই access control
+### Filter মানেই access control
 
-User-রা যদি ভিন্ন ভিন্ন document দেখতে পারে, তাহলে filter-**ই** access control। এটা search-এর ভেতরে চলে, পরে নয়।
+User-রা যদি আলাদা আলাদা document দেখতে পান, তাহলে filter-ই **হলো** access control। এটা চলে search-এর ভেতরে, পরে নয়।
 
-**Engine-এর ভেতরে tenant আর role দিয়ে pre-filtering**
+**Engine-এর ভেতরে tenant আর role দিয়ে আগে থেকে filter করা**
 
 ```typescript
 import { embed } from "ai";
@@ -179,101 +177,99 @@ const hits = await index.query({
 });
 ```
 
-Application code-এ filter করা দুইভাবে ব্যর্থ হয়। সব 50-টিই লুকানো থাকলে user কিছুই পায় না। আর যে এটা "ঠিক" করতে
-limit বাড়ায়, সে একটি leak-এর সুযোগ করে দেয়।
+Application code-এ filter করলে দুইভাবে ব্যর্থ হয়। 50টির সবগুলোই যদি লুকানো থাকে, user কিছুই পান না। আর যিনি সেটা
+"ঠিক" করতে limit বাড়িয়ে দেন, তিনি ফাঁসের পথ খুলে দেন।
 
 ### Query rewriting
 
-User-এর শব্দ প্রায়ই corpus-এর শব্দ নয়। দুটি সমাধান কাজে লাগে:
+User যে শব্দে বলেন, corpus-এ প্রায়ই সেই শব্দ থাকে না। দুটি সমাধান কাজে দেয়:
 
-- **Rewriting** history ব্যবহার করে "and what about the other one?"-কে একটি স্বয়ংসম্পূর্ণ প্রশ্নে পরিণত করে।
-  এটা ছাড়া follow-up প্রশ্ন noise retrieve করে। Multi-turn RAG-এর সবচেয়ে সাধারণ bug এটাই।
-- **Multi-query expansion** দুই-তিনটি ভিন্ন phrasing দিয়ে search করে আর result-গুলো fuse করে, recall কেনে।
+- **Rewriting** history ব্যবহার করে "আর অন্যটার কী হবে?"-কে নিজে নিজে দাঁড়াতে পারে এমন একটি প্রশ্ন বানিয়ে দেয়। এটা না
+  থাকলে follow-up প্রশ্নে ময়লা retrieve হয়। Multi-turn RAG-এর সবচেয়ে সাধারণ bug এটাই।
+- **Multi-query expansion** দুই-তিনভাবে প্রশ্নটা লিখে search করে, তারপর ফলগুলো মেলায়। এতে recall বাড়ে।
 
-> ⚠️ দুটিই retrieval শুরুর আগে একটি পুরো model round trip যোগ করে। Assistant তার ছোট, দ্রুত model দিয়ে rewrite
-> করে। আপনার traffic-এ recall-এর লাভ latency-র দাম মেটায় কি না, তা মেপে দেখুন।
+> ⚠️ দুটিই retrieval শুরুর আগে model-এর কাছে একটি পুরো round trip যোগ করে। Assistant rewrite করে তার ছোট, দ্রুত
+> model দিয়ে। আপনার traffic-এ recall-এর লাভটা latency-র দামের যোগ্য কি না, তা মেপে দেখুন।
 
 ## কখন ব্যবহার করবেন
 
 | পরিস্থিতি | Design |
 | --- | --- |
-| মোটামুটি 100k chunk-এর নিচে, production-এ Postgres | pgvector, প্রথমে exact search |
-| 100k–5M chunk | HNSW-সহ pgvector |
-| কয়েক কোটি, বা load-এর বেশিরভাগ vector search | একটি dedicated store |
-| Code আর নামে ভরা technical docs | Hybrid, keyword-এর দিকে বেশি ওজন |
-| বড় corpus, অস্পষ্ট প্রশ্ন | Hybrid আর reranking |
-| Multi-tenant বা role অনুযায়ী সীমিত document | Engine-এ pre-filter, সবসময় |
-| Conversational assistant | Query rewriting, নইলে follow-up ব্যর্থ হয় |
+| ~100k-এর কম chunk, production-এ Postgres আছে | pgvector, আগে exact search |
+| 100k–5M chunk | HNSW সহ pgvector |
+| কয়েক কোটি, কিংবা load-এর বড় অংশই vector search | আলাদা store |
+| Code আর নামে ভরা technical docs | Hybrid, keyword-এর দিকে বেশি ভার |
+| বড় corpus, অস্পষ্ট প্রশ্ন | Hybrid, সঙ্গে reranking |
+| Multi-tenant বা role অনুযায়ী সীমিত document | Engine-এর ভেতরে আগে filter, সবসময় |
+| কথোপকথনের assistant | Query rewriting, নইলে follow-up ব্যর্থ হয় |
 
-এই পরিবর্তনগুলোর কোনোটা কাজে লাগল কি না জানতে, একটি golden set-এ recall@k মাপুন। সেটা
-[Chapter ?? — Eval, Retrieval Metric ও Error Analysis](#ch-evals)।
+এর কোনো বদল কাজে দিল কি না, জানতে হলে golden set-এ recall@k মাপুন। সেটা আছে
+[Chapter ?? — Eval, Retrieval Metric ও Error Analysis](#ch-evals)-এ।
 
 ## সাধারণ ভুল
 
-**❌ একটি similarity threshold hard-code করা**
+**❌ Similarity threshold hard-code করা**
 
-> `if (score > 0.75)` model, corpus বা query type পেরিয়ে খাটে না। ওপরের *k*-টি নিন, অথবা নিজের label করা query
-> দিয়ে cut-off মেপে নিন।
+> `if (score > 0.75)` এক model, corpus বা query type থেকে আরেকটিতে খাটে না। ওপরের *k*-টা নিন, কিংবা নিজের label
+> দেওয়া query দিয়ে cut-off মেপে নিন।
 
-**❌ Re-embed না করে embedding model বদলানো**
+**❌ আবার embed না করেই embedding model বদলানো**
 
-> Store-এ এখন দুটি বেমানান geometry। Result বিশ্বাসযোগ্য দেখায়, কিন্তু মান খারাপ। সবকিছু একটি parallel index-এ
-> re-embed করুন, তারপর read switch করুন।
+> Store-এ তখন দুটি বেমানান জ্যামিতি থাকে। ফল দেখতে বিশ্বাসযোগ্য, আসলে খারাপ। সবকিছু একটি সমান্তরাল index-এ আবার
+> embed করুন, তারপর read সেদিকে সরান।
 
-**❌ Ranking-এর সমস্যা সারাতে *k* বাড়ানো**
+**❌ Ranking-এর সমস্যা মেটাতে *k* বাড়ানো**
 
-> বেশি chunk মানে বেশি খরচ, বেশি noise আর খারাপ উত্তর। বরং rerank করুন।
+> বেশি chunk মানে বেশি খরচ, বেশি গোলমাল, আর খারাপ উত্তর। তার বদলে rerank করুন।
 
-**✅ প্রতিটি vector-এর সাথে model version, আর প্রতিটি request-এর সাথে retrieve করা chunk log করুন**
+**✅ প্রতিটি vector-এর সঙ্গে model version, আর প্রতিটি request-এর সঙ্গে retrieve হওয়া chunk log করুন**
 
-> উত্তর ভুল হলে প্রথম প্রশ্ন হলো, সঠিক অংশটি আদৌ retrieve হয়েছিল কি না। এই দুটি record সেই প্রশ্নকে পাঁচ মিনিটের
-> একটি পরীক্ষায় পরিণত করে।
+> উত্তর ভুল হলে প্রথম প্রশ্ন হলো, ঠিক passage-টা আদৌ retrieve হয়েছিল কি না। এই দুটি record থাকলে সেই প্রশ্নের উত্তর
+> পাঁচ মিনিটেই মিলে যায়।
 
 ## 🔑 মূল শিক্ষা
 
-- Embedding এমন একটি বিন্দু, যেখানে কাছাকাছি থাকা মানে অর্থ কাছাকাছি। এর similarity score rank, probability নয়।
-- Query আর document-কে একই embedding model ব্যবহার করতে হবে। তাই model বদলানো মানে একটি parallel index-এ পুরো re-embed।
-- Scale বাধ্য না করা পর্যন্ত vector আগে থেকে চালানো database-এই রাখুন। দ্বিতীয় store একটি sync pipeline আনে, যেটা নিঃশব্দে ব্যর্থ হয়।
-- Keyword আর vector search উল্টো ধরনের query-তে ব্যর্থ হয়। তাই দুটিই চালান, rank দিয়ে fuse করুন, আর চওড়া candidate set rerank করে অল্প কয়েকটিতে নামান।
-- Permission filter search engine-এর ভেতরে চলে, আর conversational query retrieval-এর আগে স্বয়ংসম্পূর্ণ query-তে rewrite করা হয়।
+- Embedding হলো এমন একটি বিন্দু, যেখানে কাছাকাছি থাকা মানে অর্থ কাছাকাছি। এর similarity score ক্রম বোঝায়, সম্ভাবনা নয়।
+- Query আর document-কে একই embedding model ব্যবহার করতে হবে, তাই model বদলানো মানে সমান্তরাল index-এ পুরো re-embed।
+- Scale বাধ্য না করা পর্যন্ত vector রাখুন আগে থেকে চালানো database-এ, কারণ দ্বিতীয় store আনে এমন sync pipeline, যা চুপচাপ ব্যর্থ হয়।
+- Keyword আর vector search উল্টো ধরনের query-তে ব্যর্থ হয়, তাই দুটিই চালান, ক্রম দিয়ে মেলান, আর চওড়া candidate set rerank করে অল্প কয়েকটিতে নামান।
+- Permission filter চলে search engine-এর ভেতরে, আর কথোপকথনের query retrieval-এর আগে নিজে দাঁড়াতে পারে এমন প্রশ্নে rewrite হয়।
 
 ## Interview-এর প্রশ্ন
 
 **Q: 0.82 cosine similarity আপনাকে কী বলে?**
 
-এটুকুই যে, একই model আর corpus-এ 0.6 score পাওয়া জোড়ার চেয়ে এই জোড়াটি বেশি কাছাকাছি। এর বেশি কিছু নয়। এটা
-probability নয়, আর model পেরিয়ে তুলনাও করা যায় না। অপ্রাসঙ্গিক text এক model-এ 0.7, আরেকটায় 0.1 score পেতে
-পারে। যেকোনো absolute cut-off আসল corpus-এর label করা উদাহরণ দিয়ে calibrate করতে হবে।
+বলে যে একই model আর corpus-এ এই জোড়াটা 0.6 score পাওয়া জোড়ার চেয়ে বেশি মিলে যায়, এর বেশি কিছু নয়। এটা সম্ভাবনা
+নয়, আর এক model-এর সঙ্গে আরেক model-এর তুলনাও চলে না। সম্পর্কহীন text একটি model-এ 0.7 পেতে পারে, আরেকটিতে 0.1।
+যেকোনো নির্দিষ্ট cut-off আসল corpus-এর label দেওয়া উদাহরণ দিয়ে calibrate করতে হয়।
 
-**Q: pgvector, নাকি একটি dedicated vector database?**
+**Q: pgvector, নাকি আলাদা vector database?**
 
-Scale সত্যিই অন্য কিছু দাবি না করা পর্যন্ত pgvector। এটা vector-কে এমন একটি database-এর column বানায়, যেটা আমি
-আগে থেকেই backup, migrate আর secure করি। তখন filtering আর similarity একটিই planner-এর সিদ্ধান্ত হয়ে যায়। একটি
-dedicated store একটি দ্বিতীয় system আর একটি sync pipeline যোগ করে। এর সাধারণ failure হলো একটি মুছে ফেলা document,
-যেটা তখনও cite হয়। আমি কয়েক কোটি vector-এ সরে যাব, অথবা যখন vector-এর load transactional traffic-এর ক্ষতি করতে
-শুরু করবে।
+Scale সত্যিই অন্য কিছু না চাওয়া পর্যন্ত pgvector। এতে vector হয়ে যায় এমন database-এর একটি column, যার backup,
+migration আর security আমি আগে থেকেই সামলাই। তখন filtering আর similarity একই planner-এর একটি সিদ্ধান্ত হয়ে যায়। আলাদা
+store যোগ করে দ্বিতীয় একটি system আর একটি sync pipeline। এর সাধারণ ব্যর্থতা হলো মুছে ফেলা document তবু cite হওয়া।
+আমি সরব কয়েক কোটি vector-এ পৌঁছালে, কিংবা vector-এর load যখন transactional traffic-এর ক্ষতি করতে শুরু করবে।
 
 **Q: Vector, keyword, নাকি দুটিই?**
 
-দুটিই, প্রায় প্রতিটি production system-এ, কারণ এরা ভিন্ন query-তে ব্যর্থ হয়। Vector search paraphrase সামলায় আর
-error code মিস করে। Keyword search ঠিক উল্টো। আমি score normalise না করে rank দিয়ে fuse করব। খুব ছোট corpus-এ
-আমি একটি দিয়ে শুরু করব, যতক্ষণ না eval দেখায় কোন query ব্যর্থ হচ্ছে।
+প্রায় প্রতিটি production system-এ দুটিই, কারণ দুটি ব্যর্থ হয় আলাদা query-তে। Vector search অন্যভাবে বলা কথা ধরে,
+কিন্তু error code ফসকায়। Keyword search ঠিক উল্টো। আমি score normalise না করে ক্রম দিয়ে মেলাব। খুব ছোট corpus-এ
+একটি দিয়েই শুরু করব, যতক্ষণ না eval দেখায় কোন query-গুলো ব্যর্থ হচ্ছে।
 
-**Q: Reranker এমন কী করে যা retriever পারে না?**
+**Q: Reranker এমন কী করে, যা retriever পারে না?**
 
-এটা query আর passage একসাথে পড়ে। একটি vector search আলাদাভাবে হিসাব করা embedding তুলনা করে। এতে এটা দ্রুত হয়
-আর আগে থেকে হিসাব করে রাখা যায়, কিন্তু precision সীমিত থাকে। একটি cross-encoder জোড়াটিকে সরাসরি score দেয়।
-এটা বেশি নিখুঁত, কিন্তু কখনো আগে থেকে হিসাব করা যায় না। তাই সস্তায় পঞ্চাশটি retrieve করুন, বিশটি rerank করুন,
-পাঁচটি পাঠান।
+এটা query আর passage একসঙ্গে পড়ে। Vector search আলাদা আলাদা হিসাব করা embedding তুলনা করে। তাতে এটা দ্রুত হয়, আর
+আগে থেকে হিসাব করে রাখা যায়, কিন্তু precision সীমিত থাকে। Cross-encoder সরাসরি জোড়াটাকে score দেয়। এটা বেশি নিখুঁত,
+কিন্তু কখনো আগে থেকে হিসাব করা যায় না। তাই সস্তায় পঞ্চাশটি retrieve করুন, বিশটি rerank করুন, পাঠান পাঁচটি।
 
-**Q: একজন user যা দেখতে পারে, retrieval-কে তার মধ্যে কীভাবে সীমিত রাখবেন?**
+**Q: User যা দেখতে পারেন, retrieval-কে শুধু তার মধ্যে সীমিত রাখবেন কীভাবে?**
 
-Query-র অংশ হিসেবে search engine-এর ভেতরেই filter করুন, ingestion-এর সময় প্রতিটি chunk-এ রাখা tenant আর role field
-দিয়ে। পরে filter করলে যত result চাওয়া হয়েছিল তার চেয়ে কম আসে, আর access control চলে যায় application code-এ,
-যেখানে কেউ না কেউ limit বাড়িয়ে দেবে। Approximate index থাকলে আমি সেই filter-সহ recall-ও পরীক্ষা করব, কারণ
-selective filter-এই recall ধসে পড়ে।
+Search engine-এর ভেতরে, query-রই অংশ হিসেবে filter করুন। ব্যবহার করুন ingestion-এর সময় প্রতিটি chunk-এ রাখা tenant
+আর role field। পরে filter করলে যত চাওয়া হয়েছিল তার চেয়ে কম ফল আসে, আর access control চলে যায় application code-এ,
+যেখানে কেউ না কেউ limit বাড়িয়ে দেবেন। Approximate index থাকলে আমি সেই filter-সহ recall-ও পরীক্ষা করব, কারণ বাছাই করা
+filter-এই এটা ধসে পড়ে।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Ingestion ও Chunking](#ch-ingestion-and-chunking) — আপনি যা embed করেন, সেটাই ঠিক করে আপনি কী খুঁজে পাবেন
-- [Chapter ?? — Eval, Retrieval Metric ও Error Analysis](#ch-evals) — recall@k, আর এর কোনোটা কাজে লাগল কি না কীভাবে জানবেন
+- [Chapter ?? — Ingestion ও Chunking](#ch-ingestion-and-chunking) — আপনি কী embed করছেন, তা-ই ঠিক করে কী খুঁজে পাবেন
+- [Chapter ?? — Eval, Retrieval Metric ও Error Analysis](#ch-evals) — recall@k, আর এর কিছু কাজে দিল কি না, তা জানার উপায়

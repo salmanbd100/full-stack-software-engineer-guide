@@ -1,41 +1,41 @@
 ---
 sourceHash: "b6dfd46e8f7fe1bcc28eb93ceb8677df4824feff0577fe475b26cc251d687b54"
 title: "Modified Binary Search"
-translatedAt: "2026-10-13T03:11:13.330Z"
+translatedAt: "2026-10-19T10:26:02.015Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Modified Binary Search {#ch-modified-binary-search}
 
-> প্রতি ধাপে search space অর্ধেক করুন — শুধু sorted array-তে নয়, যেখানেই একটি হ্যাঁ/না test ঠিক একবার উল্টে যায়, সেখানেই।
+> প্রতি ধাপে search space অর্ধেক করুন। শুধু sorted array-তে নয়, যেখানেই কোনো হ্যাঁ/না test ঠিক একবার উল্টে যায়, সেখানেই।
 
-**এই অধ্যায়ে:** যে template কখনো এক ঘর ভুল করে না · rotated array আর sorted-half test · একটি value নয়, একটি boundary খোঁজা · একটি answer space-এর ওপর binary search · যে invariant এদের সবাইকে একই code বানায়
+**এই অধ্যায়ে:** এমন template, যাতে কখনো এক ঘর এদিক-ওদিক হয় না · rotated array আর sorted-half test · value নয়, boundary খোঁজা · answer space-এর ওপর binary search · যে invariant এগুলোকে একই code বানিয়ে দেয়
 
 ## 💡 মূল ধারণা
 
-Classic binary search-এর জন্য একটি sorted array লাগে। সেটা আরও সাধারণ একটি জিনিসের বিশেষ রূপ: binary search তখনই
-কাজ করে, যখন আপনি একটি midpoint-কে হ্যাঁ/না প্রশ্ন করতে পারেন আর জানেন কোন অর্ধেক বাদ দিতে হবে।
+চেনা binary search-এর জন্য sorted array লাগে। কিন্তু সেটা আরও সাধারণ নিয়মের বিশেষ রূপ মাত্র: মাঝের element-কে
+একটি হ্যাঁ/না প্রশ্ন করে যদি বোঝা যায় কোন অর্ধেক বাদ দিতে হবে, তাহলেই binary search চলে।
 
-আনুষ্ঠানিকভাবে বললে, array-কে **predicate-এর সাপেক্ষে monotonic** হতে হবে — কোনো একটি boundary-র আগের প্রতিটি
-element উত্তর দেয় "না", আর সেখান থেকে পরের প্রতিটি element উত্তর দেয় "হ্যাঁ"। সেই boundary খুঁজতে `O(log n)` ধাপ
-লাগে, ভেতরের data sorted হোক, rotated হোক, বা আদৌ কোনো array না হোক।
+আনুষ্ঠানিকভাবে বললে, array-কে **predicate-এর সাপেক্ষে monotonic** হতে হবে। মানে কোনো boundary-র আগের সব element
+উত্তর দেয় "না", আর সেখান থেকে বাকি সব "হ্যাঁ"। Data sorted হোক, rotated হোক, বা আদৌ array না হোক, সেই boundary খুঁজতে
+লাগে `O(log n)` ধাপ।
 
-"Modified" মানে এই নতুন দৃষ্টিভঙ্গিটাই। Interview-এ যে তিনটি রূপভেদ গুরুত্বপূর্ণ:
+"Modified" বলতে এই নতুন করে দেখাটাই বোঝায়। Interview-এ যে তিনটি রূপ গুরুত্বপূর্ণ:
 
-| রূপভেদ                  | কী monotonic                                     |
+| রূপ                  | কোনটা monotonic                                     |
 | -------------------------- | ----------------------------------------------------- |
-| Rotated sorted array       | দুই অর্ধেকের একটি সবসময় ঠিকঠাক sorted        |
+| Rotated sorted array       | দুই অর্ধেকের অন্তত একটি সবসময় ঠিকমতো sorted        |
 | প্রথম বা শেষ occurrence   | "এই element কি `≥ target`?" ঠিক একবার উল্টে যায়        |
-| Answer space-এ search | "`x` capacity কি যথেষ্ট?" — feasibility monotonic |
+| Answer space-এ search | "`x` capacity কি যথেষ্ট?" — সম্ভব কিনা, সেটাই monotonic |
 
-> Array search space নয়। Search space হলো **সিদ্ধান্তটা**। এটা একবার দেখতে পেলে, "`d` দিনে package পাঠানোর
-> সর্বনিম্ন capacity" একটি binary search হয়ে যায়, যদিও কোথাও কোনো sorted input নেই।
+> Search space array নয়, **সিদ্ধান্তটা**। এটা চোখে পড়লে "`d` দিনে package পাঠাতে সবচেয়ে কম কত capacity লাগে" প্রশ্নটাও
+> binary search হয়ে যায়, যদিও কোথাও কোনো sorted input নেই।
 
 ## কীভাবে কাজ করে
 
 ### Template
 
-প্রতিবার এভাবে লিখুন, তাহলে off-by-one ভুল আর হবে না:
+প্রতিবার এভাবেই লিখুন, তাহলে off-by-one ভুল আর হবে না:
 
 ```typescript
 function binarySearch(nums: number[], target: number): number {
@@ -54,13 +54,13 @@ function binarySearch(nums: number[], target: number): number {
 // Time: O(log n), Space: O(1)
 ```
 
-দুটি খুঁটিনাটি সঠিকতার দায়িত্ব নেয়। Inclusive bound-সহ `low <= high` মানে loop তখনই বের হয়, যখন range সত্যিই
-খালি। আর `mid + 1` / `mid - 1` অগ্রগতি নিশ্চিত করে — দুই element-এর range-এ `low = mid` চিরকাল loop করে।
+সঠিকতা টিকে থাকে দুটি খুঁটিনাটির ওপর। Inclusive bound-সহ `low <= high` মানে loop থামে কেবল range সত্যিই খালি হলে। আর
+`mid + 1` / `mid - 1` নিশ্চিত করে যে প্রতি ধাপে এগোনো হচ্ছে। দুই element-এর range-এ `low = mid` লিখলে loop আর থামে না।
 
 ### Rotated sorted array
 
-Rotation সামগ্রিকভাবে sorted-ভাব ভাঙে, কিন্তু স্থানীয়ভাবে নয়। যেকোনো midpoint-এ ভাগ করুন, **অন্তত একটি অর্ধেক
-তখনো ঠিকঠাক sorted** থাকে — কোনটি, তা চিনে নিন, তাহলে target সেখানে আছে কিনা ঠিক করতে পারবেন।
+Rotation পুরো array-র sorted ভাব ভেঙে দেয়, কিন্তু স্থানীয়ভাবে ভাঙে না। যেকোনো মাঝের বিন্দুতে ভাগ করুন, **অন্তত একটি
+অর্ধেক তখনো ঠিকমতো sorted থাকে**। কোনটা, সেটা চিনে নিলেই বলা যায় target সেই অর্ধেকে আছে কিনা।
 
 ```typescript
 function searchRotated(nums: number[], target: number): number {
@@ -86,11 +86,11 @@ function searchRotated(nums: number[], target: number): number {
 // Time: O(log n), Space: O(1)
 ```
 
-Test হলো `nums[low] <= nums[mid]`, আর `<=` শুধু সাজসজ্জা নয়: দুই element-এর range-এ `low` আর `mid` একই index, আর
-strict `<` অর্ধেকটাকে ভুল শ্রেণিতে ফেলত।
+Test হলো `nums[low] <= nums[mid]`, আর এখানে `<=` শুধু দেখানোর জন্য নয়। দুই element-এর range-এ `low` আর
+`mid` একই index, তাই strict `<` লিখলে অর্ধেকটা ভুল চেনা হয়।
 
-**Minimum খোঁজা** একই ধারণা, শুধু target বাদ দিয়ে। Midpoint-কে ডান প্রান্তের সাথে তুলনা করুন — বড় হলে মানে rotation
-point ডানে।
+**Minimum খোঁজাও** একই ভাবনা, শুধু target নেই। মাঝের element-কে ডান প্রান্তের সঙ্গে মেলান। মাঝেরটা বড় হলে rotation-এর
+বিন্দু ডানে আছে।
 
 ```typescript
 function findMin(nums: number[]): number {
@@ -107,14 +107,14 @@ function findMin(nums: number[]): number {
 // Time: O(log n), Space: O(1)
 ```
 
-⚠️ খেয়াল করুন, loop-এর শর্ত বদলে `low < high` হয়েছে, আর `mid - 1`-এর বদলে `high = mid`। এটা **boundary খোঁজার**
-রূপ, আর এটা ওপরের value খোঁজার template থেকে আলাদা একটি template। দুটি মিশিয়ে ফেললে — `low <= high` সাথে
-`high = mid` — infinite loop হয়।
+⚠️ খেয়াল করুন, loop-এর শর্ত বদলে হয়েছে `low < high`, আর `mid - 1`-এর বদলে `high = mid`। এটা **boundary খোঁজার** রূপ,
+ওপরের value খোঁজার template থেকে আলাদা। দুটি মিশিয়ে ফেললে, মানে `low <= high`-এর সঙ্গে `high = mid` লিখলে, loop আর কখনো
+থামে না।
 
-### একটি boundary খোঁজা
+### Boundary খোঁজা
 
-"প্রথম অবস্থান যেখানে…" আর "শেষ অবস্থান যেখানে…" হলো boundary search। একটি equality check করে তারপর পাশে
-linear scan চালিয়ে শর্টকাট নেওয়ার চেষ্টা করবেন না। `[2, 2, 2, 2]`-এ সেটা নেমে `O(n)` হয়ে যায়।
+"প্রথম কোন অবস্থানে…" আর "শেষ কোন অবস্থানে…" হলো boundary search। সমান element পেয়ে তারপর পাশে পাশে linear scan করে
+শর্টকাট নেওয়ার চেষ্টা করবেন না। `[2, 2, 2, 2]`-এ সেটা নেমে যায় `O(n)`-এ।
 
 ```typescript
 // Smallest index with nums[i] >= target — the lower bound
@@ -139,13 +139,13 @@ function searchRange(nums: number[], target: number): [number, number] {
 // Time: O(log n), Space: O(1)
 ```
 
-যে invariant মুখে বলতে হবে: **`low`-এর নিচের সবকিছু উত্তর দেয় না, `high` থেকে ওপরের সবকিছু উত্তর দেয় হ্যাঁ।**
-দুটি যেখানে মেলে, সেই index-টাই boundary। প্রতিটি boundary problem হলো এই function-টাই, শুধু predicate আলাদা।
+যে invariant মুখে বলবেন: **`low`-এর নিচে সবকিছুর উত্তর না, আর `high` থেকে ওপরে সবকিছুর উত্তর হ্যাঁ।** দুটি যেখানে মেলে,
+সেই index-টাই boundary। প্রতিটি boundary problem এই function-ই, শুধু predicate আলাদা।
 
 ### Answer space-এর ওপর binary search
 
-প্রশ্ন যখন একটি minimum বা maximum value চায়, আর একটি candidate যাচাই করা সস্তা, তখন একটি array নয়, value-গুলোর
-ওপর search করুন।
+প্রশ্ন যখন কোনো সর্বনিম্ন বা সর্বোচ্চ value চায়, আর candidate যাচাই করা সস্তা, তখন array নয়, value-গুলোর ওপর
+search করুন।
 
 ```typescript
 // LC 875 — the slowest eating speed that finishes all piles within h hours
@@ -166,37 +166,37 @@ function minEatingSpeed(piles: number[], h: number): number {
 // Time: O(n log(max pile)), Space: O(1)
 ```
 
-"`x` speed কি যথেষ্ট দ্রুত" predicate-টি monotonic: `x` কাজ করলে তার চেয়ে বড় প্রতিটি speed-ও কাজ করে। এই
-monotonicity-ই একমাত্র পূর্বশর্ত — pile-গুলো কখনো sort করতে হয় না।
+"Speed `x` কি যথেষ্ট দ্রুত" predicate-টা monotonic: `x` চললে তার চেয়ে বড় প্রতিটি speed-ও চলে। পূর্বশর্ত শুধু এই
+monotonic হওয়াটুকু। Pile-গুলো কখনো sort করতে হয় না।
 
 ## কখন ব্যবহার করবেন
 
-| প্রশ্নে যে সংকেত থাকে                                      | কী ব্যবহার করবেন                | কেন                                     |
+| প্রশ্নে যে ইঙ্গিত থাকে                                      | কী ব্যবহার করবেন                | কেন                                     |
 | ----------------------------------------------------------- | ------------------------ | --------------------------------------- |
-| একটি sorted array আর একটি target                                 | Classic template         | মৌলিক ক্ষেত্র                            |
-| "Sorted, কিন্তু rotated"                                        | Sorted-half test         | একটি অর্ধেক সবসময় ঠিকঠাক sorted       |
-| "First", "last", "insertion point", "smallest index where…" | `lowerBound` রূপ        | Boundary, equality নয়                   |
-| সস্তা feasibility check-সহ "সর্বনিম্ন X, যাতে…"       | Answer space-এ search  | Predicate monotonic, data নয় |
-| একটি sorted matrix                                             | একটি সমতল array হিসেবে ধরুন, বা একটি কোণ থেকে হাঁটুন | দুটিই `O(log n)` বা `O(m + n)` |
-| Unsorted array, একটিমাত্র query                                | Linear scan              | একবার search করতে sort করলে খরচ বেশি        |
-| Unsorted array, অনেক query                                | একবার sort, তারপর প্রতিটিতে binary search | Sort-এর খরচ amortise হয়          |
-| Duplicate আর একটি rotated array                              | Binary search নেমে `O(n)` হয় | `[2,2,2,0,2]`-এ midpoint কোনো তথ্য দেয় না |
+| Sorted array আর একটি target                                 | চেনা template         | মূল ক্ষেত্র                            |
+| "Sorted, কিন্তু rotated"                                        | Sorted-half test         | একটি অর্ধেক সবসময় ঠিকমতো sorted       |
+| "প্রথম", "শেষ", "insertion point", "সবচেয়ে ছোট index যেখানে…" | `lowerBound` রূপ        | এখানে boundary খুঁজছেন, সমান element নয়   |
+| "সবচেয়ে কম X যাতে…", আর সম্ভব কিনা যাচাই সস্তা       | Answer space-এ search  | Data নয়, predicate monotonic |
+| Sorted matrix                                             | একটি সমতল array ধরে নিন, বা কোনো কোণ থেকে হাঁটুন | দুটিই `O(log n)` বা `O(m + n)` |
+| Unsorted array, একটিমাত্র query                                | Linear scan              | একবার খোঁজার জন্য sort করতে খরচ বেশি        |
+| Unsorted array, অনেক query                                | একবার sort, তারপর প্রতিটির জন্য binary search | Sort-এর খরচ ভাগ হয়ে যায়          |
+| Duplicate আর rotated array                              | Binary search, যা নেমে যায় `O(n)`-এ | `[2,2,2,0,2]`-এ মাঝের element কোনো তথ্য দেয় না |
 
-শেষ row-টা একটি সীমা হিসেবে জানা দরকার। LC 81-এর সত্যিকারের একটি `O(n)` worst case আছে। Interview-এ সঠিক উত্তর
-হলো সেটা নাম ধরে বলা, `O(log n)` দাবি করা নয়।
+শেষ row-টা সীমা হিসেবে জেনে রাখুন। LC 81-এর worst case সত্যিই `O(n)`। Interview-এ সঠিক উত্তর হলো সেটা বলে দেওয়া,
+`O(log n)` দাবি করা নয়।
 
 ## সাধারণ ভুল
 
-**যোগ করে midpoint হিসাব করা:**
+**যোগ করে মাঝের বিন্দু বের করা:**
 
 ```typescript
 // ❌ const mid = Math.floor((low + high) / 2);   // overflows in fixed-width languages
 // ✅ const mid = low + Math.floor((high - low) / 2);
 ```
 
-JavaScript-এর number-এ বাস্তবে এটা নিরাপদ, কিন্তু interviewer-রা এটাকে একটি সংকেত হিসেবে পড়েন। নিরাপদ রূপটা লিখুন।
+JavaScript-এর number-এ বাস্তবে এটা নিরাপদ, কিন্তু interviewer-রা একে অভ্যাসের লক্ষণ হিসেবে পড়েন। নিরাপদ রূপটাই লিখুন।
 
-**দুই রকম loop-এর গড়ন মিশিয়ে ফেলা:**
+**দুই রকম loop মিশিয়ে ফেলা:**
 
 ```typescript
 // ❌ while (low <= high) { ... high = mid; }   // infinite when low === high
@@ -204,7 +204,7 @@ JavaScript-এর number-এ বাস্তবে এটা নিরাপদ,
 // ✅ boundary search: while (low < high),  high = mid
 ```
 
-**Midpoint বাদ না দেওয়া:**
+**মাঝের element বাদ না দেওয়া:**
 
 ```typescript
 // ❌ low = mid;      // on a two-element range, mid === low and nothing progresses
@@ -218,7 +218,7 @@ JavaScript-এর number-এ বাস্তবে এটা নিরাপদ,
 // ✅ if (nums[low] <= nums[mid])
 ```
 
-**সমান একটি element পাওয়ার পর পাশে scan করা:**
+**সমান element পাওয়ার পরে পাশে পাশে scan করা:**
 
 ```typescript
 // ❌ find target, then walk left to the first occurrence — O(n) on [2,2,2,2]
@@ -236,68 +236,67 @@ JavaScript-এর number-এ বাস্তবে এটা নিরাপদ,
 
 | #   | Problem                                                   | কঠিনতা | যা অনুশীলন করায়                                |
 | --- | --------------------------------------------------------- | ---------- | --------------------------------------------- |
-| 704 | Binary Search                                             | Easy       | Template, যতক্ষণ না হাতে বসে যায় ততক্ষণ লেখা    |
-| 35  | Search Insert Position                                    | Easy       | ব্যর্থ search কেন `low` return করে            |
+| 704 | Binary Search                                             | Easy       | Template, যতক্ষণ না হাতে বসে যায়    |
+| 35  | Search Insert Position                                    | Easy       | খুঁজে না পেলে কেন `low` return হয়            |
 | 33  | Search in Rotated Sorted Array                            | Medium     | Sorted-half test                           |
-| 153 | Find Minimum in Rotated Sorted Array                      | Medium     | Boundary loop-এর গড়ন                        |
+| 153 | Find Minimum in Rotated Sorted Array                      | Medium     | Boundary loop-এর রূপ                        |
 | 34  | Find First and Last Position of Element in Sorted Array    | Medium     | `lowerBound`, দুবার                            |
-| 162 | Find Peak Element                                         | Medium     | আদৌ কোনো sorted input ছাড়াই binary search      |
+| 162 | Find Peak Element                                         | Medium     | কোনো sorted input ছাড়াই binary search      |
 | 875 | Koko Eating Bananas                                       | Medium     | Answer space-এ search                     |
-| 4   | Median of Two Sorted Arrays                               | Hard       | একটি index নয়, একটি partition-এর ওপর binary search     |
+| 4   | Median of Two Sorted Arrays                               | Hard       | Index নয়, partition-এর ওপর binary search     |
 
-704 আর 34 লিখতে থাকুন, যতক্ষণ না দুই রকম loop-এর গড়ন মাথায় আলাদা হয়ে যায়। 162 আর 875 প্রমাণ করে যে pattern-টা
-predicate নিয়ে, array নিয়ে নয়।
+704 আর 34 লিখতে থাকুন, যতক্ষণ না দুই রকম loop মাথায় আলাদা হয়ে বসে। 162 আর 875 প্রমাণ করে যে এই pattern-এর আসল বিষয়
+predicate, array নয়।
 
 ## 🔑 মূল শিক্ষা
 
-- Binary search-এর দরকার একটি monotonic predicate, sorted array নয় — এটাই একে "modified" বানায়।
-- `low + Math.floor((high - low) / 2)` ব্যবহার করুন, আর পরীক্ষা করা midpoint সবসময় `mid ± 1` দিয়ে বাদ দিন।
-- Value search হলো `high = mid - 1`-সহ `while (low <= high)`। Boundary search হলো `high = mid`-সহ `while (low < high)`। দুটি মেশাবেন না।
-- Rotated array-তে অন্তত একটি অর্ধেক ঠিকঠাক sorted থাকে। `nums[low] <= nums[mid]` দিয়ে সেটা খুঁজুন।
-- সস্তা feasibility check-সহ "সর্বনিম্ন X, যাতে…" হলো answer space-এর ওপর একটি binary search।
+- Binary search-এর জন্য sorted array নয়, monotonic predicate লাগে। "Modified" কথাটার মানে এটাই।
+- `low + Math.floor((high - low) / 2)` ব্যবহার করুন, আর যাচাই করা মাঝের element সবসময় `mid ± 1` দিয়ে বাদ দিন।
+- Value search হলো `while (low <= high)`, সঙ্গে `high = mid - 1`। Boundary search হলো `while (low < high)`, সঙ্গে `high = mid`। দুটি মেশাবেন না।
+- Rotated array-তে অন্তত একটি অর্ধেক ঠিকমতো sorted। সেটা চিনুন `nums[low] <= nums[mid]` দিয়ে।
+- "সবচেয়ে কম X যাতে…", সঙ্গে সস্তা যাচাই থাকলে, সেটা answer space-এর ওপর binary search।
 
 ## Interview-এর প্রশ্ন
 
 **Q: আপনার loop কোন invariant বজায় রাখে, বলুন।**
 
-Inclusive bound-সহ value search-এর জন্য: target থাকলে, সেটা সবসময় `[low, high]`-এর ভেতরে থাকে। প্রতিটি branch শুধু
-সেই element-গুলো সরায়, যেগুলো target হতে পারে না, আর range খালি হলে loop শেষ হয়। Boundary search-এর জন্য: `low`-এর
-নিচের সবকিছু predicate-এ ব্যর্থ হয়, আর `high` থেকে ওপরের সবকিছু সেটা মানে। তাই দুটি যেখানে মেলে, সেই index-টাই
-boundary। এটা বলতে পারাই যুক্তি দিয়ে বের করা solution-কে মুখস্থ করা solution থেকে আলাদা করে।
+Inclusive bound-সহ value search-এ: target থাকলে সেটা সবসময় `[low, high]`-এর ভেতরে থাকে। প্রতিটি branch শুধু সেই
+element-গুলো সরায়, যেগুলো target হতে পারে না, আর range খালি হলে loop শেষ হয়। Boundary search-এ: `low`-এর নিচে সবকিছু
+predicate-এ ব্যর্থ, আর `high` থেকে ওপরে সবকিছু predicate মেনে চলে। তাই দুটি যেখানে মেলে, সেই index-ই boundary। এটা বলতে
+পারাই যুক্তি দিয়ে বের করা সমাধানকে মুখস্থ সমাধান থেকে আলাদা করে।
 
-**Q: `high = mid`-সহ `while (low <= high)` কেন চিরকাল loop করে?**
+**Q: `while (low <= high)`-এর সঙ্গে `high = mid` লিখলে loop কেন আর থামে না?**
 
-যখন `low === high`, তখন `mid` দুটির সমান। `high = mid` set করলে কিছুই বদলায় না, শর্ত সত্যই থাকে, আর loop ঘুরতেই
-থাকে। Inclusive-bound রূপে range ছোট করতে হবে `mid - 1` বা `mid + 1` দিয়ে। `high = mid` রূপের দরকার exclusive শর্ত
-`low < high`, যেটা দুটি মিলতেই বের হয়ে যায়।
+যখন `low === high`, তখন `mid` দুটির সমান। `high = mid` দিলে কিছুই বদলায় না, শর্ত সত্যিই থেকে যায়, আর loop ঘুরতে থাকে।
+Inclusive bound-এর রূপে range ছোট করতেই হবে `mid - 1` বা `mid + 1` দিয়ে। আর
+`high = mid` রূপে লাগে exclusive শর্ত `low < high`, যা দুটি মিলে গেলেই loop থেকে বেরিয়ে আসে।
 
-**Q: আগে rotation point না খুঁজে কীভাবে একটি rotated sorted array-তে search করবেন?**
+**Q: আগে rotation-এর বিন্দু না খুঁজে rotated sorted array-তে কীভাবে search করবেন?**
 
-প্রতি ধাপে `nums[low]`-কে `nums[mid]`-এর সাথে তুলনা করে চিনে নিন কোন অর্ধেক ঠিকঠাক sorted। তারপর দেখুন target সেই
-অর্ধেকের জানা range-এর ভেতরে পড়ে কিনা: পড়লে সেখানে search করুন, না পড়লে অন্য অর্ধেকে। আগে pivot খোঁজাও কাজ করে,
-তাতে আরেকটি `O(log n)` pass খরচ হয়, কিন্তু সেটা দরকার নেই।
+প্রতি ধাপে `nums[low]`-কে `nums[mid]`-এর সঙ্গে মেলান, তাতে বোঝা যায় কোন অর্ধেক ঠিকমতো sorted। তারপর দেখুন target সেই
+অর্ধেকের জানা range-এর ভেতরে পড়ে কিনা। পড়লে সেখানে খুঁজুন, না পড়লে অন্য অর্ধেকে। আগে pivot খুঁজে নিলেও চলে, তাতে আরেকটি
+`O(log n)` pass লাগে, কিন্তু দরকার নেই।
 
 **Q: Rotated array-তে duplicate থাকলে কী ভেঙে যায়?**
 
-Sorted-half test আর নিষ্পত্তিমূলক থাকে না। `[2, 2, 2, 0, 2]`-এ `low`, `mid` আর `high` তিনটিই 2 পড়লে, কোনো অর্ধেকই
-বাদ দেওয়া যায় না। তাই একমাত্র সঠিক চাল হলো এক প্রান্ত এক ঘর ছোট করা — তাতে worst case হয় `O(n)`। `O(log n)`
-দাবি পেশ না করে, এটা স্পষ্ট করে বলুন।
+Sorted-half test আর কিছু ঠিক করে দিতে পারে না। `[2, 2, 2, 0, 2]`-এ `low`, `mid` আর `high` তিনটিতেই
+2 থাকলে কোনো অর্ধেকই বাদ দেওয়া যায় না। তখন একমাত্র সঠিক চাল হলো এক প্রান্ত এক ঘর ছোট করা, আর তাতে worst case হয়ে যায়
+`O(n)`। `O(log n)` দাবি না করে এটা স্পষ্ট করে বলুন।
 
 **Q: কোন problem answer space-এর ওপর binary search চায়, কীভাবে চিনবেন?**
 
-দুটি সংকেত একসাথে: প্রশ্নটা একটি অবস্থান নয়, একটি minimum বা maximum value চায়। আর "value `x` কি কাজ করে?" যাচাই
-করা সরাসরি optimum খোঁজার চেয়ে অনেক সস্তা। তারপর নিশ্চিত হন predicate-টি monotonic — `x` কাজ করলে তার চেয়ে বড়
-(বা ছোট) প্রতিটি value-ও কাজ করে। Koko Eating Bananas, Split Array Largest Sum আর Capacity To Ship Packages — সবগুলোর
-গড়ন একই।
+দুটি ইঙ্গিত একসঙ্গে থাকে: প্রশ্ন অবস্থান নয়, সর্বনিম্ন বা সর্বোচ্চ কোনো value চায়, আর "value `x` কি চলে?" যাচাই করা
+সরাসরি সেরা উত্তর খোঁজার চেয়ে অনেক সস্তা। তারপর নিশ্চিত হয়ে নিন predicate monotonic কিনা: `x` চললে তার চেয়ে বড় (বা
+ছোট) প্রতিটি value-ও চলে। Koko Eating Bananas, Split Array Largest Sum আর Capacity To Ship Packages, সবগুলোর চেহারা একই।
 
-**Q: Sorted array-তেও binary search কখন ভুল উত্তর?**
+**Q: Sorted array-তেও কখন binary search ভুল উত্তর?**
 
-যখন একটি নয়, মিলে যাওয়া প্রতিটি element দরকার, আর মিলগুলো ঘন — boundary খোঁজা `O(log n)`, কিন্তু `k`টি ফলাফল পড়া
-তবুও `O(k)`। আর যখন data disk-এ বা একটি network call-এর পেছনে থাকে, যেখানে `log n`টি random access একটি sequential
-scan-এর চেয়ে বেশি খরচের হতে পারে।
+যখন একটি নয়, মেলে এমন সব element দরকার, আর সেগুলো ঘন হয়ে আছে। Boundary খুঁজতে লাগে `O(log n)`, কিন্তু `k`টি ফল পড়তে
+তবু লাগে `O(k)`। আরেকটি ক্ষেত্র হলো data যখন disk-এ বা network call-এর ওপারে থাকে। সেখানে `log n`-বার random access-এর খরচ
+একবারের টানা scan-এর চেয়েও বেশি হতে পারে।
 
 ## এরপর কী পড়বেন
 
 - [Chapter ?? — Two Pointers](#ch-two-pointers) — sorted array কাজে লাগানোর অন্য উপায়, `O(n)`-এ
-- [Chapter ?? — Overlapping Interval](#ch-overlapping-intervals) — যেখানে এখানে পাওয়া sorted অবস্থানই প্রথম ধাপ
-- [Chapter ?? — Time ও Space Complexity](#ch-time-and-space-complexity) — কেন `O(log n)`-এর জন্য একটি problem নতুন করে সাজানো সার্থক
+- [Chapter ?? — Overlapping Interval](#ch-overlapping-intervals) — যেখানে এখানে পাওয়া sorted অবস্থানটাই প্রথম ধাপ
+- [Chapter ?? — Time ও Space Complexity](#ch-time-and-space-complexity) — `O(log n)` পেতে কেন problem নতুন করে সাজানো সার্থক

@@ -1,39 +1,38 @@
 ---
 sourceHash: "8c834c5af1bdb2793dd798e6490ec8b704f5b5ea0c5617ea4e9cd6a07bdcd693"
 title: "Context Engineering"
-translatedAt: "2026-10-12T12:25:41.118Z"
+translatedAt: "2026-10-19T07:56:53.282Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Context Engineering {#ch-context-engineering}
 
-> প্রতিটি request-এ একটি সীমিত, ক্রমানুসারে সাজানো, দামি window-তে কী থাকবে — আর কী বাদ যাবে — তা ঠিক করুন।
+> প্রতিটি request-এ সীমিত, ক্রম মেনে চলা, দামি window-টায় কী থাকবে, আর কী বাদ পড়বে, তা ঠিক করুন।
 
-**এই অধ্যায়ে:** দৃষ্টিভঙ্গির বদল · window একটি budget · কেন ক্রমই আপনার bill ঠিক করে · কী বাদ দেবেন আর কীভাবে · বেশি context মানেই ভালো নয়
+**এই অধ্যায়ে:** প্রশ্নটা নতুন করে দেখা · budget হিসেবে window · ক্রমই কেন বিল ঠিক করে · কী কাটবেন আর কীভাবে · বেশি context মানেই ভালো নয়
 
 ## 💡 মূল ধারণা
 
-Prompt engineering জিজ্ঞেস করে, *model-কে আমি কী বলব*। Context engineering সেই প্রশ্নটা করে, যেটা production-এ
-আসলে উত্তর ঠিক করে দেয়। **এই request-এ window-তে কী আছে, কোন ক্রমে আছে, আর সেটা কী ঠেলে বের করে দিয়েছে?**
-*Window* হলো এক request-এ model যা কিছু পড়ে, তার সবটা।
+Prompt engineering জিজ্ঞেস করে, *model-কে কী বলব*। Context engineering জিজ্ঞেস করে সেই প্রশ্ন, যেটা production-এ আসলে
+উত্তর ঠিক করে দেয়। **এই request-এ window-এ কী আছে, কোন ক্রমে, আর সেটা কী সরিয়ে দিয়েছে?** *Window* মানে একটি request-এ
+model যা কিছু পড়ে, তার সবটা।
 
-দৃষ্টিভঙ্গি বদলেছে, কারণ কাজটাই বদলে গেছে। 2023-এর একটি feature হাতে লেখা একটি prompt পাঠাত। 2026-এর একটি
-feature request তৈরি করে একটি system prompt, tool definition, conversation history, কয়েকটি retrieve করা document
-আর একটি user message দিয়ে। এর বেশিরভাগই code runtime-এ বেছে নেয়, এমন বিপুল material থেকে যা কখনো পুরোটা ধরবে না।
-কেউ এটা হাতে লেখে না। প্রতিটি request-এ কিছু একটি সিদ্ধান্ত নেয়, আর সেই সিদ্ধান্তকারীই system-এর ওপর সবচেয়ে বেশি
-প্রভাব ফেলা component।
+প্রশ্নটা বদলেছে কারণ কাজটাই বদলে গেছে। 2023-এর একটি feature হাতে লেখা একটি prompt পাঠাত। 2026-এর feature request
+বানায় system prompt, tool definition, conversation history, retrieve করা কয়েকটি document আর user message জুড়ে।
+এর বেশিরভাগটাই code runtime-এ বাছে, এমন বিপুল উপাদান থেকে, যার সবটা কখনোই আঁটবে না। কেউ এটা হাতে লেখে না। প্রতিটি
+request-এ কিছু একটা সিদ্ধান্ত নেয়, আর system-এ সবচেয়ে বেশি প্রভাব সেই সিদ্ধান্ত নেওয়া component-টারই।
 
-> Model-এর memory-র সমস্যা নেই। আপনার assembly step-এর বরাদ্দের সমস্যা আছে।
+> Model-এর memory-র সমস্যা নেই। সমস্যা আপনার জোড়া লাগানোর ধাপে: জায়গা ভাগ করার।
 
 ## কীভাবে কাজ করে
 
-### Window একটি budget, যার দাবিদার পাঁচজন
+### Window হলো পাঁচ দাবিদারের একটি budget
 
-একটিই সংখ্যা সবকিছু ধরে: instruction, tool schema, history, retrieve করা context আর উত্তর। উত্তরের জন্য জায়গা
-বরাদ্দ হয় সবার শেষে, তাই চাপটা পড়ে ওটার ওপরেই।
-[Chapter ?? — LLM কীভাবে আচরণ করে, আর কোনটা বাছবেন](#ch-how-llms-behave)-এ mechanics আছে।
+একটি সংখ্যার মধ্যেই সব: instruction, tool schema, history, retrieve করা context আর উত্তর। উত্তরের বরাদ্দ হয় সবার
+শেষে, তাই চাপটা পড়ে ওটার ওপরই। কলকবজা আছে
+[Chapter ?? — LLM কীভাবে আচরণ করে, আর কোনটা বাছবেন](#ch-how-llms-behave)-এ।
 
-Provider-এর কাছে গিয়ে limit আবিষ্কার না করে, budget-টা স্পষ্টভাবে করুন:
+Provider-এর কাছে গিয়ে limit আবিষ্কার না করে, budget-টা স্পষ্ট করে হিসাব করুন:
 
 ```typescript
 interface Budget {
@@ -49,30 +48,29 @@ function assemble(b: Budget, parts: { instructions: string; tools: number; histo
 }
 ```
 
-আসল খুঁটিনাটি হলো output-এর জায়গা **আগে** রেখে দেওয়া। যে assembler window ভরে ফেলে তারপর উত্তর চায়, সে
-কাটা-পড়া response দেয়। আর এটা ঘটে ঠিক সেই অবস্থায়, যখন উত্তরটা সবচেয়ে জরুরি: লম্বা conversation আর প্রচুর
-retrieval।
+আসল খুঁটিনাটি হলো output-এর জায়গা **আগে** তুলে রাখা। Assembler আগে window ভরে ফেলে তারপর উত্তর চাইলে কাটা উত্তর আসে।
+আর আসে ঠিক সেই অবস্থায়, যখন উত্তরটা সবচেয়ে জরুরি: লম্বা conversation, অনেক retrieval।
 
-Provider-এর নিজের token counter দিয়ে গুনুন। Character-ভিত্তিক আন্দাজ JSON আর code-এ তিন গুণ পর্যন্ত ভুল হয়। একটি
-নিরাপদ assembly-কে rejected request বানাতে এটুকুই যথেষ্ট।
+Provider-এর নিজের token counter দিয়ে গুনুন। Character দেখে আন্দাজ করলে JSON আর code-এ হিসাব তিনগুণ সরে যায়। নিরাপদ
+একটি request বাতিল হয়ে যাওয়ার জন্য এটুকুই যথেষ্ট।
 
-### ক্রমই আপনার bill ঠিক করে
+### ক্রমই বিল ঠিক করে
 
-Caching একটি **prefix match**। Provider request-এর শুরু থেকে একটি breakpoint পর্যন্ত cache করে। সেই prefix-এর
-যেকোনো জায়গায় একটি byte বদলালে তার পরের সবকিছু invalid হয়ে যায়। তাই ক্রমের নিয়মটা যান্ত্রিক।
+Caching হলো **prefix match**। Provider request-এর শুরু থেকে একটি breakpoint পর্যন্ত cache করে। ওই prefix-এর যেকোনো
+জায়গায় একটি byte বদলালে তার পরের সবকিছু অচল হয়ে যায়। তাই ক্রমের নিয়মটা যান্ত্রিক।
 
 ```text
 Stable and reusable  →  ...  →  volatile and per-request
 ```
 
-| অবস্থান | Content | কেন ওখানে |
+| জায়গা | কী থাকে | কেন ওখানে |
 | --- | --- | --- |
-| শুরুতে | Tool definition, system instruction | প্রতিটি request-এ হুবহু এক; cache এখানেই থাকে |
-| মাঝে | দীর্ঘস্থায়ী conversation history | Append করে বাড়ে, তাই prefix টিকে থাকে |
-| শেষে | Retrieve করা document, user-এর প্রশ্ন | প্রতিটি request-এ আলাদা; সামনে বসানো যাবে না |
+| শুরুতে | Tool definition, system instruction | প্রতিটি request-এ হুবহু এক, cache থাকে এখানেই |
+| মাঝে | অনেকক্ষণ ধরে চলা conversation history | শেষে যোগ হয়ে বাড়ে, তাই prefix টিকে থাকে |
+| শেষে | Retrieve করা document, user-এর প্রশ্ন | প্রতিটি request-এ আলাদা, তাই সামনে বসানো চলবে না |
 
-Prompt-এর সামনের দিকে একটি timestamp, request id বা এলোমেলো করা JSON key থাকলেই hit rate চুপচাপ শূন্যে নেমে আসে।
-কোনো error হয় না। শুধু bill বাড়ে। ধরে নেবেন না যে সাজানোটা কাজ করেছে। Provider যে cache-read token count ফেরত দেয়,
+Prompt-এর শুরুর দিকে একটি timestamp, request id বা এলোমেলো ক্রমের JSON key থাকলেই hit rate চুপচাপ শূন্যে নেমে যায়।
+কোনো error হয় না। শুধু বিল বাড়ে। সাজানোটা কাজ করেছে ধরে না নিয়ে, provider যে cache-read token-এর হিসাব ফেরত দেয়
 সেটা পড়ে যাচাই করুন:
 
 ```typescript
@@ -82,115 +80,114 @@ usage.inputTokenDetails?.cacheReadTokens; // zero across repeats means a silent 
 
 ### বেশি context মানেই ভালো নয়
 
-Window বড় হলেই সেটা ভরতে হবে, এমন নয়। আর কেন নয়, তা মাপা যায়। অপ্রাসঙ্গিক material যোগ করলে model-এর accuracy
-কমে। লম্বা context-এর **মাঝখানের** material-ও model দুই প্রান্তের material-এর চেয়ে কম নির্ভরযোগ্যভাবে ব্যবহার করে।
-ভালোভাবে বাছা দশটি paragraph সেই একশোটির চেয়ে ভালো, যার মধ্যে ওই দশটিও আছে।
+Window বড় হলেই সেটা ভরতে হবে, এমন নয়। আর কেন নয়, সেটা মাপা যায়। অপ্রাসঙ্গিক উপাদান যোগ করলে model-এর নির্ভুলতা কমে।
+লম্বা context-এর **মাঝখানের** উপাদানও model দুই প্রান্তের উপাদানের চেয়ে কম নির্ভরযোগ্যভাবে কাজে লাগায়। ভালো করে বাছা
+দশটি paragraph সেই একশোটির চেয়ে ভালো, যার মধ্যে ওই দশটিও আছে।
 
-তাই retrieval system-এ সীমাবদ্ধতা হলো retrieval-এর মান, window-এর আকার নয়। আর "উত্তর ভুল হয়েছে" শুনলে ঠিক
-প্রতিক্রিয়া হলো prompt ছোঁয়ার আগে দেখা, কী retrieve হয়েছিল।
+তাই retrieval system-এ আসল সীমা window-এর মাপ নয়, retrieval-এর মান। আর "উত্তরটা ভুল ছিল" শুনলে সঠিক প্রতিক্রিয়া হলো,
+prompt-এ হাত দেওয়ার আগে দেখা কী retrieve হয়েছিল।
 
-> ⚠️ এক million token-এর window একটি সামর্থ্য, নির্দেশ নয়। এটা ভরলে প্রতিটি request-এ latency আর টাকা খরচ হয়, আর
-> সাধারণত accuracy-ও কমে।
+> ⚠️ দশ লাখ token-এর window একটি ধারণক্ষমতা, নির্দেশ নয়। ভরে ফেললে প্রতিটি request-এ latency আর টাকা খরচ হয়, আর সাধারণত
+> নির্ভুলতাও কমে।
 
-### কী বাদ দেবেন, আর বাদ দেওয়ার তিনটি উপায়
+### কী কাটবেন, আর কাটার তিনটি উপায়
 
-একসময় history আর ধরবে না। তিনটি mechanism আছে, আর এগুলো একটির জায়গায় আরেকটি চলে না।
+একসময় history আর আঁটে না। উপায় তিনটি, আর একটির জায়গায় আরেকটি চলে না।
 
-| Mechanism | কী করে | খরচ | কখন ব্যবহার করবেন |
+| উপায় | কী করে | খরচ | কখন ব্যবহার করবেন |
 | --- | --- | --- | --- |
-| **Truncation** | সবচেয়ে পুরোনো turn ফেলে দেয় | চুপচাপ তথ্য হারায় | এমন chat, যেখানে অনেক আগের কিছুর ওপর নির্ভরতা নেই |
-| **Summarisation / compaction** | পুরোনো turn-এর জায়গায় একটি summary বসায় | একটি model call; detail হারায়, আর কী হারাবে তা বাছে একটি model | লম্বা conversation, যা আগের সিদ্ধান্তের কথা টানে |
-| **Tool result মুছে ফেলা** | বড় tool output সরায়, turn-গুলো রাখে | কিছুই না, যদি result-টি আর দরকার না থাকে | Agent — এদের history-তে tool output-ই বেশি জায়গা নেয় |
+| **Truncation** | সবচেয়ে পুরনো turn ফেলে দেয় | চুপচাপ তথ্য হারায় | এমন chat, যেখানে দূরের কোনো কিছুর ওপর নির্ভরতা নেই |
+| **Summarisation / compaction** | পুরনো turn-এর জায়গায় একটি summary বসায় | একটি model call; detail হারায়, আর কী হারাবে তা বাছে model | লম্বা conversation, যেখানে আগের সিদ্ধান্তের উল্লেখ আসে |
+| **Tool result মুছে ফেলা** | ভারী tool output সরায়, turn-গুলো রাখে | কিছুই না, যদি result-টা আর না লাগে | Agent, যাদের history-র বেশিরভাগই tool output |
 
-তৃতীয়টাই team-গুলো মিস করে, আর এটাই সবচেয়ে সস্তা, অনেক ব্যবধানে। একটি agent loop-এ window-এর বেশিরভাগ সাধারণত
-এমন tool output, যা একবার পড়া হয়েছে আর আর কখনো ব্যবহার হয়নি। এটা মুছলে conversation-এর কাঠামো থাকে, আর বেশিরভাগ
-জায়গা ফিরে আসে। কোনো summarisation call লাগে না, আর কী জরুরি ছিল তা কোনো model ঠিক করে না।
+Team-রা তৃতীয়টাই মিস করে, অথচ এটাই সবচেয়ে সস্তা। Agent loop-এ window-এর বেশিরভাগ জুড়ে থাকে এমন tool output, যা
+একবার পড়া হয়েছে আর কখনো কাজে লাগেনি। ওগুলো মুছলে conversation-এর গড়ন ঠিক থাকে, আর জায়গার বেশিরভাগটা ফেরত আসে। কোনো
+summarisation call লাগে না, আর কী জরুরি ছিল তা কোনো model-কে ঠিক করতে হয় না।
 
-> ⚠️ **যা বদলাতে থাকে:** server-side compaction আর context-editing API এখনো provider beta। এগুলো এই part যে AI SDK 7
-> surface-এর ভিত্তিতে লেখা, তার পরে এসেছে। এদের নাম, trigger আর beta flag release থেকে release-এ বদলায়। টেকসই নীতি
-> হলো ওপরের table: তিনটি আলাদা mechanism, তিনটি আলাদা খরচ। Call লেখার আগে বর্তমান API দেখে নিন।
+> ⚠️ **যা বদলাতে থাকে:** server-side compaction আর context-editing API এখনো provider-দের beta। এগুলো এসেছে সেই AI SDK
+> 7-এর পরে, যা ধরে এই অংশ লেখা। এদের নাম, trigger আর beta flag release থেকে release-এ বদলায়। টেকসই নীতি হলো ওপরের
+> table: তিনটি আলাদা উপায়, তিনটি আলাদা খরচ। Call লেখার আগে এখনকার API মিলিয়ে নিন।
 
 ### Retrieval মানে context বাছাই
 
-একটি retrieval system হলো একটি database জুড়ে দেওয়া context engineering system। Chunk size ঠিক করে window-এর
-টুকরোগুলো কত সূক্ষ্ম হবে। *k*, অর্থাৎ ফেরত আসা chunk-এর সংখ্যা, ঠিক করে budget-এর কতটা retrieval নেবে। Reranking
-ঠিক করে কোন candidate জায়গা পাওয়ার যোগ্য। তিনটিই search-এর সিদ্ধান্ত হওয়ার আগে budget-এর সিদ্ধান্ত, আর Part VII-এর
-`RAG/` section এগুলো ঠিকভাবে করা নিয়েই।
+Retrieval system হলো একটি database জোড়া context engineering system। Chunk-এর মাপ ঠিক করে window-এর টুকরোগুলো কত
+সূক্ষ্ম হবে। *k*, মানে কয়টি chunk ফেরত আসবে, ঠিক করে budget-এর কতটা retrieval নেবে। Reranking ঠিক করে কোন প্রার্থী
+জায়গা পাওয়ার যোগ্য। তিনটিই search-এর সিদ্ধান্ত হওয়ার আগে budget-এর সিদ্ধান্ত। Part VII-এর `RAG/` section এগুলো ঠিকঠাক
+করা নিয়েই।
 
 ## কখন ব্যবহার করবেন
 
-| লক্ষণ | কোন lever | এটা নয় |
+| লক্ষণ | যে lever টানবেন | এটা নয় |
 | --- | --- | --- |
-| Load-এর সময় উত্তর কেটে যায় | Assemble করার আগে output token রেখে দিন | বড় model |
-| Traffic-এর চেয়ে খরচ দ্রুত বাড়ে | Cache prefix ঠিক করুন; cache-read token দেখুন | সস্তা model |
-| লম্বা conversation আগের তথ্য হারায় | Compaction, truncation নয় | বড় window |
-| একটি agent দশ ধাপে তার window ভরে ফেলে | পুরোনো tool result মুছুন | প্রতিটি turn summarise করা |
-| Source যোগ করলে উত্তর খারাপ হয় | কম, কিন্তু ভালো chunk retrieve করুন | আরও বেশি retrieve করা |
+| Load-এর মধ্যে উত্তর কাটা পড়ে | জোড়া লাগানোর আগে output token তুলে রাখুন | বড় model |
+| Traffic-এর চেয়ে দ্রুত খরচ বাড়ছে | Cache prefix ঠিক করুন, cache-read token দেখুন | সস্তা model |
+| লম্বা conversation আগের তথ্য ভুলে যায় | Truncation নয়, compaction | বড় window |
+| Agent দশ ধাপেই window ভরে ফেলে | পুরনো tool result মুছে ফেলুন | প্রতিটি turn summarise করা |
+| Source যত বাড়ে, উত্তর তত খারাপ হয় | কম, কিন্তু ভালো chunk retrieve করুন | আরও বেশি retrieve করা |
 
 ## সাধারণ ভুল
 
-**❌ System prompt-এর একেবারে ওপরে একটি timestamp বসানো**
+**❌ System prompt-এর একদম ওপরে timestamp বসানো**
 
 > `You are a support agent. The current time is ${new Date().toISOString()}.`
 
-প্রতিটি request-এ prefix বদলায়, তাই কিছুই cache হয় না, আর প্রতিটি call পুরো দাম দেয়। Model-এর যদি সময় জানা
-দরকার হয়, সেটা শেষে রাখুন, শেষ cache breakpoint-এর পরে।
+প্রতিটি request-এ prefix বদলায়, তাই কিছুই cache হয় না, আর প্রতিটি call পুরো দাম দেয়। Model-এর সময়টা জানা দরকার হলে
+ওটা শেষে বসান, শেষ cache breakpoint-এর পরে।
 
 **❌ জায়গা আছে বলেই window ভরে ফেলা**
 
-অপ্রাসঙ্গিক context-এর সঙ্গে latency, খরচ আর error rate — সবই বাড়ে। প্রশ্নটা কখনো "এটা কি ধরবে" নয়। প্রশ্ন হলো
-"এটা কি তার জায়গার যোগ্য"।
+অপ্রাসঙ্গিক context-এ latency, খরচ আর error rate, সবই বাড়ে। প্রশ্নটা কখনোই "আঁটবে কি না" নয়। প্রশ্নটা হলো, "এটা কি
+জায়গাটা পাওয়ার যোগ্য?"
 
-**✅ অন্য কিছু ভরার আগে output-এর বরাদ্দ রেখে দিন**
+**✅ অন্য কিছু ঢোকানোর আগে output-এর বরাদ্দ তুলে রাখুন**
 
-> সবচেয়ে বড় যে উত্তরের জন্য আপনি টাকা দিতে রাজি, সেটা আগে budget থেকে বাদ দিন। বাকি সবকিছু যা থাকে তার জন্য
-> লড়ে, আর কাটা-পড়া উত্তর বন্ধ হয়ে যায়।
+> যত বড় উত্তরের জন্য সর্বোচ্চ টাকা দিতে রাজি, budget থেকে আগে সেটা বাদ দিন। বাকি সবকিছু যা থাকে তার জন্য লড়ুক। তাহলে
+> উত্তর আর কাটা পড়ে না।
 
 ## 🔑 মূল শিক্ষা
 
-- Context engineering একটি বরাদ্দের সমস্যা: এই request-এ window-তে কী আছে, কোন ক্রমে, আর সেটা কী সরিয়ে দিয়েছে।
-- অন্য কিছু ভরার আগে output-এর বরাদ্দ রেখে দিন, নইলে কাটা পড়বে উত্তরটাই।
-- Caching একটি prefix match, তাই স্থির content আগে আর বদলাতে থাকা content শেষে — cache-read token দিয়ে যাচাই করুন।
-- Truncation, compaction আর tool result মুছে ফেলা তিনটি আলাদা mechanism, তিনটি আলাদা খরচ।
-- অপ্রাসঙ্গিক context যোগ করলে উত্তরের মান মাপার মতো করে কমে; বড় window একটি সামর্থ্য, নির্দেশ নয়।
+- Context engineering হলো জায়গা ভাগের সমস্যা: এই request-এ window-এ কী আছে, কোন ক্রমে, আর সেটা কী সরিয়ে দিয়েছে।
+- অন্য কিছু ঢোকানোর আগে output-এর বরাদ্দ তুলে রাখুন, নইলে কাটা পড়বে উত্তরটাই।
+- Caching হলো prefix match, তাই স্থির জিনিস আগে আর বদলাতে থাকা জিনিস শেষে। Cache-read token দেখে যাচাই করুন।
+- Truncation, compaction আর tool result মুছে ফেলা তিনটি আলাদা উপায়, খরচও তিন রকম।
+- অপ্রাসঙ্গিক context যোগ করলে উত্তরের মান মাপার মতো কমে। বড় window একটি ধারণক্ষমতা, নির্দেশ নয়।
 
 ## Interview-এর প্রশ্ন
 
-**Q: Context engineering কী, আর এটা prompt engineering থেকে কীভাবে আলাদা?**
+**Q: Context engineering কী, আর prompt engineering থেকে এটা আলাদা কীভাবে?**
 
-Prompt engineering হলো সেই শব্দচয়ন নিয়ে, যা আপনি সরাসরি নিয়ন্ত্রণ করেন। Context engineering হলো সেই assembly step
-নিয়ে, যা প্রতিটি request-এ চলে। কোন document retrieve হলো? History-র কতটা টিকে রইল? সবকিছু কোন ক্রমে গেল, আর উত্তরের
-জন্য কত token বাকি রইল? 2026-এর একটি feature-এ window-এর বেশিরভাগ code বেছে নেয়, কোনো মানুষ লেখে না। তাই মান আর
-খরচ — দুটিই থাকে বাছাইয়ের logic-এ।
+Prompt engineering সেই শব্দগুলো নিয়ে, যা আপনি সরাসরি নিয়ন্ত্রণ করেন। Context engineering প্রতিটি request-এ চলা জোড়া
+লাগানোর ধাপটা নিয়ে। কোন document-গুলো retrieve হলো? History-র কতটা টিকল? সবকিছু কোন ক্রমে বসল, আর উত্তরের জন্য কত
+token বাকি রইল? 2026-এর একটি feature-এ window-এর বেশিরভাগটা কেউ হাতে লেখে না, code বাছে। তাই quality আর খরচ দুটিই
+থাকে বাছাইয়ের logic-এ।
 
-**Q: Traffic বদলায়নি, কোনো deploy হয়নি, তবু প্রতি request-এর খরচ দ্বিগুণ হয়ে গেছে। কোথায় দেখবেন?**
+**Q: Traffic বদলায়নি, deploy-ও হয়নি, অথচ প্রতি request-এর খরচ দ্বিগুণ। কোথায় খুঁজবেন?**
 
-প্রথমে cache-read token count-এ। সাধারণ কারণ হলো এমন একটি prefix, যা আগে cache হতো, এখন হয় না। এটা ঢুকতে প্রায়
-কিছুই লাগে না: একটি timestamp, একটি request id, নতুন ক্রমে সাজানো tool list, বা এমন একটি system prompt যেটা একটি
-variable বসাতে শুরু করেছে। দ্বিতীয় জায়গা হলো retrieve করা context, যা corpus বাড়ার সঙ্গে চুপচাপ বেড়েছে, কারণ *k*
-স্থির ছিল কিন্তু chunk size নয়।
+আগে cache-read token-এর হিসাবে। সাধারণ কারণ হলো, যে prefix আগে cache হতো, এখন আর হয় না। এমন হতে প্রায় কিছুই লাগে না:
+একটি timestamp, একটি request id, tool list-এর ক্রম বদলানো, বা system prompt-এ কোনো variable বসতে শুরু করা। দ্বিতীয়
+জায়গা হলো retrieve করা context, যা corpus বাড়ার সঙ্গে সঙ্গে চুপচাপ বেড়েছে। কারণ *k* স্থির ছিল, chunk-এর মাপ ছিল না।
 
 **Q: একটি conversation window ছাড়িয়ে যেতে চলেছে। কী করবেন?**
 
-সেটা নির্ভর করে conversation-টা কেমন তার ওপর। শুরুর কিছু যদি পরে আর উল্লেখ না হয়, সবচেয়ে পুরোনো turn ফেলে দিন।
-আগের সিদ্ধান্ত যদি জরুরি হয়, সেগুলো compact করে একটি summary বানান, আর মেনে নিন যে কী রাখা হবে তা একটি model বেছেছে।
-যদি এটা একটি agent হয়, আগে পুরোনো tool result মুছুন। সাধারণত window-এর বেশিরভাগই এগুলো, মুছতে কোনো খরচ নেই, আর
-কাঠামোটা থাকে। বড় model ধরা হলো সিদ্ধান্ত এড়ানোর দামি উপায়।
+সেটা নির্ভর করে conversation-টা কী ধরনের, তার ওপর। শুরুর কিছুর উল্লেখ যদি পরে না আসে, সবচেয়ে পুরনো turn-গুলো ফেলে দিন।
+আগের সিদ্ধান্ত জরুরি হলে সেগুলো compact করে summary বানান, আর মেনে নিন যে কী রাখা হবে তা একটি model বেছেছে। Agent হলে
+আগে পুরনো tool result মুছুন। সাধারণত window-এর বেশিরভাগই ওগুলো, মুছতে কোনো খরচ নেই, আর গড়নও ঠিক থাকে। বড় model-এর
+দিকে হাত বাড়ানো মানে দামি উপায়ে সিদ্ধান্তটা এড়িয়ে যাওয়া।
 
-**Q: এক million token-এর window মানে কি retrieval-এর মান আর গুরুত্বপূর্ণ নয়?**
+**Q: দশ লাখ token-এর window থাকলে কি retrieval-এর মান আর জরুরি নয়?**
 
-না, এটা গুরুত্বের কারণটা উল্টে দেয়। প্রশ্নটা আর জায়গায় ধরানোর থাকে না, হয়ে যায় মনোযোগ আর খরচের। অপ্রাসঙ্গিক
-material যোগ হলে accuracy কমে। মাঝখানের অংশ কম নির্ভরযোগ্যভাবে ব্যবহার হয়। আর প্রতিটি request-এ প্রতিটি token-এর
-দাম দেন আপনি। বড় window যা সম্ভব তার সীমা বাড়ায়, আর অসাবধানতার দামও বাড়ায়।
+না, বরং কেন জরুরি সেই কারণটা উল্টে যায়। প্রশ্নটা আর আঁটানো নিয়ে থাকে না, হয়ে যায় মনোযোগ আর খরচ নিয়ে। অপ্রাসঙ্গিক উপাদান
+যোগ হলে নির্ভুলতা কমে। মাঝখানটা কম নির্ভরযোগ্যভাবে কাজে লাগে। আর প্রতিটি request-এ প্রতিটি token-এর দাম দিতে হয়। বড়
+window কী সম্ভব তার সীমা বাড়ায়, আবার অসাবধান হওয়ার দামও বাড়ায়।
 
-**Q: Request পাঠানোর আগে token নির্ভরযোগ্যভাবে কীভাবে গুনবেন?**
+**Q: Request পাঠানোর আগে নির্ভরযোগ্যভাবে token গুনবেন কীভাবে?**
 
-Provider-এর token-counting endpoint দিয়ে, যা নিখুঁত আর বিনা খরচে। Character-ভিত্তিক আন্দাজ JSON, code আর non-Latin
-text-এ তিন গুণ পর্যন্ত ভুল হয়। আর অন্য model-এর ওপর train করা একটি client-side tokenizer বাড়তি ধাপসহ একটি আন্দাজ মাত্র।
-Request-কে যদি জায়গায় ধরতেই হয়, আন্দাজ না করে মাপুন।
+Provider-এর token-counting endpoint দিয়ে। ওটা নির্ভুল, আর বিনা পয়সায়। Character দেখে আন্দাজ করলে JSON, code আর
+non-Latin text-এ হিসাব তিনগুণ সরে যায়। আর অন্য model-এর জন্য train করা client-side tokenizer বাড়তি ধাপসহ আন্দাজ
+ছাড়া কিছু নয়। Request-কে আঁটতেই হলে আন্দাজ না করে মাপুন।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — LLM কীভাবে আচরণ করে, আর কোনটা বাছবেন](#ch-how-llms-behave) — token আর window-এর mechanics, যার ভিত্তিতে এই অধ্যায় বরাদ্দ করে
-- [Chapter ?? — Embedding, Vector Store ও Retrieval](#ch-retrieval) — কোন document window-তে জায়গা পাওয়ার যোগ্য, তা বাছাই
-- [Chapter ?? — Observability ও Cost Engineering](#ch-observability) — caching, batching আর token bill-এর বাকিটা
+- [Chapter ?? — LLM কীভাবে আচরণ করে, আর কোনটা বাছবেন](#ch-how-llms-behave) — token আর window-এর যে কলকবজা ধরে এই অধ্যায় জায়গা ভাগ করে
+- [Chapter ?? — Embedding, Vector Store ও Retrieval](#ch-retrieval) — কোন document window-এ জায়গা পাওয়ার যোগ্য, তা বাছা
+- [Chapter ?? — Observability ও Cost Engineering](#ch-observability) — caching, batching আর token-এর বিলের বাকিটা

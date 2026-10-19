@@ -1,31 +1,30 @@
 ---
 sourceHash: "a65aaa39a9cd13c79d662ed000be222b54f395f89f8355b1e1e716d9bfb08945"
 title: "Overlapping Interval"
-translatedAt: "2026-10-13T03:10:24.415Z"
+translatedAt: "2026-10-19T10:23:47.378Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Overlapping Interval {#ch-overlapping-intervals}
 
-> আগে interval-গুলো sort করুন। তাহলে overlap নিয়ে প্রতিটি প্রশ্ন দুটি সংখ্যার মধ্যে একটি তুলনায় পরিণত হয়।
+> আগে interval-গুলো sort করুন। তাহলে overlap নিয়ে প্রতিটি প্রশ্ন দুটি সংখ্যার তুলনায় নেমে আসে।
 
-**এই অধ্যায়ে:** overlap-এর চার রকম গড়ন, আর সবগুলোকে ধরে এমন একটিমাত্র test · merge করা · "একসাথে কয়টি"-র জন্য sweep line · start অনুযায়ী বনাম end অনুযায়ী sort · inclusive/exclusive-এর ফাঁদ
+**এই অধ্যায়ে:** overlap-এর চার রকম চেহারা, আর সবগুলো ধরার একটিমাত্র test · merge করা · "একসঙ্গে কতগুলো"-র জন্য sweep line · start ধরে sort বনাম end ধরে sort · inclusive/exclusive-এর ফাঁদ
 
 ## 💡 মূল ধারণা
 
-একটি interval মানে একটি শুরু আর একটি শেষ: একটি meeting, একটি booking, একটি version range, একটি maintenance window।
-এই পরিবারের প্রতিটি প্রশ্নের — সেগুলো merge করা, একসাথে চলা কয়টি তা গোনা, একটি insert করা, সবচেয়ে কম সংখ্যক
-সরানো — উত্তর আসে একই প্রথম চাল থেকে।
+Interval মানে একটি শুরু আর একটি শেষ: meeting, booking, version range, maintenance window। এই পরিবারের প্রতিটি প্রশ্ন,
+merge করা হোক, একসঙ্গে চলা interval গোনা হোক, নতুন একটি ঢোকানো হোক বা সবচেয়ে কমগুলো সরানো, শুরু হয় একই চাল দিয়ে।
 
-**Sort করুন, তারপর প্রতিটি interval-কে শুধু তার প্রতিবেশীর সাথে তুলনা করুন।** Unsorted অবস্থায় interval `i` যেকোনো
-কিছুর সাথে overlap করতে পারে, তাই আপনাকে `O(n²)`-এ সব জোড়া পরীক্ষা করতে হয়। Start অনুযায়ী sorted থাকলে একটি
-interval শুধু তার ঠিক আগেরটার সাথেই overlap করতে পারে, তাই একটি pass-ই যথেষ্ট।
+**Sort করুন, তারপর প্রতিটি interval-কে শুধু তার পাশেরটার সঙ্গে মেলান।** Sort না করলে interval `i` যেকোনোটার সঙ্গে
+overlap করতে পারে, তাই সব জোড়া যাচাই করতে হয়, লাগে `O(n²)`। Start ধরে sort করা থাকলে একটি interval overlap করতে পারে শুধু
+ঠিক আগেরটার সঙ্গে, তাই এক pass-ই যথেষ্ট।
 
-Calendar হলো এর দৈনন্দিন রূপ। দুটি meeting-এ সংঘাত আছে কিনা দেখতে আপনি পুরো সপ্তাহ scan করেন না। আপনি দিনটা
-ক্রমানুসারে ওপর থেকে নিচে পড়েন, আর খেয়াল করেন কখন একটি row ওপরের row শেষ হওয়ার আগেই শুরু হচ্ছে।
+রোজকার উদাহরণ হলো calendar। দুটি meeting-এ সংঘাত আছে কিনা দেখতে আপনি পুরো সপ্তাহ ঘাঁটেন না। দিনটা ওপর থেকে নিচে
+ক্রমানুসারে পড়েন, আর খেয়াল করেন কোন row ওপরের row শেষ হওয়ার আগেই শুরু হচ্ছে।
 
-> দুটি interval `[a, b]` আর `[c, d]`, এমনভাবে sorted যে `a ≤ c`, overlap করে যখন `c ≤ b`। ওই একটি তুলনাই
-> containment, আংশিক overlap আর ছুঁয়ে থাকা endpoint — সব ধরে। চারটি ক্ষেত্র আলাদাভাবে কখনো লাগে না।
+> দুটি interval `[a, b]` আর `[c, d]`, sort করা যাতে `a ≤ c`। এরা overlap করে যখন `c ≤ b`। এই একটি তুলনাই ধরে ফেলে একটির
+> ভেতরে আরেকটি থাকা, আংশিক overlap আর প্রান্ত ছুঁয়ে যাওয়া। চারটি case আলাদা করে কখনো লাগে না।
 
 ## কীভাবে কাজ করে
 
@@ -57,19 +56,19 @@ function merge(intervals: Interval[]): Interval[] {
 // Time: O(n log n) for the sort, O(n) for the pass. Space: O(n) for the output
 ```
 
-`Math.max(last[1], end)` সেই line, যেটা containment সামলায়। `[[1, 10], [2, 3]]`-এ সাধারণ একটি
-`last[1] = end` merge হওয়া interval-কে ছোট করে `[1, 3]` বানিয়ে দেয়, আর চুপচাপ coverage হারায়।
+`Math.max(last[1], end)` line-টাই সামলায় একটির ভেতরে আরেকটি থাকার case। `[[1, 10], [2, 3]]`-এ শুধু
+`last[1] = end` লিখলে merged interval ছোট হয়ে `[1, 3]` হয়ে যায়, আর কোনো warning ছাড়াই কিছু অংশ হারিয়ে যায়।
 
-খরচের সিংহভাগ sort-এর। তাই এই pattern-এর সর্বনিম্ন খরচ `O(n log n)`, যদি না input sorted অবস্থায় আসে — এটা
-জিজ্ঞেস করা দরকার, কারণ তাতে উত্তর নেমে `O(n)` হয়।
+খরচের বড় অংশই sort-এর। তাই এই pattern-এ `O(n log n)`-এর নিচে নামা যায় না, যদি না input আগে থেকেই sorted আসে। এটা
+জিজ্ঞেস করে নেওয়ার মতো, কারণ তাহলে উত্তর নেমে আসে `O(n)`-এ।
 
-### একসাথে কয়টি চলছে গোনা — sweep line
+### একসঙ্গে কতগুলো চলছে গোনা: sweep line
 
-"কয়টি meeting room লাগবে" merge নয়। Merge আপনাকে বলে meeting *কোথায়* হচ্ছে। এই প্রশ্ন জানতে চায় *একসাথে কয়টি*।
-এটা আলাদা প্রশ্ন, আর এর জন্য আলাদাভাবে ভাঙতে হয়।
+"কতগুলো meeting room লাগবে" merge-এর প্রশ্ন নয়। Merge বলে meeting *কোথায়* হচ্ছে। এই প্রশ্ন জানতে চায় *একসঙ্গে কতগুলো*
+চলছে। প্রশ্নটা আলাদা, তাই ভাঙতেও হয় আলাদাভাবে।
 
-প্রতিটি interval-কে দুটি event-এ ভাগ করুন, আর সময়ের ক্রমে process করুন। একটি start এক যোগ করে, একটি end এক
-বিয়োগ করে। Counter কখনো যে সর্বোচ্চ মানে পৌঁছায়, সেটাই উত্তর।
+প্রতিটি interval-কে দুটি event-এ ভাগ করুন, আর সময়ের ক্রমে চালান। Start এলে counter এক বাড়ে, end এলে এক কমে। Counter
+সবচেয়ে বেশি যত উঠেছে, সেটাই উত্তর।
 
 ```typescript
 function minMeetingRooms(intervals: Interval[]): number {
@@ -94,8 +93,8 @@ function minMeetingRooms(intervals: Interval[]): number {
 // Time: O(n log n), Space: O(n)
 ```
 
-মনে রাখার মতো কৌশল হলো start-গুলোকে end-গুলো থেকে আলাদা করা। দুটি array আলাদাভাবে sort হয়, কারণ খালি হওয়া
-room-টি কোন meeting-এর ছিল তাতে কিছু যায় আসে না — শুধু এটুকু জানলেই চলে যে একটি খালি।
+মনে রাখার মতো কৌশল হলো start আর end-কে আলাদা করে ফেলা। দুটি array আলাদাভাবে sort হয়, কারণ খালি হওয়া room-টা কোন
+meeting-এর ছিল, তাতে কিছু যায় আসে না। শুধু জানা দরকার যে একটি room খালি হয়েছে।
 
 ```mermaid
 flowchart LR
@@ -108,44 +107,44 @@ flowchart LR
     F --> C
 ```
 
-**প্রতিটি start একটি room দখল করে। ইতিমধ্যে পেরিয়ে যাওয়া প্রতিটি end একটি room ছেড়ে দেয়। সর্বোচ্চ বিন্দুটিই উত্তর।**
+**প্রতিটি start একটি room দখল করে। আর যে end ইতিমধ্যে পেরিয়ে গেছে, সেটা একটি room ছেড়ে দেয়। সর্বোচ্চ সংখ্যাটাই উত্তর।**
 
-End time-এর একটি min-heap একই complexity-তে একই problem solve করে। প্রতিটি meeting *কোন* room পেল তাও যখন জানা
-দরকার, তখন এই version-টাই ব্যবহার করুন — [Chapter ?? — Top K Element](#ch-top-k-elements) দেখুন।
+End time-এর min-heap দিয়েও একই complexity-তে এই problem মেটে। প্রতিটি meeting *কোন* room পেল, সেটাও জানতে হলে এই
+রূপটাই ব্যবহার করুন। দেখুন [Chapter ?? — Top K Element](#ch-top-k-elements)।
 
-### কোন key দিয়ে sort করবেন
+### কোন key ধরে sort করবেন
 
 এই pattern-এ আসল সিদ্ধান্ত হলো sort key, আর সেটা সবসময় start নয়।
 
 | প্রশ্ন                                        | Sort করুন | তারপর                                              |
 | ----------------------------------------------- | ------- | ------------------------------------------------- |
-| Overlap করা interval merge করা                     | Start   | শেষ merge হওয়া interval বাড়ান, বা নতুন একটি push করুন |
-| একটি sorted list-এ একটি interval insert করা          | Start   | শুধু নতুনটার সাথে overlap করা অংশটুকু merge করুন       |
-| একজন মানুষ কি সব meeting-এ থাকতে পারবেন?             | Start   | যেকোনো `start < previousEnd` মানেই সংঘাত               |
-| সর্বনিম্ন room / সর্বোচ্চ concurrency             | দুটিই, আলাদাভাবে | Start-গুলোকে end-গুলোর বিপরীতে sweep করুন            |
-| রাখার মতো **সর্বোচ্চ** সংখ্যক non-overlapping interval   | **End** | Greedy-ভাবে প্রতিটি interval রাখুন, যেটা শেষ রাখা interval শেষ হওয়ার পরে শুরু হয় |
-| সব balloon ফাটাতে সবচেয়ে কম arrow             | **End** | একই greedy — প্রতিটি রাখা interval-এর end-এ ছুঁড়ুন     |
+| Overlap করা interval merge করুন                     | Start   | শেষ merged interval-টা বাড়ান, নয়তো নতুন একটি push করুন |
+| Sorted list-এ একটি interval ঢোকান          | Start   | শুধু নতুনটার সঙ্গে overlap করা অংশটুকু merge করুন       |
+| একজন মানুষ কি সব meeting-এ যেতে পারবেন?             | Start   | কোথাও `start < previousEnd` হলেই সংঘাত               |
+| সবচেয়ে কম room / সর্বোচ্চ concurrency             | দুটিই, আলাদাভাবে | Start-গুলোকে end-গুলোর বিপরীতে sweep করুন            |
+| **সর্বোচ্চ** কতগুলো non-overlapping interval রাখা যায়   | **End** | Greedy-ভাবে সেই interval রাখুন, যেটা শেষ রাখা interval শেষ হওয়ার পরে শুরু হয় |
+| সব balloon ফাটাতে সবচেয়ে কম কয়টি arrow             | **End** | একই greedy: প্রতিটি রাখা interval-এর end-এ তীর ছুড়ুন     |
 
-শেষ দুটি row-ই মুখস্থ করা solution আর বুঝে করা solution-কে আলাদা করে। **End** অনুযায়ী sort কাজ করে, কারণ সবচেয়ে
-আগে শেষ হলে পরের সবকিছুর জন্য সবচেয়ে বেশি জায়গা থাকে। Interval scheduling-এর এটাই প্রচলিত exchange argument।
-Start অনুযায়ী sort করে greedy-ভাবে সবচেয়ে আগের start রাখা প্রমাণিতভাবে ভুল: শূন্যে শুরু হওয়া খুব লম্বা একটি
-interval সবকিছু আটকে দেয়।
+শেষ দুটি row-ই আলাদা করে দেয় মুখস্থ করা সমাধান আর বোঝা সমাধানকে। **End** ধরে sort কাজ করে, কারণ যেটা সবার আগে শেষ
+হয় সেটা পরের সবকিছুর জন্য সবচেয়ে বেশি জায়গা ছেড়ে দেয়। Interval scheduling-এর জন্য এটাই প্রচলিত exchange argument।
+Start ধরে sort করে greedy-ভাবে সবচেয়ে আগের start রাখা প্রমাণিতভাবে ভুল: শূন্য থেকে শুরু হওয়া একটি খুব লম্বা interval
+বাকি সবকিছু আটকে দেয়।
 
 ## কখন ব্যবহার করবেন
 
-| প্রশ্নে যে সংকেত থাকে                                       | কী ব্যবহার করবেন              | কেন                                    |
+| প্রশ্নে যে ইঙ্গিত থাকে                                       | কী ব্যবহার করবেন              | কেন                                    |
 | ------------------------------------------------------------ | ---------------------- | -------------------------------------- |
-| Input হলো `[start, end]` জোড়ার একটি list                  | Sort, তারপর এক pass    | সংজ্ঞা দেওয়ার মতো গড়ন                      |
-| "Merge", "overlap", "conflict", "clash"                      | Start অনুযায়ী sort          | প্রতিবেশীর সাথে তুলনাই যথেষ্ট          |
-| "সর্বনিম্ন room", "সর্বোচ্চ concurrent", "সবচেয়ে ব্যস্ত মুহূর্ত"      | Sweep line বা heap     | আপনার দরকার একটি সংখ্যা, একটি span নয়            |
-| "সর্বোচ্চ কয়টি non-overlapping…" বা "সবচেয়ে কম কয়টি সরাতে হবে"   | End অনুযায়ী sort, greedy    | সবচেয়ে আগে শেষ হলে সবচেয়ে বেশি জায়গা থাকে |
-| Interval একটি একটি করে আসে আর সাথে সাথে query করতে হয়      | একটি interval tree বা একটি ordered map | প্রতিটি insert-এ নতুন করে sort মানে প্রতিবার `O(n log n)` |
-| একটি নির্দিষ্ট interval set-এর ওপর অনেক query                | একটি timeline-এর ওপর prefix sum | প্রতি query-তে একবার sort করা কাজের অপচয় |
+| Input হলো `[start, end]` জোড়ার list                  | Sort, তারপর এক pass    | এটাই এই pattern-এর মূল চেহারা                      |
+| "Merge", "overlap", "conflict", "clash"                      | Start ধরে sort          | পাশেরটার সঙ্গে তুলনাই যথেষ্ট          |
+| "সবচেয়ে কম room", "সর্বোচ্চ কতগুলো একসঙ্গে", "সবচেয়ে ব্যস্ত মুহূর্ত"      | Sweep line বা heap     | দরকার একটি সংখ্যা, span নয়            |
+| "সর্বোচ্চ কতগুলো non-overlapping…" বা "সবচেয়ে কম কয়টি সরাতে হবে"   | End ধরে sort, greedy    | সবার আগে শেষ হলে সবচেয়ে বেশি জায়গা থাকে |
+| Interval একটি একটি করে আসে, আর সঙ্গে সঙ্গে query করতে হয়      | Interval tree বা ordered map | প্রতিবার insert-এ নতুন করে sort করলে প্রতিবারই `O(n log n)` |
+| নির্দিষ্ট একটি interval set-এর ওপর অনেক query                | Timeline-এর ওপর prefix sum | প্রতিটি query-তে একবার করে sort মানে কাজের অপচয় |
 
-⚠️ Endpoint-গুলো **inclusive** কিনা দেখে নিন। `[1, 2]` আর `[2, 3]` overlap হিসেবে গণ্য হলে test হলো
-`start <= last.end`। ছুঁয়ে থাকা চললে সেটা `start < last.end`। Meeting Rooms ছুঁয়ে থাকাকে ঠিক বলে ধরে — 2-এ শেষ
-হওয়া একটি meeting 2-এ শুরু হওয়া আরেকটির সাথে সংঘাত করে না। অথচ Merge Intervals `[1, 4]` আর `[4, 5]`-কে
-merge-যোগ্য ধরে। জিজ্ঞেস করুন, অথবা আপনার অনুমানটা মুখে বলুন।
+⚠️ দেখে নিন প্রান্তগুলো **inclusive** কিনা। `[1, 2]` আর `[2, 3]`-কে overlap ধরলে test হলো
+`start <= last.end`। ছুঁয়ে যাওয়া চললে test হলো `start < last.end`। Meeting Rooms ছুঁয়ে যাওয়াকে সমস্যা ধরে না: 2-টায় শেষ
+হওয়া meeting-এর সঙ্গে 2-টায় শুরু হওয়া meeting-এর সংঘাত নেই। অথচ Merge Intervals
+`[1, 4]` আর `[4, 5]`-কে merge করার যোগ্য ধরে। জিজ্ঞেস করে নিন, নয়তো আপনার ধরে নেওয়াটা মুখে বলুন।
 
 ## সাধারণ ভুল
 
@@ -156,14 +155,14 @@ merge-যোগ্য ধরে। জিজ্ঞেস করুন, অথব
 // ✅ sort by start (or end) first, and say the O(n log n) cost out loud
 ```
 
-**Maximum নেওয়ার বদলে end overwrite করা:**
+**Maximum না নিয়ে end overwrite করা:**
 
 ```typescript
 // ❌ last[1] = end;                        // [[1,10],[2,3]] merges to [1,3]
 // ✅ last[1] = Math.max(last[1], end);
 ```
 
-**Input array-কে in place sort করা:**
+**Input array-টাকেই in place sort করা:**
 
 ```typescript
 // ❌ intervals.sort(...)                   // mutates the caller's array
@@ -177,14 +176,14 @@ merge-যোগ্য ধরে। জিজ্ঞেস করুন, অথব
 // ✅ starts.sort((a, b) => a - b);
 ```
 
-**Merge করে Meeting Rooms II solve করা:**
+**Merge করে Meeting Rooms II মেটানোর চেষ্টা:**
 
 ```typescript
 // ❌ merge, then count the merged intervals — this counts busy blocks, not concurrency
 // ✅ sweep starts against ends, or use a min-heap of end times
 ```
 
-**"সবচেয়ে বেশি interval রাখো" greedy-তে start অনুযায়ী sort করা:**
+**"সবচেয়ে বেশি interval রাখুন" greedy-তে start ধরে sort করা:**
 
 ```typescript
 // ❌ sort by start and keep greedily — one long interval starting at 0 blocks everything after it
@@ -195,63 +194,63 @@ merge-যোগ্য ধরে। জিজ্ঞেস করুন, অথব
 
 | #   | Problem                                       | কঠিনতা | যা অনুশীলন করায়                                    |
 | --- | --------------------------------------------- | ---------- | ------------------------------------------------- |
-| 252 | Meeting Rooms                                 | Easy       | Overlap test, আর inclusive endpoint          |
+| 252 | Meeting Rooms                                 | Easy       | Overlap test, আর inclusive প্রান্ত          |
 | 56  | Merge Intervals                               | Medium     | `Math.max` দিয়ে বাড়ানো                           |
 | 57  | Insert Interval                               | Medium     | নতুন করে sort না করে একটি অংশ merge করা                 |
-| 253 | Meeting Rooms II                              | Medium     | Sweep line, বা end time-এর একটি heap                 |
-| 435 | Non-overlapping Intervals                     | Medium     | End অনুযায়ী sort-এর greedy, আর কেন সেটা optimal       |
-| 452 | Minimum Number of Arrows to Burst Balloons    | Medium     | ছদ্মবেশে একই greedy                  |
+| 253 | Meeting Rooms II                              | Medium     | Sweep line, বা end time-এর heap                 |
+| 435 | Non-overlapping Intervals                     | Medium     | End ধরে sort-এর greedy, আর কেন সেটা optimal       |
+| 452 | Minimum Number of Arrows to Burst Balloons    | Medium     | একই greedy, শুধু ছদ্মবেশে                  |
 | 986 | Interval List Intersections                   | Medium     | দুটি sorted list, আর union-এর বদলে intersection |
 | 759 | Employee Free Time                            | Hard       | `k`টি list জুড়ে merge, তারপর ফাঁকগুলো পড়া          |
 
-56 আর 253 পরপর করুন — input-এর গড়ন একই, ভাঙার পদ্ধতি আলাদা। তারপর 435 আর 452, যেগুলো আসলে একই problem, শুধু
+56 আর 253 পরপর করুন: input-এর চেহারা একই, কিন্তু ভাঙার ধরন আলাদা। তারপর 435 আর 452, যেগুলো আসলে একই problem, শুধু
 ভাষা আলাদা।
 
 ## 🔑 মূল শিক্ষা
 
-- আগে sort করাটাই pattern। এটা সব জোড়ার `O(n²)` পরীক্ষাকে প্রতিবেশীদের একটিমাত্র `O(n)` pass-এ পরিণত করে।
-- `a ≤ c` হিসেবে sorted থাকলে, `[a, b]` আর `[c, d]` overlap করে যখন `c ≤ b` — একটি test, চারটি গড়নই।
-- Merge হওয়া interval `Math.max` দিয়ে বাড়ান, নইলে ভেতরে থাকা একটি interval চুপচাপ সেটাকে ছোট করে দেয়।
-- Merge উত্তর দেয় "কোথায়", sweep line উত্তর দেয় "একসাথে কয়টি"। এগুলো আলাদা প্রশ্ন।
-- "সবচেয়ে বেশি non-overlapping interval রাখো" **end** অনুযায়ী sort করে, কারণ সবচেয়ে আগে শেষ হলে সবচেয়ে বেশি জায়গা থাকে।
+- আগে sort করাটাই এই pattern। তাতে সব জোড়ার `O(n²)` যাচাই বদলে হয়ে যায় পাশেরটার সঙ্গে একটিমাত্র `O(n)` pass।
+- `a ≤ c` হিসেবে sort করা থাকলে `[a, b]` আর `[c, d]` overlap করে যখন `c ≤ b`। একটি test-এই চারটি চেহারা ধরা পড়ে।
+- Merged interval বাড়ান `Math.max` দিয়ে। নইলে ভেতরে থাকা interval চুপচাপ সেটাকে ছোট করে দেয়।
+- Merge উত্তর দেয় "কোথায়", sweep line উত্তর দেয় "একসঙ্গে কতগুলো"। প্রশ্ন দুটি আলাদা।
+- "সবচেয়ে বেশি non-overlapping interval রাখুন"-এ sort হয় **end** ধরে, কারণ সবার আগে শেষ হলে সবচেয়ে বেশি জায়গা থাকে।
 
 ## Interview-এর প্রশ্ন
 
-**Q: Sort করা কেন প্রথম চাল, আর এতে আপনার খরচ কত?**
+**Q: প্রথম চাল কেন sort করা, আর এর জন্য কী দাম দিতে হয়?**
 
-Unsorted অবস্থায় যেকোনো interval অন্য যেকোনোটার সাথে overlap করতে পারে, তাই সঠিক হতে হলে সব `n²` জোড়া পরীক্ষা
-করতে হয়। Start অনুযায়ী sorted থাকলে একটি interval শুধু আগে শুরু হওয়া একটির সাথেই overlap করতে পারে। তাই আগের
-merge হওয়া interval-এর সাথে তুলনাই যথেষ্ট। খরচ `O(n log n)`, আর সেটাই পুরো solution-এর খরচ ঠিক করে দেয় — তাই
-জিজ্ঞেস করা দরকার input আগে থেকেই sorted কিনা, কারণ তাতে খরচ নেমে `O(n)` হয়।
+Sort না করলে যেকোনো interval যেকোনোটার সঙ্গে overlap করতে পারে, তাই সঠিক উত্তরের জন্য সব `n²` জোড়া যাচাই করতে হয়।
+Start ধরে sort করা থাকলে একটি interval overlap করতে পারে শুধু আগে শুরু হওয়াগুলোর সঙ্গে, তাই আগের merged interval-এর
+সঙ্গে তুলনাই যথেষ্ট। দাম `O(n log n)`, আর পুরো সমাধানে এটাই সবচেয়ে বড় খরচ। তাই জিজ্ঞেস করে নিন input আগে থেকেই sorted
+কিনা, কারণ তাহলে খরচ নেমে আসে `O(n)`-এ।
 
-**Q: Overlap-এর শর্তটা বলুন, আর কেন চারটি diagram-এর ক্ষেত্র অপ্রয়োজনীয়, তা ব্যাখ্যা করুন।**
+**Q: Overlap-এর শর্তটা বলুন, আর চার case-এর diagram কেন অদরকারি, সেটাও বলুন।**
 
-Sort `a ≤ c` নিশ্চিত করলে, `[a, b]` আর `[c, d]` overlap করে ঠিক তখনই, যখন `c ≤ b`। Containment, আংশিক overlap
-আর ছুঁয়ে থাকা — সবই এই শর্ত মানে, আর ব্যর্থ হওয়ার একমাত্র উপায় হলো মাঝখানে একটি ফাঁক। চার ক্ষেত্রের তালিকা
-শেখানোর একটি উপকরণ, code-এ লেখার মতো কিছু নয়।
+Sort-এর কারণে `a ≤ c` নিশ্চিত থাকলে `[a, b]` আর `[c, d]` ঠিক তখনই overlap করে, যখন `c ≤ b`। একটির ভেতরে আরেকটি থাকা,
+আংশিক overlap আর ছুঁয়ে যাওয়া, তিনটিই এই শর্ত মেনে চলে। শর্তটা ভাঙে শুধু মাঝে ফাঁক থাকলে। চার case-এর তালিকা বোঝানোর
+জন্য, code-এ লেখার জন্য নয়।
 
-**Q: Interval-গুলো merge করে কেন Meeting Rooms II solve করা যায় না?**
+**Q: Interval merge করে Meeting Rooms II কেন মেটানো যায় না?**
 
-Merge overlap করা interval-গুলোকে ব্যস্ত block-এ গুটিয়ে আনে। তাই এটা বলে কখন অন্তত একটি meeting চলছে। কিন্তু
-আপনার যে তথ্যটা দরকার — overlap-এর গভীরতা — সেটা এটা ফেলে দেয়। 9 থেকে 10 পর্যন্ত চলা তিনটি meeting merge হয়ে
-এমন একটি interval হয়, যেটা 9 থেকে 10 পর্যন্ত একটি meeting-এর মতোই। কিন্তু দরকার একটির বদলে তিনটি room।
+Merge overlap করা interval-গুলোকে ব্যস্ত block-এ গুটিয়ে আনে। তাই এটা বলে কখন অন্তত একটি meeting চলছে। কিন্তু যে তথ্যটা
+দরকার, overlap কতটা গভীর, সেটাই এতে হারিয়ে যায়। 9টা থেকে 10টা পর্যন্ত তিনটি meeting merge হয়ে ঠিক 9টা থেকে 10টার একটি
+meeting-এর মতো একটিমাত্র interval হয়। অথচ room লাগে তিনটি, একটি নয়।
 
-**Q: "সর্বোচ্চ সংখ্যক non-overlapping interval রাখো" greedy কেন end time অনুযায়ী sort করে?**
+**Q: "সর্বোচ্চ কতগুলো non-overlapping interval রাখা যায়" greedy কেন end time ধরে sort করে?**
 
-যে interval সবচেয়ে আগে শেষ হয়, সেটা বাছলে পরের সবকিছুর জন্য সম্ভাব্য সবচেয়ে বড় timeline বাকি থাকে। আর একটি
-exchange argument দেখায় যে যেকোনো optimal solution-কে খারাপ না করেই এই বাছাই দিয়ে শুরু হওয়ার মতো করে আবার লেখা
-যায়। Start অনুযায়ী sort ব্যর্থ হয় `[[0, 10], [1, 2], [3, 4]]`-এর মতো ছোট একটি counterexample-এই — সবচেয়ে আগের
-start এমন দুটি interval আটকে দেয়, যেগুলো দুটিই এঁটে যেত।
+যে interval সবার আগে শেষ হয় সেটা বাছলে পরের সবকিছুর জন্য সবচেয়ে বেশি timeline বাকি থাকে। আর exchange argument দেখায়,
+যেকোনো optimal সমাধানকে এই বাছাই দিয়ে শুরু করে নতুন করে লেখা যায়, তাতে উত্তর খারাপ হয় না। Start ধরে sort করলে ভুল ধরা
+পড়ে এত ছোট উদাহরণেই: `[[0, 10], [1, 2], [3, 4]]`। সবচেয়ে আগের start-টা এমন দুটি interval আটকে দেয়, যেগুলো দুটিই এঁটে
+যেত।
 
-**Q: যে interval-গুলো অনবরত আসে আর সাথে সাথে query করতে হয়, সেগুলো কীভাবে সামলাবেন?**
+**Q: Interval যদি একটানা আসতে থাকে আর সঙ্গে সঙ্গে query করতে হয়, কীভাবে সামলাবেন?**
 
-প্রতিটি insert-এ নতুন করে sort মানে প্রতিবার `O(n log n)`, তাই গড়নটা বদলায়: interval-গুলোকে start অনুযায়ী
-সাজানো একটি structure-এ রাখুন — একটি balanced tree বা একটি ordered map। Insert-এর সময় দুই পাশের প্রতিবেশী খুঁজে
-দেখুন merge করতে হবে কিনা। তাতে insert হয় `O(log n)`। Query যখন "এই range-এর সাথে overlap করা সবকিছু", তখন
-interval tree হলো এর বিশেষায়িত version।
+প্রতিটি insert-এ নতুন করে sort করলে প্রতিবার `O(n log n)` লাগে, তাই কাঠামোটাই বদলাতে হয়। Interval-গুলো রাখুন start
+ধরে সাজানো কোনো structure-এ, যেমন balanced tree বা ordered map। Insert-এর সময় দুই পাশের প্রতিবেশী খুঁজে দেখুন merge
+করতে হবে কিনা। তাতে insert হয় `O(log n)`-এ। Query যদি হয় "এই range-এর সঙ্গে overlap করা সবকিছু", তাহলে এর বিশেষ রূপ
+হলো interval tree।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Top K Element](#ch-top-k-elements) — sweep line-এর min-heap বিকল্প
-- [Chapter ?? — Prefix Sum](#ch-prefix-sum) — একটি নির্দিষ্ট timeline-এর ওপর অনেক range query-র tool
-- [Chapter ?? — Modified Binary Search](#ch-modified-binary-search) — Insert Interval কীভাবে `O(log n)`-এ তার জায়গা খুঁজে পায়
+- [Chapter ?? — Top K Element](#ch-top-k-elements) — sweep line-এর বিকল্প হিসেবে min-heap
+- [Chapter ?? — Prefix Sum](#ch-prefix-sum) — একটি নির্দিষ্ট timeline-এর ওপর অনেক range query-র হাতিয়ার
+- [Chapter ?? — Modified Binary Search](#ch-modified-binary-search) — Insert Interval কীভাবে `O(log n)`-এ নিজের জায়গা খুঁজে পায়

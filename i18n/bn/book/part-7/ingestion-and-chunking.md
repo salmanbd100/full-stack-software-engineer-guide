@@ -1,28 +1,28 @@
 ---
 sourceHash: "bfcaa4431675596fc48f7fe40da012a6e0e0d44ec00a9ebeddc5258ba3f2507c"
 title: "Ingestion ও Chunking"
-translatedAt: "2026-10-13T03:02:52.401Z"
+translatedAt: "2026-10-19T07:56:51.399Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Ingestion ও Chunking {#ch-ingestion-and-chunking}
 
-> Document এমনভাবে ভাগ করুন যাতে সঠিক অংশটি পুরোটা খুঁজে পাওয়া যায়। আর এতটুকু metadata রাখুন, যাতে filter, citation আর re-index শূন্য থেকে শুরু না করেই করা যায়।
+> Document এমনভাবে ভাগ করুন যাতে ঠিক passage-টা পুরোটা একসঙ্গে খুঁজে পাওয়া যায়, আর এতটা metadata রাখুন যাতে নতুন করে শুরু না করেই filter, cite আর re-index করা যায়।
 
-**এই অধ্যায়ে:** pipeline-এর পাঁচটি ধাপ · fixed-size splitting কেন ব্যর্থ হয় · structure-aware chunking · overlap আর context header · metadata প্রথম শ্রেণির field হিসেবে · index-কে হালনাগাদ রাখা
+**এই অধ্যায়ে:** pipeline-এর পাঁচটি ধাপ · নির্দিষ্ট মাপে কাটা কেন ব্যর্থ হয় · গঠন বুঝে chunking · overlap আর context header · metadata-কে প্রথম শ্রেণির field হিসেবে ধরা · index তাজা রাখা
 
 ## 💡 মূল ধারণা
 
-Chunk হলো ভাগ করা document-এর একটি টুকরো, আর এটাই আপনার system-এর retrieve করার সবচেয়ে ছোট একক। তাই
-**আপনি সবসময় একটি পুরো chunk-ই খুঁজে পাবেন। যে chunk একটি ধারণাকে মাঝখান থেকে কেটে ফেলে, সেই ধারণা আর খুঁজে
-পাওয়া যায় না।** কোনো reranker সেটা ফেরত আনে না, কোনো ভালো model সেটা সারায় না, আর কোনো prompt বদলে এর
-পাশ কাটানো যায় না।
+Chunk হলো ভাগ করা document-এর একটি টুকরো, আর আপনার system যা retrieve করতে পারে তার মধ্যে এটাই সবচেয়ে ছোট একক।
+তাই **আপনি সবসময় পুরো একটি chunk-ই খুঁজে পান। কোনো chunk যদি একটি ধারণাকে মাঝখান দিয়ে কেটে ফেলে, সেই ধারণা আর
+খুঁজে পাওয়া যায় না।** কোনো reranker সেটা ফেরাতে পারে না, ভালো model সেটা জোড়া লাগাতে পারে না, আর prompt বদলেও
+এর পাশ কাটানো যায় না।
 
-এই কারণেই একটি retrieval system-এ chunking সবকিছুর আগে আসে। ভালো chunk-সহ একটি সস্তা embedding model
-(এটা text-কে সংখ্যার একটি vector-এ পরিণত করে) প্রতি 512 character-এ কাটা chunk-সহ একটি frontier model-কে
-হারিয়ে দেয়। দ্বিতীয় team সাধারণত splitter-এর দিকে তাকানোর আগে কয়েক সপ্তাহ retriever tune করে কাটায়।
+এ কারণেই retrieval system-এ chunking সবার আগে আসে। সস্তা একটি embedding model (যা text-কে সংখ্যার একটি vector
+বানায়) ভালো chunk পেলে সেই frontier model-কেও হারিয়ে দেয়, যার chunk প্রতি 512 character-এ কাটা। দ্বিতীয় team
+সাধারণত splitter-এর দিকে তাকানোর আগে কয়েক সপ্তাহ ধরে retriever tune করে।
 
-> Document-এর লেখক যেভাবে সাজিয়েছেন, সেভাবেই chunk করুন। ধারণা কোথায় শেষ হয়, তা তিনি আগেই ঠিক করে রেখেছেন।
+> Document-এর লেখক যেভাবে সাজিয়েছেন, সেভাবেই chunk করুন। ধারণা কোথায় শেষ হচ্ছে, তা তিনি আগেই ঠিক করে রেখেছেন।
 
 ## কীভাবে কাজ করে
 
@@ -37,34 +37,34 @@ flowchart LR
   E --> F[Index]
 ```
 
-**পাঁচটি ধাপ। পরের সবকিছু প্রথম তিনটি ধাপের সিদ্ধান্ত উত্তরাধিকার সূত্রে পায়।**
+**পাঁচটি ধাপ। প্রথম তিনটিতে যা সিদ্ধান্ত হয়, পরের সব ধাপ সেটাই বয়ে নিয়ে চলে।**
 
-Parsing-কে মানুষ সবচেয়ে কম গুরুত্ব দেয়। যে PDF তার table-এর structure হারায়, বা যে HTML page তার navigation
-menu রেখে দেয়, সেগুলো splitting শুরুর আগেই noisy chunk দেয়। Structure বের করে আনুন, যেমন heading, list, table
-আর code block, কারণ পরের ধাপের এগুলো দরকার।
+Parsing এমন ধাপ, যার গুরুত্ব লোকে কম বোঝে। যে PDF তার table-এর গঠন হারায়, কিংবা যে HTML page তার navigation menu
+রেখে দেয়, সেখান থেকে ভাগ করার আগেই ময়লা chunk আসে। Heading, list, table, code block-এর মতো গঠন বের করে আনুন, কারণ
+পরের ধাপে সেটা লাগবে।
 
-### Fixed-size splitting কেন ব্যর্থ হয়
+### নির্দিষ্ট মাপে কাটা কেন ব্যর্থ হয়
 
-প্রতি 500 character-এ ভাগ করা tutorial-এর default। এটা document-কে ঠিক সেই জায়গাগুলোতেই ভাঙে, যেগুলো জরুরি।
+প্রতি 500 character-এ কাটা হলো tutorial-এর default। এটা document ঠিক সেই জায়গাগুলোতেই ভাঙে, যেগুলো গুরুত্বপূর্ণ।
 
 ```text
 Chunk 41: "...To rotate the signing key, first disable"
 Chunk 42: "the old key, then run the rotation job. If you skip..."
 ```
 
-"how do I rotate the signing key" query এখন chunk 41-এর সাথে মেলে, যেটায় উত্তর নেই। আবার chunk 42-এর সাথেও মেলে,
-যেটায় প্রশ্নের শব্দগুলো নেই। দুটিরই score মাঝারি। কোনোটাই আত্মবিশ্বাসের সাথে retrieve হয় না।
+এখন "how do I rotate the signing key" query মেলে chunk 41-এর সঙ্গে, যেখানে উত্তর নেই, আর chunk 42-এর সঙ্গে, যেখানে
+প্রশ্নের শব্দগুলো নেই। দুটিই মাঝারি score পায়। কোনোটাই আত্মবিশ্বাসের সঙ্গে retrieve হয় না।
 
-| পদ্ধতি | কীসের ভিত্তিতে ভাগ করে | কোথায় মানায় |
+| পদ্ধতি | কীসের ভিত্তিতে কাটে | কোথায় মানায় |
 | --- | --- | --- |
-| **Fixed size** | Character বা token-এর সংখ্যা | কোথাও ভালো নয়; শুধু একটি baseline |
-| **Recursive** | Paragraph, তারপর sentence, তারপর word | নির্ভরযোগ্য structure নেই এমন লেখা |
+| **Fixed size** | Character বা token-এর সংখ্যা | কোথাও ভালো নয়; শুধু baseline হিসেবে |
+| **Recursive** | আগে অনুচ্ছেদ, তারপর বাক্য, তারপর শব্দ | নির্ভরযোগ্য গঠন নেই এমন লেখা |
 | **Structure-aware** | Heading, section, list আর code-এর সীমানা | Markdown, HTML, docs — বেশিরভাগ corpus |
-| **Semantic** | Embedding distance দিয়ে ধরা topic-এর পরিবর্তন | লম্বা, structure-হীন transcript |
-| **পুরো document** | কিছুই না | ছোট page, FAQ entry, ticket |
+| **Semantic** | Embedding distance দিয়ে ধরা বিষয়ের বদল | গঠনহীন লম্বা transcript |
+| **Whole document** | কিছুই না | ছোট page, FAQ entry, ticket |
 
-Structure-aware splitting-ই সঠিক default। Documentation, wiki আর knowledge base-এর নিজেদের সীমানা আগে থেকেই
-আছে, আর সেগুলো মেনে চলতে প্রায় কোনো খরচ নেই।
+Structure-aware splitting-ই ঠিক default। Documentation, wiki আর knowledge base-এর নিজেদের সীমানা আগে থেকেই থাকে,
+আর সেগুলো মানতে প্রায় কোনো খরচই নেই।
 
 ```typescript
 interface Chunk {
@@ -84,144 +84,142 @@ function chunkMarkdown(doc: ParsedDoc, maxTokens = 500): Chunk[] {
 }
 ```
 
-ওই function-এর গঠনটাই আসল কথা: **শুধু যেটা আঁটে না, সেটাই ভাগ করুন।** একটি 200-token section তার দুটি
-100-token অর্ধেকের চেয়ে ভালো chunk। যে splitter সবসময় ভাগ করে, সে বিনা খরচে পাওয়া structure ফেলে দেয়।
+Function-টার গড়নটাই আসল কথা: **যা এঁটে যায় না, শুধু সেটাই ভাগ করুন।** 200 token-এর একটি section তার 100 token-এর
+দুটি অর্ধেকের চেয়ে ভালো chunk। যে splitter সবসময় কাটে, সেটা বিনামূল্যে পাওয়া গঠন ফেলে দেয়।
 
-### Size, overlap আর header-এর কৌশল
+### মাপ, overlap আর header-এর কৌশল
 
-| Chunk size | Retrieval precision | উত্তরে context | কোথায় মানায় |
+| Chunk-এর মাপ | Retrieval precision | উত্তরে context | কোথায় মানায় |
 | --- | --- | --- | --- |
-| ছোট (100–250 token) | বেশি — match-গুলো নির্দিষ্ট | কম; model আশপাশের detail না-ও পেতে পারে | FAQ, reference, API entry |
+| ছোট (100–250 token) | বেশি — match-গুলো নির্দিষ্ট | কম; model আশপাশের detail নাও পেতে পারে | FAQ, reference, API entry |
 | মাঝারি (400–800) | ভারসাম্যপূর্ণ | সাধারণত যথেষ্ট | Documentation, article |
-| বড় (1,000+) | কম — একটি match অনেক noise টেনে আনে | সমৃদ্ধ | বর্ণনামূলক লেখা, legal, contract |
+| বড় (1,000+) | কম — একটি match অনেক বাজে জিনিস টেনে আনে | সমৃদ্ধ | বর্ণনামূলক লেখা, আইনি লেখা, contract |
 
-কোনো সঠিক সংখ্যা নেই। যে অধ্যায় আপনাকে একটি সংখ্যা দেয়, সে আপনার corpus নিয়ে আন্দাজ করছে। সঠিক হলো পদ্ধতিটা।
-Document-এর ধরন দেখে একটি শুরুর size বাছুন। তারপর একটি golden set-এ (আগে থেকে জানা উত্তরসহ আসল প্রশ্নের
-একটি নির্দিষ্ট তালিকা) recall মাপুন, আর size ঠিক করুন। Recall মানে সঠিক chunk কত ঘন ঘন ফিরে আসে।
-[Chapter ?? — Eval, Retrieval Metric ও Error Analysis](#ch-evals) দেখায় কীভাবে।
+কোনো ঠিক সংখ্যা নেই। যে অধ্যায় আপনাকে একটি সংখ্যা দেয়, সেটা আপনার corpus নিয়ে আন্দাজ করছে। ঠিক যা, তা হলো পদ্ধতি।
+Document-এর ধরন দেখে একটি শুরুর মাপ নিন, তারপর golden set-এর (জানা উত্তরসহ আসল প্রশ্নের একটি স্থির তালিকা) ওপর recall
+মাপুন, আর সেই অনুযায়ী বদলান। Recall মানে ঠিক chunk কত বার ফিরে আসে। কীভাবে, তা দেখানো আছে
+[Chapter ?? — Eval, Retrieval Metric ও Error Analysis](#ch-evals)-এ।
 
-**Overlap** আগের chunk-এর শেষ এক-দুটি sentence আবার রাখে। সীমানায় text হারানোর বিরুদ্ধে এটা সস্তা বীমা, আর
-সাধারণত দশ থেকে পনেরো শতাংশ রাখা হয়। এতে storage খরচ হয়, কিছু duplicate retrieval-ও হয়। বদলে এটা সেই
-sentence-টি বাঁচায়, যেটা নইলে কাটা পড়ত।
+**Overlap** আগের chunk-এর শেষ এক-দুটি বাক্য আবার রাখে। সীমানায় text হারানোর বিরুদ্ধে এটা সস্তা বিমা, আর সাধারণত
+দশ থেকে পনেরো শতাংশ রাখা হয়। এতে storage লাগে, কিছু retrieval-ও দুবার আসে। বদলে বেঁচে যায় সেই বাক্যটা, যা নইলে
+কাটা পড়ত।
 
-**Context header** এর চেয়ে ভালো কৌশল, আর খরচও কম। Embed করার আগে প্রতিটি chunk-এর শুরুতে তার document-এর
-title আর heading path জুড়ে দিন:
+**Context header** এর চেয়ে ভালো কৌশল, খরচও কম। Embed করার আগে প্রতিটি chunk-এর শুরুতে তার document-এর title আর
+heading path জুড়ে দিন:
 
 ```text
 [Platform Handbook › Security › Key rotation]
 To rotate the signing key, first disable the old key...
 ```
 
-এখন document-এর গভীরে থাকা একটি chunk-ও জানে সে কী নিয়ে। ছোট chunk-এর ক্ষেত্রে এতে retrieval মাপার মতো ভালো
-হয়। কারণ context-হীন একটি টুকরো সবকিছুর কাছেও embed হয়, আবার কোনো কিছুর কাছেই নয়।
+এখন document-এর অনেক গভীরের chunk-ও বলে দেয় সেটা কী নিয়ে। ছোট chunk-এর ক্ষেত্রে এতে retrieval মাপার মতো ভালো হয়।
+কারণ context ছাড়া একটি টুকরো embed হয় সবকিছুর কাছাকাছি, আবার কোনোকিছুরই কাছে নয়।
 
-### Metadata তার জায়গা অর্জন করে
+### Metadata তার জায়গা আদায় করে নেয়
 
-Metadata documentation নয়। এটা একটি filter, একটি citation আর হালনাগাদ থাকার একটি signal। পরে যোগ করা মানে পুরো
-corpus আবার ingest করা।
+Metadata কোনো documentation নয়। এটা একাধারে filter, citation আর তাজা থাকার signal। পরে যোগ করতে গেলে পুরো corpus
+আবার ingest করতে হয়।
 
-| Field | যে কাজে লাগে |
+| Field | কাজে লাগে |
 | --- | --- |
-| `sourcePath`, `url`, line বা page | এমন citation, যেটায় user click করতে পারে |
+| `sourcePath`, `url`, line বা page | এমন citation, যাতে user click করতে পারেন |
 | `headingPath` | Filtering আর context header |
-| `updatedAt`, `version` | Archive-এর docs-এর বদলে চলতি docs-কে প্রাধান্য দেওয়া |
+| `updatedAt`, `version` | Archive করা docs-এর বদলে বর্তমান docs-কে আগে রাখা |
 | `visibility`, `tenantId` | Query-র সময় permission filtering |
-| `docType` | Routing — একটি changelog আর একটি tutorial আলাদা প্রশ্নের উত্তর দেয় |
+| `docType` | Routing — changelog আর tutorial আলাদা প্রশ্নের উত্তর দেয় |
 
-বিশেষ করে permission field। এগুলো ছাড়া একটি retrieval system হয় tenant-দের মধ্যে document leak করে, নয়তো
-দ্বিতীয় customer আসার সাথে সাথে নতুন করে বানাতে হয়।
+বিশেষ করে permission-এর field। এগুলো ছাড়া retrieval system হয় এক tenant-এর document আরেক tenant-এর কাছে ফাঁস করে,
+নয়তো দ্বিতীয় customer আসামাত্র নতুন করে বানাতে হয়।
 
-### হালনাগাদ রাখা
+### তাজা রাখা
 
-Index আপনার document-গুলোর একটি cache, আর এটা একইভাবে stale হয়ে যায়।
+Index হলো আপনার document-এর একটি cache, আর cache যেভাবে বাসি হয়, এটাও সেভাবেই হয়।
 
-- **Schedule ধরে নয়, পরিবর্তন হলে re-embed করুন।** Chunk-এর text hash করুন। Hash না বদলালে embedding call বাদ
-  দিন। বড় corpus-এ এটাই কয়েক মিনিট আর কয়েক ঘণ্টার পার্থক্য।
-- **Delete-কে পুরো পথে পৌঁছাতে হবে।** মুছে ফেলা document-এর chunk index-এ থেকে গেলে system আত্মবিশ্বাসের সাথে
-  সেগুলো cite করে। এটা চোখে পড়া সবচেয়ে কঠিন bug-গুলোর একটি।
-- **Embedding model বদলানো মানে সবকিছু re-embed করা।** দুটি model-এর vector তুলনা করা যায় না। তাই ধাপে ধাপে
-  migration নয়, পুরো rebuild আর একটি switchover-এর পরিকল্পনা করুন।
+- **সময় ধরে নয়, বদল হলে re-embed করুন।** Chunk-এর text hash করুন। Hash না বদলালে embedding call বাদ দিন। বড় corpus-এ
+  এটাই কয়েক মিনিট আর কয়েক ঘণ্টার পার্থক্য।
+- **Delete-কেও ছড়িয়ে পড়তে হবে।** মুছে ফেলা document-এর chunk যদি index-এ থেকে যায়, system আত্মবিশ্বাসের সঙ্গে
+  সেগুলো cite করে। এ ধরনের bug চোখে পড়া বেশ কঠিন।
+- **Embedding model বদলানো মানে সবকিছু আবার embed করা।** দুটি model-এর vector তুলনা করা যায় না। তাই ধাপে ধাপে
+  migration নয়, পুরো rebuild আর একবারে switch করার পরিকল্পনা করুন।
 
-> ⚠️ এক index-এ দুটি embedding model-এর vector মেশালে নিঃশব্দে অর্থহীন ফল আসে। কিছুই error throw করে না।
-> Similarity score-এর আর কোনো মানে থাকে না, ব্যস।
+> ⚠️ একই index-এ দুটি embedding model-এর vector মেশালে চুপচাপ অর্থহীন ফল আসে। কিছুই error throw করে না।
+> Similarity score-গুলো শুধু আর কিছু বোঝায় না।
 
 ## কখন ব্যবহার করবেন
 
-| Corpus | কীসের ভিত্তিতে chunk | Size |
+| Corpus | কীসের ভিত্তিতে chunk | মাপ |
 | --- | --- | --- |
 | Markdown documentation | Heading section | 400–800 token |
 | API reference | প্রতি chunk-এ একটি entry | পুরো entry |
 | Support ticket | পুরো ticket | পুরো document |
-| লম্বা PDF, contract | Section, তারপর paragraph | Overlap-সহ 800–1,200 |
-| Meeting transcript | Semantic বা time window | বেশি overlap-সহ 500 |
+| লম্বা PDF, contract | আগে section, তারপর অনুচ্ছেদ | 800–1,200, overlap সহ |
+| Meeting transcript | Semantic বা time window | 500, অনেকটা overlap সহ |
 | Source code | Function বা class | পুরো unit |
 
 ## সাধারণ ভুল
 
-**❌ Character-এর সংখ্যা দিয়ে ভাগ করে এগিয়ে যাওয়া**
+**❌ Character গুনে কেটে দিয়ে ভুলে যাওয়া**
 
-> এটা sentence, table আর code block-এর মাঝখান দিয়ে কাটে। তার ফলে আসা retrieval failure কয়েক সপ্তাহ ধরে model-এর
-> failure বলে মনে হয়।
+> এতে বাক্য, table আর code block মাঝখান দিয়ে কাটা পড়ে। আর তা থেকে আসা retrieval-এর ব্যর্থতা কয়েক সপ্তাহ ধরে
+> model-এর ব্যর্থতা বলে মনে হয়।
 
-**❌ Context ছাড়া একটি খালি টুকরো embed করা**
+**❌ Context ছাড়া খালি একটি টুকরো embed করা**
 
-> "Then run the rotation job." কোনো কাজের জিনিসের কাছে embed হয় না। শুরুতে heading path জুড়ে দিন।
+> "Then run the rotation job." এমন কিছুর কাছে embed হয়, যা কোনো কাজের নয়। শুরুতে heading path জুড়ে দিন।
 
-**❌ একটি blog post পড়ে chunk size ঠিক করা**
+**❌ Blog post পড়ে chunk-এর মাপ ঠিক করা**
 
-> সঠিক size আপনার document আর আপনার প্রশ্নের বৈশিষ্ট্য। একটি golden set থাকলে সেটা খুঁজে বের করা এক ঘণ্টার
-> experiment।
+> ঠিক মাপ নির্ভর করে আপনার document আর আপনার প্রশ্নের ওপর। Golden set থাকলে সেটা খুঁজে বের করা এক ঘণ্টার পরীক্ষা।
 
-**✅ Ingestion-এর সময়েই metadata রাখুন, এমনকি যে field এখনো ব্যবহার করছেন না সেটাও**
+**✅ Ingestion-এর সময়েই metadata রাখুন, এখনো কাজে লাগছে না এমন field-ও**
 
-> পরে `tenantId` যোগ করা মানে পুরো corpus আবার ingest করা। এখন যোগ করলে খরচ একটি column।
+> পরে `tenantId` যোগ করা মানে পুরো corpus আবার ingest করা। এখন যোগ করলে খরচ মাত্র একটি column।
 
 ## 🔑 মূল শিক্ষা
 
-- Chunk retrieve করার সবচেয়ে ছোট একক। তাই যে chunk একটি ধারণাকে ভাগ করে, সেই ধারণা আর খুঁজে পাওয়া যায় না।
-- Document-এর নিজের structure ধরে ভাগ করুন, আর শুধু সেই section-ই ভাগ করুন যেটা সত্যিই আঁটে না।
-- Chunk-এর শুরুতে তার document আর heading path জুড়ে দিন। Context-হীন টুকরো কোনো কিছুর কাছেই embed হয় না।
-- Metadata একটি filter, একটি citation আর একটি permission boundary। পরে যোগ করা মানে সবকিছু আবার ingest করা।
+- Chunk হলো retrieve করা যায় এমন সবচেয়ে ছোট একক, তাই যে chunk একটি ধারণাকে কেটে ফেলে, সেই ধারণা আর খুঁজে পাওয়া যায় না।
+- Document-এর নিজের গঠন ধরে ভাগ করুন, আর শুধু সেই section ভাগ করুন, যা সত্যিই এঁটে যায় না।
+- প্রতিটি chunk-এর শুরুতে তার document আর heading path দিন। Context ছাড়া টুকরো কোনোকিছুর কাছেই embed হয় না।
+- Metadata একাধারে filter, citation আর permission boundary। পরে যোগ করা মানে সবকিছু আবার ingest করা।
 - দুটি embedding model-এর vector তুলনা করা যায় না, তাই model বদলানো মানে পুরো rebuild।
 
 ## Interview-এর প্রশ্ন
 
 **Q: একটি chunk কত বড় হওয়া উচিত?**
 
-এটা document-এর ওপর নির্ভর করে, তাই আমি একটি সংখ্যা নয়, একটি পদ্ধতি দিয়ে উত্তর দেব। Reference entry-তে ছোট
-chunk দরকার, কারণ precision জরুরি আর প্রতিটি entry নিজেই সম্পূর্ণ। বর্ণনামূলক বা legal text-এ বড় chunk দরকার,
-কারণ অর্থ কয়েকটি paragraph জুড়ে থাকে। আমি document-এর ধরন থেকে শুরু করব, আসল প্রশ্ন দিয়ে একটি golden set
-বানাব, আর কয়েকটি size-এ recall মাপব। যে একটি নির্দিষ্ট সংখ্যা বলে, সে সামনের corpus-এ সেটা মেপে দেখেনি।
+এটা document-এর ওপর নির্ভর করে, তাই আমি সংখ্যা দিয়ে নয়, পদ্ধতি দিয়ে উত্তর দেব। Reference entry-র জন্য ছোট chunk
+ভালো, কারণ সেখানে precision জরুরি আর প্রতিটি entry নিজেই সম্পূর্ণ। বর্ণনামূলক বা আইনি লেখার জন্য বড় chunk ভালো, কারণ
+অর্থ কয়েক অনুচ্ছেদ জুড়ে ছড়িয়ে থাকে। আমি document-এর ধরন দিয়ে শুরু করব, আসল প্রশ্ন দিয়ে একটি golden set বানাব, আর
+কয়েকটি মাপে recall মাপব। কেউ যদি নির্দিষ্ট একটি সংখ্যা বলে দেন, তিনি সামনের corpus-এ সেটা মেপে দেখেননি।
 
-**Q: Embedding model-এর চেয়ে chunking কেন বেশি জরুরি?**
+**Q: Embedding model-এর চেয়ে chunking বেশি গুরুত্বপূর্ণ কেন?**
 
-কারণ retrieval সবসময় শুধু পুরো chunk-ই ফেরত দিতে পারে। উত্তর যদি একটি সীমানা পার হয়, কোনো chunk-এ সেটা পুরো
-থাকে না। ভালো embedding model শুধু অসম্পূর্ণ chunk-গুলোকে আরও নিখুঁতভাবে rank করে। Chunking ঠিক করে কতটুকু
-খুঁজে পাওয়া সম্ভব তার ঊর্ধ্বসীমা, আর embedding model ঠিক করে আপনি সেটার কতটা কাছে যান। Team-রা সাধারণত দ্বিতীয়টা
-tune করে, প্রথমটার দিকে কখনো তাকায় না।
+কারণ retrieval সবসময় পুরো chunk-ই ফেরত দেয়। উত্তর যদি কোনো সীমানা পেরিয়ে যায়, কোনো chunk-এই সেটা পুরোটা থাকে না।
+ভালো embedding model শুধু অসম্পূর্ণ chunk-গুলোকে আরও নিখুঁতভাবে সাজায়। কী খুঁজে পাওয়া সম্ভব, তার সর্বোচ্চ সীমা ঠিক
+করে chunking। আর embedding model ঠিক করে আপনি সেই সীমার কত কাছে পৌঁছাবেন। Team-গুলো সাধারণত দ্বিতীয়টা tune করে,
+প্রথমটার দিকে তাকায়ই না।
 
-**Q: আপনি কোন metadata রাখবেন, আর কেন ingestion-এর সময়েই?**
+**Q: কোন metadata রাখবেন, আর ingestion-এর সময়েই কেন?**
 
-Citation-এর জন্য source path আর অবস্থান, context আর filtering-এর জন্য heading path, হালনাগাদ থাকার জন্য একটি
-updated timestamp, আর permission-এর জন্য visibility বা tenant field। আমি ingestion-এর সময়েই রাখি, কারণ metadata
-index করা record-এর ওপর থাকে। পরে একটি field যোগ করা মানে পুরো corpus আবার ঘুরে আসা। Field-টি যদি embed করা
-text বদলায়, তাহলে প্রতিটি embedding-এর খরচ দ্বিতীয়বার দিতে হয়। Permission field পরে যোগ করতেই সবচেয়ে বেশি
-কষ্ট।
+Citation-এর জন্য source path আর অবস্থান, context আর filtering-এর জন্য heading path, তাজা থাকার জন্য update হওয়ার
+timestamp, আর permission-এর জন্য visibility বা tenant field। Ingestion-এর সময়েই রাখি, কারণ metadata থাকে index করা
+record-এর ওপর। পরে একটি field যোগ করা মানে পুরো corpus আবার ঘুরে আসা। Field-টা যদি embed করা text বদলায়, তাহলে প্রতিটি
+embedding-এর দামও দ্বিতীয়বার দিতে হয়। পরে যোগ করতে সবচেয়ে বেশি কষ্ট permission-এর field-এ।
 
-**Q: আপনি embedding model বদলালেন। আগের index-এর কী হবে?**
+**Q: আপনি embedding model বদলালেন। চালু index-এর কী হবে?**
 
-এটা নতুন করে বানাতে হবে। আলাদা model-এর vector আলাদা space-এ থাকে, তাই তাদের মধ্যে similarity-র কোনো মানে
-নেই। Failure-টা নিঃশব্দ, কারণ অঙ্ক তখনও সংখ্যা দেয়। আমি পুরোনোটার পাশে নতুন index বানাব, একই golden set-এ
-দুটিকে evaluate করব, আর নতুনটা জিতলে switch করব। জায়গায় দাঁড়িয়ে migrate করব না।
+সেটা আবার বানাতে হবে। আলাদা model-এর vector থাকে আলাদা space-এ, তাই তাদের মধ্যে similarity-র কোনো অর্থ নেই। ব্যর্থতাটা
+চুপচাপ হয়, কারণ অঙ্ক তবু সংখ্যা দিয়ে যায়। আমি পুরনো index-এর পাশে নতুনটা বানাব, একই golden set-এ দুটিকেই যাচাই
+করব, আর নতুনটা জিতলে switch করব। জায়গায় দাঁড়িয়ে migrate করব না।
 
-**Q: Index-কে source document-এর সাথে কীভাবে তাল মিলিয়ে রাখবেন?**
+**Q: Source document-এর সঙ্গে index-কে তাল মিলিয়ে রাখবেন কীভাবে?**
 
-প্রতিটি chunk-এর content hash করুন, আর শুধু hash বদলালেই re-embed করুন। এতে একটি incremental run এতটা সস্তা হয়
-যে প্রতিটি publish-এ চালানো যায়। Deletion যতটা মনে হয় তার চেয়ে বেশি জরুরি। একটি document মুছে ফেলা হলো কিন্তু তার
-chunk index-এ রয়ে গেল, তাহলে system পুরো আত্মবিশ্বাসের সাথে সেগুলো retrieve আর cite করে। কোনো user ধরার আগে কেউ
-টের পায় না। তাই pipeline-কে শুধু upsert (insert-or-update write) নয়, removal-ও স্পষ্টভাবে সামলাতে হবে।
+প্রতিটি chunk-এর content hash করুন, আর শুধু hash বদলালেই re-embed করুন। এতে incremental run এত সস্তা হয় যে প্রতিটি
+publish-এ চালানো যায়। Deletion যতটা মনে হয়, তার চেয়ে বেশি গুরুত্বপূর্ণ। কোনো document সরিয়ে ফেলা হলো, অথচ তার chunk
+index-এ থেকে গেল, তাহলে system পুরো আত্মবিশ্বাস নিয়ে সেগুলো retrieve আর cite করবে। কোনো user ধরিয়ে না দেওয়া পর্যন্ত
+কেউ টেরই পায় না। তাই pipeline-কে শুধু upsert (insert-or-update write) নয়, মুছে ফেলাটাও আলাদা করে সামলাতে হবে।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Embedding, Vector Store ও Retrieval](#ch-retrieval) — এই chunk-গুলো কোথায় থাকে, আর query-র সময় এদের কী হয়
-- [Chapter ?? — Eval, Retrieval Metric ও Error Analysis](#ch-evals) — size-এর প্রশ্নটা একটি সংখ্যা দিয়ে কীভাবে মীমাংসা করবেন
+- [Chapter ?? — Embedding, Vector Store ও Retrieval](#ch-retrieval) — এই chunk-গুলো কোথায় থাকে, আর query-র সময় তাদের কী হয়
+- [Chapter ?? — Eval, Retrieval Metric ও Error Analysis](#ch-evals) — মাপের প্রশ্নটা একটি সংখ্যা দিয়ে কীভাবে মেটাবেন

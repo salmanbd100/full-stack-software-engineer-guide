@@ -1,29 +1,33 @@
 ---
 sourceHash: "1d842b4810837758bfbf78468d6021ae44449d1bcd31db7487ab26ed12d33a0e"
 title: "Frontend-এ Real-Time Feature"
-translatedAt: "2026-10-12T12:26:38.138Z"
+translatedAt: "2026-10-19T07:55:02.800Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Frontend-এ Real-Time Feature {#ch-frontend-real-time-features}
 
-> এমন একটি client তৈরি করুন, যেটা connection কেটে গেলেও টিকে থাকে, আর সে কী জানে সে সম্পর্কে সত্য বলে।
+> এমন client বানান, যা connection কেটে গেলেও টিকে থাকে, আর নিজে কী জানে সে বিষয়ে সত্যি কথা বলে।
 
-**এই অধ্যায়ে:** browser-এর দুটি API · backoff আর jitter-সহ reconnection · হারানো message ফিরে পাওয়া · live data render করা · user-এর জন্য UI-কে কী করতেই হবে
+**এই অধ্যায়ে:** browser-এর দুটি API · backoff আর jitter দিয়ে reconnection · হারানো message ফেরত আনা · live data render করা · UI-র কাছে user-এর যা পাওনা
 
 ## 💡 মূল ধারণা
 
-একটি real-time feature-এর কঠিন অংশ message পাওয়া নয়। কঠিন অংশ হলো connection ভাঙলে কী হয়। এটা ভাঙবেই — প্রতিটি deploy-এ, প্রতিটি tunnel-এ, প্রতিটি train-এ।
+Real-time feature-এর কঠিন দিক message পাওয়া নয়। কঠিন হলো connection ভাঙলে কী হয়। আর connection ভাঙবেই:
+প্রতিটি deploy-এ, প্রতিটি সুড়ঙ্গে, প্রতিটি ট্রেনে।
 
-যে client শুধু socket দিয়েই পরিবর্তনের খবর পায়, সে সবসময় একটি হারানো frame দূরে দাঁড়িয়ে আছে ভুল হওয়া থেকে। আর সে সেটা জানেও না। **Connection-কে একটি low-latency ইঙ্গিত হিসেবে দেখুন, আর HTTP-কে source of truth হিসেবে।** যে client একটি REST endpoint থেকে তার state আবার গড়ে তুলতে পারে, সে যেকোনো disconnection সহ্য করে।
+যে client শুধু socket দিয়েই বদলের খবর পায়, একটা frame হারালেই তার জানা ভুল হয়ে যায়। আর সেটা client টেরও পায় না।
+**Connection-কে দেখুন কম latency-র একটা ইঙ্গিত হিসেবে, আর সত্যের উৎস হিসেবে ধরুন HTTP-কে।** যে client একটা REST
+endpoint থেকে নিজের state আবার গড়ে নিতে পারে, সেই client যেকোনো disconnection সামলে নেয়।
 
-কোন transport ব্যবহার করবেন, সেটা একটি design সিদ্ধান্ত, যা [Chapter ?? — Queue, Async কাজ ও WebSocket](#ch-message-queues)-এ আছে। এই অধ্যায় ধরে নেয় সেই সিদ্ধান্ত নেওয়া হয়ে গেছে, আর client-টি তৈরি করে।
+কোন transport ব্যবহার করবেন, সেটা design-এর সিদ্ধান্ত, আর তা আলোচনা করা হয়েছে [Chapter ?? — Queue, Async কাজ ও WebSocket](#ch-message-queues)-এ।
+এই অধ্যায় ধরে নেয় যে সিদ্ধান্তটা নেওয়া হয়ে গেছে, আর client-টা বানায়।
 
 ## কীভাবে কাজ করে
 
-Browser-এ দুটি API আছে, আর এরা আপনার হয়ে সমান পরিমাণ কাজ করে না।
+Browser-এ দুটি API আছে, আর দুটি আপনার হয়ে সমান পরিমাণ কাজ করে না।
 
-**`WebSocket` — bidirectional, আর reconnection আপনাকেই বানাতে হবে:**
+**`WebSocket` — দুই দিকেই চলে, আর reconnection আপনাকেই বানাতে হয়:**
 
 ```typescript
 const socket = new WebSocket("wss://api.example.com/chat");
@@ -36,7 +40,7 @@ socket.onmessage = (event: MessageEvent<string>) => {
 socket.onclose = (event: CloseEvent) => scheduleReconnect(event.code);
 ```
 
-**`EventSource` — একমুখী, আর এটা নিজেই reconnect করে:**
+**`EventSource` — এক দিকে চলে, আর reconnect নিজেই করে নেয়:**
 
 ```typescript
 const source = new EventSource("/api/events"); // sends `Last-Event-ID` on reconnect
@@ -49,22 +53,24 @@ source.onerror = () => {
 };
 ```
 
-SSE (Server-Sent Events, `EventSource`-এর পেছনের protocol) server-এ সামান্যই চায়। এটা তিনটি response header পাঠায়: `Content-Type: text/event-stream`, `Cache-Control: no-cache` আর `Connection: keep-alive`। তারপর event লেখে `id:` আর `data:` line হিসেবে। Browser `id` থেকে আবার replay করে, তাই সবসময় একটি পাঠান।
+SSE (Server-Sent Events, `EventSource`-এর পেছনের protocol) server-এ খুব কম কিছু চায়। Server তিনটি response
+header পাঠায়: `Content-Type: text/event-stream`, `Cache-Control: no-cache` আর `Connection: keep-alive`। তারপর
+event লেখে `id:` আর `data:` line হিসেবে। Browser `id` থেকে আবার চালায়, তাই সবসময় একটা পাঠাবেন।
 
 ## কখন ব্যবহার করবেন
 
-Transport-এর সিদ্ধান্ত আগের ধাপের। *Client* যা ঠিক করে, তা হলো stream-কে সে কতটা বিশ্বাস করে:
+Transport-এর সিদ্ধান্ত আগেই হয়ে যায়। *Client* যা ঠিক করে, তা হলো stream-কে কতটা বিশ্বাস করা হবে:
 
-| UI যা দেখায় | Client strategy | কেন |
+| UI যা দেখায় | Client-এর strategy | কেন |
 | ------------ | --------------- | --- |
-| Chat, comment, presence | Optimistic append, acknowledgement এলে reconcile | Latency-ই পুরো feature; rollback সস্তা |
-| দাম, metric, dashboard | শেষ জানা value render করুন, সাথে একটি staleness indicator | আত্মবিশ্বাসের সাথে দেখানো ভুল সংখ্যা, label করা stale সংখ্যার চেয়ে খারাপ |
-| Order status, payment state | শুধু push-এর ওপর কখনো ভরসা নয়; পেলেই refetch | Correctness latency-কে হারায়; push শুধু reload করার একটি সংকেত |
-| Collaborative document | CRDT বা server-ordered operation, কখনো last-write-wins নয় | দুটি offline edit-কেই টিকে থাকতে হবে |
+| Chat, comment, presence | Optimistic-ভাবে যোগ করুন, acknowledgement এলে মিলিয়ে নিন | Latency-ই পুরো feature; rollback সস্তা |
+| দাম, metric, dashboard | শেষ জানা value দেখান, সঙ্গে পুরনো হওয়ার একটা চিহ্ন | আত্মবিশ্বাসের সঙ্গে দেখানো ভুল সংখ্যা, "পুরনো" লেখা সংখ্যার চেয়ে খারাপ |
+| Order status, payment-এর অবস্থা | শুধু push-কে বিশ্বাস করবেন না; push এলেই আবার fetch করুন | Latency-র চেয়ে সঠিকতা জরুরি; push শুধু reload করার ইশারা |
+| Collaborative document | CRDT বা server-এর সাজানো operation, last-write-wins কখনোই নয় | Offline-এ করা দুটি edit-ই টিকে থাকতে হবে |
 
-## Backoff আর jitter-সহ reconnection
+## Backoff আর jitter দিয়ে reconnection
 
-প্রতিটি client-কে reconnect করতেই হবে। *ভদ্রভাবে* reconnect করা — এই অংশটাই যাচাই করা হয়।
+প্রতিটি client-কেই reconnect করতে হয়। পরীক্ষা হয় *ভদ্রভাবে* reconnect করা নিয়ে।
 
 ```typescript
 interface ReconnectState {
@@ -77,17 +83,22 @@ function nextDelayMs({ attempt }: ReconnectState): number {
 }
 ```
 
-> ⚠️ **Jitter ছাড়া প্রতিটি client একই schedule-এ reconnect করে।** একটি pod restart তখন একটি হুড়োহুড়িতে পরিণত হয়, যেটা সদ্য চালু হওয়া pod-টিকে মাটিতে ফেলে দেয়। Randomness সাজসজ্জা নয়। পাঁচ সেকেন্ডের একটি ঝাঁকুনি আর একটি গড়িয়ে চলা outage-এর পার্থক্য এটাই।
+> ⚠️ **Jitter না থাকলে সব client একই সময়সূচিতে reconnect করে।** একটা pod restart তখন হুড়োহুড়ি হয়ে দাঁড়ায়, আর
+> সদ্য চালু হওয়া pod-টাকেই মাটিতে মিশিয়ে দেয়। এলোমেলো ভাবটা সাজসজ্জা নয়। পাঁচ সেকেন্ডের একটা ঝাঁকুনি আর একের পর
+> এক outage-এর মধ্যে পার্থক্য এটাই।
 
-তিনটি খুঁটিনাটি, যেগুলো একটি কাজের client-কে একটি demo থেকে আলাদা করে:
+কাজের client আর demo-কে আলাদা করে তিনটি খুঁটিনাটি:
 
-- **Delay-এর সীমা দিন, attempt-এর নয়।** পাঁচবার চেষ্টার পর হাল ছেড়ে দেওয়া client তাদের জন্য ভাঙা, যারা এক ঘণ্টার জন্য laptop বন্ধ রেখেছিল। সীমায় পৌঁছে retry চালিয়ে যান।
-- **Delay reset করুন একটি *সফল* open-এ**, attempt-এ নয়। নাহলে বারবার ওঠানামা করা connection কখনো back off করে না।
-- **Tab লুকানো থাকলে থামুন।** `document.visibilityState` দিয়ে background tab-এর জন্য retry বন্ধ রাখা যায়, আর tab ফিরে এলেই reconnect করা যায়। পুরো সময় চলা একটি timer-এর চেয়ে এটা সস্তা আর দ্রুত।
+- **সীমা দিন delay-এ, চেষ্টার সংখ্যায় নয়।** পাঁচবার চেষ্টা করে যে client হাল ছেড়ে দেয়, এক ঘণ্টা laptop বন্ধ
+  রাখা যেকোনো user-এর জন্য সেটা অকেজো। সর্বোচ্চ delay-এ পৌঁছে চেষ্টা চালিয়ে যান।
+- **Delay reset করুন open *সফল* হলে**, চেষ্টা করার সময় নয়। নইলে বারবার ওঠানামা করা connection কখনো পিছিয়ে আসে না।
+- **Tab লুকানো থাকলে থামুন।** `document.visibilityState` দিয়ে background tab-এর জন্য চেষ্টা বন্ধ রাখা যায়, আর
+  tab ফিরলেই reconnect করা যায়। পুরো সময় চলতে থাকা timer-এর চেয়ে এটা সস্তা, আর দ্রুতও।
 
-## হারানো message ফিরে পাওয়া
+## হারানো message ফেরত আনা
 
-Reconnection transport ফিরিয়ে আনে। আপনি না থাকার সময় যে message এসেছিল, সেগুলো ফেরায় না। সেই ফাঁক বন্ধ করুন data layer-এ, HTTP দিয়ে:
+Reconnection transport ফিরিয়ে আনে। আপনি না থাকার সময় যে message এসেছিল, সেগুলো ফেরায় না। এই ফাঁকটা পূরণ করুন
+data layer-এ, HTTP দিয়ে:
 
 ```typescript
 let lastEventId: string | null = null;
@@ -105,13 +116,16 @@ socket.addEventListener("message", (event: MessageEvent<string>) => {
 });
 ```
 
-দুটি বৈশিষ্ট্য এটাকে নিরাপদ করে। `apply`-কে হতে হবে **idempotent**, কারণ catch-up fetch আর live stream একে অপরের ওপর পড়বে আর একই event দুবার deliver করবে। আর `lastEventId` সামনে এগোয় শুধু event apply হওয়ার পরে, তাই apply-এর মাঝপথে crash হলে event-টি বাদ না পড়ে আবার replay হয়।
+দুটি বৈশিষ্ট্য এটাকে নিরাপদ করে। `apply`-কে **idempotent** হতে হবে, কারণ catch-up fetch আর live stream
+একে অন্যের ওপর পড়বে, ফলে একই event দুবার আসবে। আর `lastEventId` এগোয় কেবল event apply হওয়ার পরে। তাই apply
+করার মাঝখানে crash হলে event-টা বাদ পড়ে না, আবার চলে।
 
-SSE-তে একই mechanism বিনা খরচে পান: browser reconnect-এর সময় `Last-Event-ID` পাঠায়, আর server সেখান থেকে আবার শুরু করে।
+SSE-তে একই ব্যবস্থা বিনা পরিশ্রমে পাওয়া যায়: reconnect করার সময় browser `Last-Event-ID` পাঠায়, আর server সেখান
+থেকে আবার শুরু করে।
 
 ## Live data render করা
 
-Connection হলো একটি side effect, যার একটি আয়ু আছে। Effect hook ঠিক এর জন্যই।
+Connection একটা side effect, যার একটা আয়ু আছে। Effect hook ঠিক এই কাজের জন্যই।
 
 ```typescript
 function useLiveFeed(roomId: string): { events: FeedEvent[]; connected: boolean } {
@@ -134,58 +148,76 @@ function useLiveFeed(roomId: string): { events: FeedEvent[]; connected: boolean 
 }
 ```
 
-এই hook তিনটি জিনিস ঠিকভাবে করে, যা বেশিরভাগ hook করে না। এটা **cleanup-এ connection বন্ধ করে**। এটা **buffer-এর সীমা বাঁধে**, তাই একটি ব্যস্ত room সীমাহীনভাবে state বাড়াতে পারে না। আর এটা **`connected` expose করে**, যাতে UI সেটা বলতে পারে। Connection state দেখানো শুধু ঘষামাজা নয়। যে dashboard চুপচাপ update হওয়া বন্ধ করে দিয়েছে, সেটা user-কে বিভ্রান্ত করে।
+বেশিরভাগ hook যে তিনটি জিনিস ভুল করে, এই hook সেগুলো ঠিক করে। Cleanup-এর সময় **connection বন্ধ করে**। **Buffer-এর
+একটা সীমা রাখে**, যাতে ব্যস্ত একটা room state-কে সীমাহীনভাবে বাড়াতে না পারে। আর **`connected` বাইরে দেয়**, যাতে
+UI সেটা জানাতে পারে। Connection-এর অবস্থা দেখানো বাড়তি ঘষামাজা নয়। যে dashboard চুপচাপ update হওয়া বন্ধ করে
+দিয়েছে, সেটা user-কে ভুল পথে নিয়ে যায়।
 
-**High-frequency stream-এর জন্য client-এও throttling লাগে।** সেকেন্ডে 50টি message-এর একটি price feed-এর সেকেন্ডে 50টি render লাগে না। আসা message buffer করুন, আর একটি animation frame-এ বা নির্দিষ্ট interval-এ flush করুন। User পার্থক্য দেখতে পায় না, আর main thread-এর হাঁসফাঁস বন্ধ হয়।
+**ঘন ঘন আসা stream-এর জন্য client-এও throttling লাগে।** সেকেন্ডে 50টা message আসা price feed-এর জন্য সেকেন্ডে
+50টা render দরকার নেই। আসা message buffer-এ জমান, আর animation frame-এ বা নির্দিষ্ট বিরতিতে একবারে ঢেলে দিন।
+User কোনো পার্থক্য দেখবেন না, আর main thread-এর হাঁসফাঁস থেমে যাবে।
 
 ## সাধারণ ভুল
 
-❌ **N-বার reconnect চেষ্টার পর হাল ছেড়ে দেওয়া।** User laptop বন্ধ করে ফিরে এসে একটি মৃত page পান।
-✅ একটি সীমাবদ্ধ, jitter-যুক্ত interval-এ অনির্দিষ্টকাল retry করুন।
+❌ **N-বার reconnect চেষ্টার পর হাল ছেড়ে দেওয়া।** User laptop বন্ধ করে ফিরে এসে মরা একটা page পান।
+✅ সীমা দেওয়া, jitter-ওয়ালা বিরতিতে অনির্দিষ্টকাল চেষ্টা করুন।
 
-❌ **Reconnect করে ধরে নেওয়া যে আপনি sync-এ আছেন।** আপনি দূরে থাকার সময় যা পাঠানো হয়েছে, সবই হারিয়েছেন।
-✅ শেষ apply করা event id থেকে refetch করুন, তারপর stream আবার শুরু করুন।
+❌ **Reconnect করে ধরে নেওয়া যে সব মিলে গেছে।** আপনি না থাকার সময় পাঠানো সবকিছুই হাতছাড়া হয়েছে।
+✅ শেষ apply করা event id থেকে আবার fetch করুন, তারপর stream আবার চালু করুন।
 
-❌ **কোনো দৃশ্যমান connection state নেই।** একটি জমে যাওয়া dashboard দেখতে একটি শান্ত dashboard-এর মতোই।
-✅ Connecting, live আর stale state স্পষ্টভাবে দেখান।
+❌ **Connection-এর অবস্থা চোখে পড়ে না।** জমে যাওয়া dashboard দেখতে শান্ত একটা dashboard-এর মতোই।
+✅ Connecting, live আর stale — তিনটি অবস্থা স্পষ্ট করে দেখান।
 
-❌ **সীমাহীন client state।** ব্যস্ত room-এ খোলা একটি দীর্ঘজীবী tab বাড়তে বাড়তে আটকে যায়।
-✅ Buffer-এর সীমা দিন আর পুরোনো জিনিস evict করুন, server-এর মতো client-এও।
+❌ **Client state-এর কোনো সীমা নেই।** ব্যস্ত room-এ অনেকক্ষণ খোলা tab বাড়তে বাড়তে আটকে যায়।
+✅ Buffer-এর সীমা দিন আর পুরনোগুলো সরান, server-এর মতো client-এও।
 
-❌ **Unmount-এর সময় connection খোলা রেখে দেওয়া।** Route বদলের সাথে সাথে চুপচাপ socket জমতে থাকে।
-✅ Effect cleanup-এ এটা বন্ধ করুন, stream-কে যা চিহ্নিত করে তার ওপর key করে।
+❌ **Unmount-এর সময় connection খোলা রেখে দেওয়া।** Route বদলাতে বদলাতে নিঃশব্দে socket জমতে থাকে।
+✅ Effect cleanup-এ বন্ধ করুন, আর key দিন stream-কে যা দিয়ে চেনা যায় তা দিয়ে।
 
 ## 🔑 মূল শিক্ষা
 
-- Connection বহন করে latency; HTTP বহন করে সত্য, তাই প্রতিটি client-কে একটি REST endpoint থেকে তার state আবার গড়ে তুলতে পারতে হবে।
-- Reconnection-এর জন্য লাগে jitter-সহ exponential backoff, attempt-এর কোনো সীমা ছাড়া, আর reset শুধু একটি সফল open-এ।
-- Catch up মানে শেষ apply করা event id থেকে refetch করা, আর এটা কাজ করে শুধু তখন, যখন একটি event apply করা idempotent।
-- Connection state-এর জায়গা UI-তে — live দেখতে একটি stale view, স্পষ্টভাবে ভাঙা view-এর চেয়ে খারাপ।
-- Render rate আর client buffer দুটিরই সীমা দিন; একটি দীর্ঘজীবী tab হলো ব্যস্ত room-এর অপেক্ষায় থাকা একটি memory leak।
+- Connection বয়ে আনে গতি; সত্য বয়ে আনে HTTP। তাই প্রতিটি client-কে একটা REST endpoint থেকে নিজের state আবার গড়তে পারতে হবে।
+- Reconnection-এ লাগে jitter-সহ exponential backoff, চেষ্টার কোনো সীমা ছাড়া। Reset হবে কেবল সফল open-এ।
+- Catch up মানে শেষ apply করা event id থেকে আবার fetch করা। এটা কাজ করে কেবল event apply করা idempotent হলে।
+- Connection-এর অবস্থা UI-তে দেখাতে হবে — live দেখতে অথচ পুরনো view, স্পষ্টভাবে ভাঙা view-এর চেয়েও খারাপ।
+- Render-এর হার আর client buffer, দুটিরই সীমা দিন। অনেকক্ষণ খোলা tab মানে একটা memory leak, যা শুধু ব্যস্ত একটা room-এর অপেক্ষায়।
 
 ## Interview-এর প্রশ্ন
 
-**Q: একটি client 30 সেকেন্ড offline থাকার পর reconnect করে। সে কীভাবে catch up করে?**
+**Q: 30 সেকেন্ড offline থাকার পর একটা client reconnect করল। হারানো অংশটা client কীভাবে ধরে ফেলে?**
 
-Socket দিয়ে নয়। Client শেষ যে event id apply করেছে সেটা মনে রাখে, আর reconnect-এর সময় একটি REST endpoint-কে সেই id-র পরের সবকিছুর জন্য call করে, তারপর live event আবার শুরু করে। Apply করাকে idempotent হতে হয়, কারণ catch-up আর live stream একে অপরের ওপর পড়ে। Socket শুধু জিনিসগুলো দ্রুত করে। যে client প্রতিটি message deliver করার জন্য transport-এর ওপর নির্ভর করে, সে শেষে চুপচাপ out of sync হয়ে যায়।
+Socket দিয়ে নয়। Client শেষ যে event id apply করেছে, সেটা মনে রাখে। Reconnect করে সেই id-র পরের সবকিছুর জন্য
+একটা REST endpoint call করে, তারপর live event আবার চালু করে। Catch-up আর live stream একে অন্যের ওপর পড়ে, তাই
+apply করা idempotent হতেই হবে। Socket শুধু জিনিসটা দ্রুত করে। যে client প্রতিটি message পৌঁছে দেওয়ার জন্য
+transport-এর ওপর ভরসা করে, শেষে সেটা চুপচাপ অমিল অবস্থায় পড়ে থাকে।
 
-**Q: Reconnection-এ jitter কেন লাগে?**
+**Q: Reconnection-এ jitter লাগে কেন?**
 
-কারণ নাহলে প্রতিটি client একসাথে reconnect করে। একটি pod restart একই মুহূর্তে হাজার হাজার connection ফেলে দেয়। সবাই একই backoff curve ব্যবহার করলে তারা ঢেউয়ে ঢেউয়ে ফেরে আর বদলি pod-টিকে মাটিতে ফেলে দেয়। প্রতিটি client-এর জন্য একটি random delay ফেরাটাকে window জুড়ে ছড়িয়ে দেয়। সম্ভাব্য একটি গড়িয়ে চলা outage হয়ে যায় একটি ক্ষণিকের ঝাঁকুনি।
+কারণ তা না হলে সব client একসঙ্গে reconnect করে। একটা pod restart একই মুহূর্তে হাজার হাজার connection ফেলে দেয়।
+সবাই একই backoff curve মানলে তারা ঢেউয়ের মতো ফেরে, আর বদলি pod-টাকে মাটিতে মিশিয়ে দেয়। প্রতিটি client-এর জন্য
+এলোমেলো একটা delay ফেরার সময়টাকে পুরো সময়সীমা জুড়ে ছড়িয়ে দেয়। একের পর এক outage-এর আশঙ্কা তখন ছোট একটা
+ঝাঁকুনিতে নেমে আসে।
 
-**Q: Connection কেটে গেলে user-এর জন্য UI-কে কী করতেই হবে?**
+**Q: Connection কেটে গেলে UI-র কাছে user-এর কী পাওনা?**
 
-একটি সৎ state। তিনটি state দেখান (connecting, live আর stale), আর সংখ্যাসূচক যেকোনো কিছুর পাশে একটি timestamp। আমি যে failure নিয়ে চিন্তা করি, সেটা হলো এমন একটি dashboard, যেটা বিশ মিনিট আগে update পাওয়া বন্ধ করেছে আর এখনো আত্মবিশ্বাসী সংখ্যা দেখাচ্ছে। কেউ সেগুলোর ওপর ভিত্তি করে সিদ্ধান্ত নেবে। "শেষ update 20 মিনিট আগে" দেখাতে কোনো খরচ নেই, আর এটা সেটা ঠেকায়।
+সৎ একটা অবস্থা। তিনটি অবস্থা দেখান (connecting, live আর stale), আর যেকোনো সংখ্যার পাশে একটা timestamp। যে
+ব্যর্থতা নিয়ে আমি চিন্তিত, সেটা হলো এমন dashboard, যা বিশ মিনিট আগে update পাওয়া বন্ধ করেছে অথচ এখনো
+আত্মবিশ্বাসের সঙ্গে সংখ্যা দেখাচ্ছে। কেউ না কেউ সেই সংখ্যা দেখে সিদ্ধান্ত নেবেন। "শেষ update 20 মিনিট আগে"
+দেখাতে কোনো খরচ নেই, আর সেটাই এই বিপদ ঠেকায়।
 
-**Q: একটি live feed-কে page-এর মান নামিয়ে দেওয়া থেকে কীভাবে আটকাবেন?**
+**Q: Live feed যাতে page-টাকে ধীর করে না দেয়, তা কীভাবে নিশ্চিত করবেন?**
 
-দুটি সীমা। Rendering throttle করুন: message buffer করুন আর একটি interval বা animation frame-এ flush করুন, কারণ সেকেন্ডে পঞ্চাশটি update কেউ দেখে না। আর পুরোনো event evict করে client buffer-এর সীমা দিন। নাহলে ব্যস্ত room-এ খোলা রাখা একটি tab বাড়তে বাড়তে আটকে যায়। দুটিই demo-তে ঠিক দেখায়, আর আসল traffic-এর এক ঘণ্টা পরে fail করে।
+দুটি সীমা দিয়ে। Render throttle করুন: message buffer-এ জমান, আর নির্দিষ্ট বিরতিতে বা animation frame-এ ঢেলে দিন,
+কারণ সেকেন্ডে পঞ্চাশটা update কেউ দেখে না। আর পুরনো event সরিয়ে client buffer-এর সীমা রাখুন। নইলে ব্যস্ত room-এ
+খোলা রেখে যাওয়া tab বাড়তে বাড়তে আটকে যায়। দুটিই demo-তে ঠিকঠাক দেখায়, আর আসল traffic-এ এক ঘণ্টা পরে ভেঙে পড়ে।
 
-**Q: কখন client-এ একেবারেই socket ব্যবহার করবেন না?**
+**Q: কখন client-এ socket একেবারেই ব্যবহার করবেন না?**
 
-যখন client শুধু শোনে। `EventSource` আমাকে বিনা খরচে automatic reconnection আর `Last-Event-ID` replay দেয়। এটা সাধারণ HTTP-র ওপর চলে, যা প্রতিটি proxy ইতিমধ্যে সামলায়। সেটা অনেকখানি code, যা আমাকে লিখতে বা test করতে হয় না। Raw `WebSocket` আমি নেব শুধু তখন, যখন client-কে সত্যিই ঘন ঘন message পাঠাতে হয়।
+যখন client শুধু শোনে। `EventSource` আমাকে বিনা পরিশ্রমে automatic reconnection আর `Last-Event-ID` replay দেয়। এটা
+চলে সাধারণ HTTP-র ওপর, যা প্রতিটি proxy আগে থেকেই সামলাতে জানে। মানে অনেকখানি code আমাকে লিখতে বা test করতে
+হয় না। Raw `WebSocket` আমি নেব কেবল তখনই, যখন client-কে সত্যিই ঘন ঘন message পাঠাতে হয়।
 
 ## এরপর কী পড়বেন
 
 - [Chapter ?? — Queue, Async কাজ ও WebSocket](#ch-message-queues) — transport বাছাই, আর ওই connection-গুলো ধরে রাখার খরচ
-- [Chapter ?? — Real-Time ও Streaming API](#ch-realtime-streaming) — client যে server-এর সাথে কথা বলছে: authentication, room, backpressure
+- [Chapter ?? — Real-Time ও Streaming API](#ch-realtime-streaming) — client যে server-এর সঙ্গে কথা বলে: authentication, room, backpressure

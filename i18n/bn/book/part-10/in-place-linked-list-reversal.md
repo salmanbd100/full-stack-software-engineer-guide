@@ -1,31 +1,32 @@
 ---
 sourceHash: "f5f6908d818f3f3eb84892a485dff5fc7abd50494b2eaee2fcb0991b70069541"
 title: "In-Place Linked List Reversal"
-translatedAt: "2026-10-13T03:11:24.952Z"
+translatedAt: "2026-10-19T10:27:55.390Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # In-Place Linked List Reversal {#ch-in-place-linked-list-reversal}
 
-> List-এর ওপর দিয়ে হাঁটতে হাঁটতে তার `next` pointer-গুলো নতুন করে জুড়ুন, তিনটি local variable ছাড়া আর কিছু allocate না করে।
+> List-এর ওপর দিয়ে হাঁটতে হাঁটতেই তার `next` pointer-গুলো নতুন করে জুড়ুন। Allocate হবে শুধু তিনটি local variable।
 
-**এই অধ্যায়ে:** three-pointer loop · তিনটি line-এর ক্রম কেন বদলানো যায় না · dummy head দিয়ে একটি sublist reverse করা · head-insertion variant · যে ভুলগুলোয় tail হারিয়ে যায়
+**এই অধ্যায়ে:** তিন-pointer-এর loop · তিনটি line-এর ক্রম কেন বদলানো যায় না · dummy head দিয়ে sublist উল্টানো · head insertion variant · যে ভুলে list-এর লেজ হারিয়ে যায়
 
 ## 💡 মূল ধারণা
 
-একটি list reverse করা মানে নতুন একটি list বানানো নয়। এর মানে list-এর ওপর দিয়ে একবার হাঁটা, আর প্রতিটি `next`
-pointer-কে ঘুরিয়ে পেছনের দিকে মুখ করানো। একমাত্র ঝামেলা হলো, আপনি যে pointer overwrite করতে যাচ্ছেন, সেটাই
-আপনাকে বলছে এরপর কোথায় যেতে হবে — তাই আগে সেটা save করুন।
+List উল্টানো মানে নতুন list বানানো নয়। মানে list-এর ওপর দিয়ে একবার হাঁটা, আর প্রতিটি
+`next` pointer-কে ঘুরিয়ে পেছনের দিকে মুখ করানো। ঝামেলা একটিই: যে pointer আপনি এখনই overwrite করতে যাচ্ছেন,
+সেটাই বলে দিচ্ছে এরপর কোথায় যেতে হবে। তাই আগে সেটা সরিয়ে রাখুন।
 
-তিনটি variable পুরো pattern বহন করে: `prev` (আপনার পেছনের reverse হয়ে যাওয়া অংশ), `current` (যে node নতুন করে
-জোড়া হচ্ছে), আর একটি অস্থায়ী `next` (সামনের এখনো reverse না হওয়া অংশ)।
+পুরো pattern চলে তিনটি variable দিয়ে: `prev` (পেছনের ইতিমধ্যে উল্টানো অংশ), `current` (যে node এখন নতুন করে
+জোড়া হচ্ছে), আর একটি অস্থায়ী `next` (সামনের এখনো না-উল্টানো অংশ)।
 
-> এই pattern আলাদা প্রশ্ন হিসেবে যতটা আসে, তার চেয়ে অনেক বেশি আসে একটি *উপ-ধাপ* হিসেবে। Palindrome Linked
-> List, Reorder List আর Reverse Nodes in k-Group — সবগুলোই একটি অর্ধেক বা একটি খণ্ড reverse করে, তারপর এগিয়ে যায়।
+> এই pattern আলাদা প্রশ্ন হিসেবে যত না আসে, তার চেয়ে অনেক বেশি আসে অন্য প্রশ্নের *একটি ধাপ* হিসেবে।
+> Palindrome Linked List, Reorder List আর Reverse Nodes in k-Group, তিনটিই list-এর অর্ধেক বা কোনো টুকরো উল্টে
+> তারপর বাকি কাজ করে।
 
 ## কীভাবে কাজ করে
 
-### Three-pointer loop
+### তিন-pointer-এর loop
 
 ```typescript
 interface ListNode {
@@ -48,27 +49,27 @@ function reverseList(head: ListNode | null): ListNode | null {
 // Time: O(n), Space: O(1)
 ```
 
-`prev` `null` দিয়ে শুরু হয় শুধু initialisation-এর জন্য নয়। মূল head-কে শেষে `null`-এর দিকে point করতেই হবে,
-কারণ সেটা tail হতে যাচ্ছে। `prev`-কে `head` দিয়ে শুরু করলে একটি node নিজের দিকেই point করে, আর loop অসীম হয়ে
-যায়।
+`prev` `null` দিয়ে শুরু হয় শুধু initialise করার জন্য নয়। আসল head-কে শেষে
+`null`-এর দিকেই point করতে হবে, কারণ সেটাই হতে যাচ্ছে লেজ। `prev`-কে `head` দিয়ে শুরু করলে node নিজের
+দিকেই point করে, আর loop অনন্তকাল চলে।
 
-**তিনটি assignment-এর ক্রম স্থির:**
+**তিনটি assignment-এর ক্রম বাঁধা:**
 
-| Line                    | এটা আগে সরালে…                                            |
+| Line                    | ক্রম বদলালে…                                            |
 | ----------------------- | --------------------------------------------------------------- |
-| `const next = current.next` | এটা বাদ দিলে পরের line-এই list-এর বাকি অংশ হারিয়ে যায় — এর একমাত্র reference আর নেই |
-| `current.next = prev`   | `prev = current`-এর পরে করলে node নিজের দিকেই point করে |
-| `prev = current`        | Rewire-এর আগে করলে `prev` আর `current` একই node হয়ে যায় |
+| `const next = current.next` | এটা বাদ দিলে পরের line-এই list-এর বাকি অংশ হারিয়ে যায়, কারণ ওটার একমাত্র reference আর নেই |
+| `current.next = prev`   | এটা `prev = current`-এর পরে করলে node নিজের দিকেই point করে |
+| `prev = current`        | নতুন করে জোড়ার আগে এটা করলে `prev` আর `current` একই node হয়ে যায় |
 
-তিনটি line, একটিই সঠিক ক্রম। Interviewer-রা এটা জানেন, আর এ কারণেই প্রশ্নটি warm-up হিসেবে টিকে আছে।
+তিনটি line, সঠিক ক্রম একটিই। Interviewer-রা এটা জানেন, আর এজন্যই প্রশ্নটা warm-up হিসেবে এখনো টিকে আছে।
 
-### একটি sublist reverse করা
+### Sublist উল্টানো
 
-Reverse Linked List II আপনাকে `left` আর `right` দেয় 1-indexed position হিসেবে। দুটি জিনিস একে যতটা দেখায় তার চেয়ে
-কঠিন করে। `left`-এর **আগের** node-কে নতুন sublist head-এর সাথে আবার জুড়তে হয়। আর `left` 1 হতে পারে, সেক্ষেত্রে
-এর আগে কোনো node-ই নেই।
+Reverse Linked List II আপনাকে দেয় `left` আর `right`, 1 থেকে গোনা position হিসেবে। দেখতে যতটা সহজ, আসলে ততটা
+নয়, দুটি কারণে। `left`-এর **আগের** node-টাকে উল্টানো sublist-এর নতুন head-এর সঙ্গে আবার জুড়তে হয়। আর `left`
+1 হতে পারে, তখন তার আগে কোনো node-ই নেই।
 
-Head-এর সামনে একটি dummy node রাখলে special case-টা পুরোপুরি চলে যায়।
+Head-এর সামনে একটি dummy node বসালে এই special case পুরোপুরি উধাও হয়ে যায়।
 
 ```typescript
 function reverseBetween(
@@ -98,8 +99,8 @@ function reverseBetween(
 // Time: O(n), Space: O(1)
 ```
 
-এটা **head insertion**, three-pointer loop নয়। প্রতিটি pass `current`-এর পরে বসা node-টিকে তুলে নেয়, আর সরাসরি
-`prev`-এর পরে আবার বসায়। `left = 2, right = 4` সহ `[1,2,3,4,5]`-এ:
+এটা তিন-pointer-এর loop নয়, এটা **head insertion**। প্রতি pass-এ
+`current`-এর ঠিক পরের node-টা তুলে নিয়ে সরাসরি `prev`-এর পরে বসানো হয়। `[1,2,3,4,5]`-এ `left = 2, right = 4` হলে:
 
 ```text
 1 → 2 → 3 → 4 → 5     prev = 1, current = 2
@@ -107,21 +108,21 @@ function reverseBetween(
 1 → 4 → 3 → 2 → 5     lifted 4
 ```
 
-Range-এর বাইরের node-গুলো কখনো ছোঁয়া হয় না, আর `current` নিজে থেকেই sublist-এর tail হয়ে যায়। `dummy.next` return
-করাই `left = 1`-কে কাজ করায় — মূল `head` পেছনে সরে গেছে।
+Range-এর বাইরের node-গুলোতে হাতই পড়ে না, আর `current` নিজে থেকেই sublist-এর লেজ হয়ে যায়।
+`dummy.next` return করার কারণেই `left = 1`-এ কাজ হয়, কারণ আসল `head` তখন পেছনে সরে গেছে।
 
 ### কোন variant লিখবেন
 
-| প্রশ্নের গড়ন                          | ব্যবহার                          | কেন                                              |
+| প্রশ্নের ধাঁচ                          | কী ব্যবহার করবেন                          | কেন                                              |
 | --------------------------------------- | ---------------------------- | ------------------------------------------------ |
-| পুরো list reverse করুন                  | Three-pointer loop           | সবচেয়ে ছোট সঠিক code                            |
-| `left…right` position reverse করুন          | Dummy + head insertion       | একটি pass, আর `left = 1`-এর কোনো special case লাগে না   |
-| `k`-টির group-এ reverse করুন                | সামনে `k`-টি গুনুন, তারপর block reverse করুন, তারপর recurse বা loop | Rewire-এর আগেই গোনা শেষ করতে হবে |
-| পাশাপাশি pair swap করুন                     | Dummy + head insertion, `k = 2` | সাধারণ ক্ষেত্রটাই এখানে নেমে আসে              |
-| একটি list-কে তার reverse-এর সাথে তুলনা করুন      | শুধু দ্বিতীয় অর্ধেক reverse করুন  | পুরো list reverse করলে মূলটা হারিয়ে যায়      |
+| পুরো list উল্টানো                  | তিন-pointer-এর loop           | সবচেয়ে ছোট সঠিক code                            |
+| `left…right` position উল্টানো          | Dummy + head insertion       | এক pass, আর `left = 1`-এর জন্য কোনো special case লাগে না   |
+| `k`-টি করে group-এ উল্টানো                | আগে সামনে `k` গুনুন, তারপর block উল্টান, তারপর recursion বা loop | নতুন করে জোড়ার আগেই গোনা শেষ করতে হবে |
+| পাশাপাশি জোড়া swap করা                     | Dummy + head insertion, `k = 2` | সাধারণ case-টাই এখানে ছোট হয়ে আসে              |
+| List-কে তার উল্টো রূপের সঙ্গে মেলানো      | শুধু দ্বিতীয় অর্ধেক উল্টান  | পুরো list উল্টালে আসলটাই হারিয়ে যায়      |
 
-⚠️ Recursion তিন line-এ একটি list reverse করে, কিন্তু খরচ `O(n)` stack space। Constraint যদি `O(1)` space বলে,
-recursive উত্তর তা পূরণ করে না — কেউ বলে দেওয়ার আগে, লেখার আগেই সেটা বলুন।
+⚠️ Recursion দিয়ে তিন line-এই list উল্টানো যায়, কিন্তু তাতে `O(n)` stack space লাগে। Constraint যদি বলে
+`O(1)` space, তাহলে recursive উত্তর তা পূরণ করে না। Interviewer বলার আগেই, লেখার আগে নিজে এটা বলুন।
 
 ## সাধারণ ভুল
 
@@ -147,21 +148,21 @@ recursive উত্তর তা পূরণ করে না — কেউ ব
 // ✅ let prev = null;
 ```
 
-**Sublist reverse করার সময় dummy node ভুলে যাওয়া:**
+**Sublist উল্টাতে গিয়ে dummy node-এর কথা ভুলে যাওয়া:**
 
 ```typescript
 // ❌ walking to prev = head and reversing from head.next — breaks when left === 1
 // ✅ const dummy = { val: 0, next: head }; and return dummy.next
 ```
 
-**`k`-টি node বাকি আছে কিনা না দেখেই একটি group reverse করা:**
+**`k`-টি node বাকি আছে কিনা না দেখেই group উল্টানো:**
 
 ```typescript
 // ❌ reverse blindly — LC 25 requires a trailing group of fewer than k to stay in order
 // ✅ walk k ahead first; if you hit null, return the block untouched
 ```
 
-**Caller-এর এখনো দরকার এমন একটি list mutate করা:**
+**এমন list বদলে ফেলা, যেটা caller-এর এখনো দরকার:**
 
 ```typescript
 // ❌ in-place reversal is destructive; the original order is unrecoverable without reversing back
@@ -170,63 +171,64 @@ recursive উত্তর তা পূরণ করে না — কেউ ব
 
 ## অনুশীলনের জন্য Problem
 
-| #   | Problem                     | Difficulty | যা অনুশীলন করায়                                    |
+| #   | Problem                     | কঠিনতা | কী অনুশীলন হয়                                    |
 | --- | --------------------------- | ---------- | ------------------------------------------------- |
-| 206 | Reverse Linked List         | Easy       | Three-pointer loop, আর `prev` return করা      |
-| 234 | Palindrome Linked List      | Easy       | List-এর অর্ধেক reverse করা, বাকি অর্ধেক অক্ষত রাখা   |
+| 206 | Reverse Linked List         | Easy       | তিন-pointer-এর loop, আর `prev` return করা      |
+| 234 | Palindrome Linked List      | Easy       | List-এর অর্ধেক উল্টানো, বাকি অর্ধেক অক্ষত রাখা   |
 | 92  | Reverse Linked List II      | Medium     | Dummy node আর head insertion                 |
-| 24  | Swap Nodes in Pairs         | Medium     | `k = 2` দিয়ে একই insertion                   |
-| 61  | Rotate List                 | Medium     | নতুন tail খোঁজা, কোনো reverse ছাড়াই        |
-| 143 | Reorder List                | Medium     | মাঝখান, reverse, তারপর দুটি list পালাক্রমে জোড়া      |
-| 2   | Add Two Numbers             | Medium     | List প্রায়ই কেন আগে থেকেই reverse করে রাখা থাকে       |
-| 25  | Reverse Nodes in k-Group    | Hard       | Rewire-এর আগে গোনা, আর অসম্পূর্ণ tail    |
+| 24  | Swap Nodes in Pairs         | Medium     | একই insertion, `k = 2` দিয়ে                   |
+| 61  | Rotate List                 | Medium     | নতুন লেজ খুঁজে বের করা, উল্টানো একদমই নয়        |
+| 143 | Reorder List                | Medium     | মাঝখান, উল্টানো, তারপর দুটি list পালা করে জোড়া      |
+| 2   | Add Two Numbers             | Medium     | List কেন প্রায়ই আগে থেকেই উল্টো করে রাখা থাকে       |
+| 25  | Reverse Nodes in k-Group    | Hard       | নতুন করে জোড়ার আগে গোনা, আর অসম্পূর্ণ লেজ    |
 
-Line-এর ক্রম স্বয়ংক্রিয় না হওয়া পর্যন্ত স্মৃতি থেকে 206 লিখুন, তারপর সোজা 92-এ যান। Table-এর বাকি সবকিছুই ওই
-দুটির একটি, সাথে কিছু হিসাব-নিকাশ যোগ করা।
+Line-এর ক্রম হাতে না আসা পর্যন্ত 206 মুখস্থ থেকে লিখুন, তারপর সোজা 92-এ যান। Table-এর বাকি সবকিছু এই দুটির
+একটি, শুধু সঙ্গে কিছু হিসাব-নিকাশ যোগ হয়েছে।
 
 ## 🔑 মূল শিক্ষা
 
-- তিনটি variable — `prev`, `current` আর save করা একটি `next` — একটি pass-এ আর `O(1)` space-এ list reverse করে।
-- Save-rewire-advance ক্রম রুচির ব্যাপার নয়; তিনটির মধ্যে দুটি বিন্যাসেই data হারায়।
-- `prev` `null` দিয়ে শুরু হয় কারণ পুরোনো head নতুন tail হয়, আর return করেন `prev`।
-- Head-এর সামনে একটি dummy node "range যদি position 1-এ শুরু হয়"-ধরনের সব special case সরিয়ে দেয়।
-- Recursive version ছোট, কিন্তু খরচ `O(n)` stack, তাই স্পষ্ট `O(1)` space constraint-এ এটা ব্যর্থ।
+- তিনটি variable — `prev`, `current`, আর সরিয়ে রাখা `next` — এক pass-এ, `O(1)` space-এ list উল্টে দেয়।
+- সরিয়ে রাখা, নতুন করে জোড়া, এগোনো: এই ক্রম রুচির ব্যাপার নয়। বাকি দুটি ক্রমে data হারায়।
+- `prev` `null` দিয়ে শুরু হয়, কারণ পুরনো head-ই হয় নতুন লেজ। আর return করবেন `prev`-কেই।
+- Head-এর সামনে একটি dummy node বসালে "range যদি position 1 থেকে শুরু হয়" ধরনের সব special case উধাও।
+- Recursive version ছোট, কিন্তু `O(n)` stack লাগে। তাই স্পষ্ট `O(1)` space-এর constraint থাকলে এটা চলে না।
 
 ## Interview-এর প্রশ্ন
 
 **Q: তিনটি assignment কেন ঠিক ওই ক্রমেই হতে হবে, ধাপে ধাপে বুঝিয়ে বলুন।**
 
-`current.next` হলো reverse না হওয়া বাকি অংশের একমাত্র reference, তাই overwrite করার আগে এটা copy করতে হবে।
-Rewire চলার সময় `prev`-কে আগের node-এর দিকেই point করে থাকতে হবে, তাই আগে এটা এগিয়ে দিলে
-`current.next = prev` একটি self-reference হয়ে যাবে। তাহলে বৈধ ক্রম থাকে ঠিক একটিই: save, rewire, advance।
+না-উল্টানো বাকি অংশের একমাত্র reference হলো `current.next`, তাই overwrite করার আগে সেটা copy করে রাখতে হয়।
+নতুন করে জোড়ার সময় `prev`-কে আগের node-এর দিকেই point করে থাকতে হয়। আগে ওটাকে এগিয়ে দিলে
+`current.next = prev` node-কে নিজের দিকেই point করাবে। ফলে valid ক্রম থাকে ঠিক একটিই: সরিয়ে রাখা, নতুন করে
+জোড়া, এগোনো।
 
-**Q: `head` নয়, `prev` কেন return করবেন?**
+**Q: `head` না দিয়ে `prev` return করবেন কেন?**
 
-Loop বের হয় যখন `current` `null`, অর্থাৎ শেষ প্রান্তের এক ধাপ পরে। তাই `prev` হলো visit করা শেষ আসল node — আর
-reverse-এর পর সেই node-টিই list-এর সামনে। `head` তখনও মূল প্রথম node-কে বোঝায়, যা এখন `null` next সহ tail।
+Loop থামে যখন `current` হয় `null`, মানে শেষের এক ধাপ পরে। তাই `prev` হলো শেষ যে আসল node দেখা হয়েছে, আর
+উল্টানোর পর সেটাই list-এর সামনে। `head` তখনও আসল প্রথম node-কেই ধরে আছে, যেটা এখন লেজ, আর তার next হলো `null`।
 
-**Q: Reverse Linked List II-তে dummy node আসলে কী দেয়?**
+**Q: Reverse Linked List II-তে dummy node আসলে কী এনে দেয়?**
 
-এটা নিশ্চিত করে যে reverse হওয়া অংশের একটি পূর্বসূরি আছে। এটা না থাকলে `left = 1`-এর ক্ষেত্রে আবার জোড়ার মতো
-কোনো node থাকে না, তাই আপনার একটি আলাদা branch লাগে, যা `prev.next`-এর বদলে `head` update করে। Dummy দুটি
-ক্ষেত্রকেই একই code বানায়, আর head বদলেছে কিনা না জেনেই `dummy.next` return করতে দেয়।
+এটা নিশ্চিত করে যে উল্টানো অংশের আগে সবসময় কোনো node আছে। এটা না থাকলে `left = 1` হলে জোড়ার মতো কোনো node
+থাকে না। তখন আলাদা branch লাগে, যেটা update করে `head`-কে, `prev.next`-কে নয়। Dummy থাকলে দুই case-ই একই
+code, আর head বদলেছে কিনা না জেনেই `dummy.next` return করা যায়।
 
-**Q: কখন আপনি recursive version পছন্দ করবেন?**
+**Q: কখন recursive version পছন্দ করবেন?**
 
-যখন list ছোট আর সীমাবদ্ধ, আর memory-র চেয়ে পড়ার সুবিধা বেশি গুরুত্বপূর্ণ — অথবা যখন problem স্বভাবতই recursive,
-যেমন k-group-এ reverse করা, যেখানে প্রতিটি group-এর recursion পরের group-এর head return করে। Interview-এর
-whiteboard-এ এটাকে সুন্দর বিকল্প হিসেবে উল্লেখ করুন, তারপর `O(n)` stack-এর খরচটা বলুন আর জিজ্ঞেস করুন সেটা
-গ্রহণযোগ্য কিনা।
+যখন list ছোট আর তার আকারের সীমা জানা, আর memory-র চেয়ে পড়তে সহজ হওয়াটা বেশি জরুরি। অথবা যখন problem-টা
+স্বভাবতই recursive, যেমন k-group-এ উল্টানো, যেখানে প্রতিটি group-এর recursion পরের group-এর head ফেরত দেয়।
+Interview-এর whiteboard-এ এটাকে সুন্দর বিকল্প হিসেবে বলুন, তারপর `O(n)` stack-এর খরচটা উল্লেখ করুন, আর জিজ্ঞেস
+করুন সেটা চলবে কিনা।
 
-**Q: শেষের অসম্পূর্ণ group না ভেঙে কীভাবে `k`-টির group-এ reverse করবেন?**
+**Q: শেষের অসম্পূর্ণ group না ভেঙে `k`-টি করে group-এ কীভাবে উল্টাবেন?**
 
-একটি block reverse করার আগে `k`-টি node সামনে হাঁটুন। আগেই `null`-এ পৌঁছালে `k`-এর কম বাকি আছে, আর block-টি
-অপরিবর্তিত return হয়। শুধু ওই যাচাইয়ের পরেই ঠিক `k`-টি node-এর ওপর three-pointer loop চালান, আগের block-এর tail-কে
-নতুন block-এর head-এর সাথে জুড়ুন, আর যে node থেকে block শুরু হয়েছিল সেখান থেকে চালিয়ে যান — সেটাই এখন তার
-tail।
+কোনো block উল্টানোর আগে `k`-টি node সামনে হেঁটে দেখুন। তার আগেই `null` এলে বুঝবেন `k`-এর কম বাকি আছে, আর
+block-টা যেমন আছে তেমনই ফেরত যায়। এই যাচাইয়ের পরেই শুধু ঠিক
+`k`-টি node-এর ওপর তিন-pointer-এর loop চালান। তারপর আগের block-এর লেজ নতুন block-এর head-এর সঙ্গে জুড়ুন। আর
+পরের কাজ শুরু করুন সেই node থেকে, যেখান থেকে block-টা শুরু হয়েছিল, কারণ সেটাই এখন তার লেজ।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Fast ও Slow Pointer](#ch-fast-and-slow-pointers) — Palindrome Linked List যে মাঝখান থেকে reverse করে, সেটা কীভাবে খুঁজবেন
-- [Chapter ?? — Two Pointers](#ch-two-pointers) — structure যখন index করা যায় এমন array, তখন একই ধারণা
-- [Chapter ?? — Depth-First Search](#ch-depth-first-search) — linked structure-এ recursion কোথায় সত্যিই তার stack-এর দাম পায়
+- [Chapter ?? — Fast ও Slow Pointer](#ch-fast-and-slow-pointers) — Palindrome Linked List যে মাঝখান থেকে উল্টায়, সেটা কীভাবে খুঁজবেন
+- [Chapter ?? — Two Pointers](#ch-two-pointers) — structure যখন index দিয়ে ধরা যায় এমন array, তখন একই ধারণা
+- [Chapter ?? — Depth-First Search](#ch-depth-first-search) — linked structure-এ recursion কোথায় সত্যিই তার stack-এর দাম তোলে

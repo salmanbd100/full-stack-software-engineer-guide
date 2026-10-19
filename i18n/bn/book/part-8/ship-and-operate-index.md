@@ -1,52 +1,52 @@
 ---
 sourceHash: "6d3c23e3c3223b7e942a5ee2621cb0a2cd523bb071ba85364a0a280991795583"
 title: "Part VIII — Ship ও Operate"
-translatedAt: "2026-10-13T03:03:40.170Z"
+translatedAt: "2026-10-19T07:53:15.451Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Part VIII — Ship ও Operate
 
-এখানকার সবকিছু ঘটে code লেখা হয়ে যাওয়ার পরে। আপনি ভয় ছাড়াই branch করতে আর হারানো কাজ ফিরিয়ে আনতে শিখবেন,
-আর pipeline যে image ship করে সেটা build করতে শিখবেন। Credential-কে build-এর বাইরে রাখবেন, একটি live service-এর
-পাঠানো সংকেত পড়বেন, আর release গোলমাল করলে সেটা ফিরিয়ে আনবেন। একজন frontend-heavy engineer ship করেন, নজর রাখেন
-আর roll back করেন। তিনি platform চালান না। তাই `BOOK-SPEC.md` § 6 অনুযায়ী cluster, Terraform আর Linux
-administration এই বইয়ের বিষয় নয়।
+এই part-এর সবকিছু ঘটে code লেখা শেষ হওয়ার পরে। আপনি শিখবেন ভয় না পেয়ে branch করতে আর হারানো কাজ ফিরিয়ে আনতে।
+শিখবেন pipeline যে image ship করে, সেটা কীভাবে বানাতে হয়। Build-এর ভেতরে credential রাখবেন না। চালু service যে
+signal পাঠায়, সেটা পড়তে পারবেন। আর release-এ গোলমাল হলে আগের অবস্থায় ফিরিয়ে আনতে পারবেন। Frontend-heavy engineer
+ship করেন, নজর রাখেন, দরকার হলে roll back করেন। Platform তিনি চালান না। তাই cluster, Terraform আর Linux administration
+এই বইয়ে নেই, `BOOK-SPEC.md` § 6 অনুযায়ী।
 
-## Section-গুলো
+## অংশগুলো
 
-| Section                                        | অধ্যায় | কী নিয়ে                                                          |
-| ---------------------------------------------- | ------ | ----------------------------------------------------------------- |
-| [Git দিয়ে Version Control](#ch-ship-git-index) | 2      | Object model, recovery, branching, monorepo নাকি polyrepo          |
-| [CI/CD](#ch-ship-cicd-index)                   | 3      | Pipeline design, container image, GitHub Actions আর তার security    |
-| [Observability](#ch-ship-observability-index)  | 2      | SLO, metrics আর cardinality, যে alert-এর জন্য মানুষকে ঘুম থেকে তোলা যায় |
-| [Cloud-এর প্রয়োজনীয় বিষয়](#ch-ship-cloud-index) | 2      | Region, identity, object storage আর CDN, serverless                 |
-| [Deployment](#ch-ship-deployment-index)        | 2      | Immutable artefact, preview, strategy, rollback, feature flag       |
+| অংশ | অধ্যায় | কী নিয়ে |
+| --- | ------ | ------- |
+| [Git দিয়ে Version Control](#ch-ship-git-index) | 2 | Object model, recovery, branching, monorepo না polyrepo |
+| [CI/CD](#ch-ship-cicd-index) | 3 | Pipeline design, container image, GitHub Actions আর তার security |
+| [Observability](#ch-ship-observability-index) | 2 | SLO, metrics আর cardinality, কোন alert-এর জন্য মানুষকে ঘুম থেকে তোলা চলে |
+| [Cloud-এর প্রয়োজনীয় বিষয়](#ch-ship-cloud-index) | 2 | Region, identity, object storage আর CDN, serverless |
+| [Deployment](#ch-ship-deployment-index) | 2 | Immutable artefact, preview, deploy strategy, rollback, feature flag |
 
 ## Interviewer-রা যা যাচাই করেন
 
-এই part-এর senior সংকেত হলো **change-এর দায়িত্ব production পর্যন্ত নেওয়া, ফেরার পথসহ।** দুটি প্রশ্ন প্রতিটি
-section জুড়ে চলে, আর প্রতিটি section index নিজের প্রশ্ন যোগ করে।
+এই part-এ senior হওয়ার লক্ষণ হলো **change-টা production পর্যন্ত নিজের দায়িত্বে নেওয়া, ফেরার পথসহ।** প্রতিটি অংশ
+জুড়ে দুটি প্রশ্ন ঘুরে ফিরে আসে। প্রতিটি অংশের index নিজের প্রশ্নও যোগ করে।
 
-- **যেখানে log in করতে পারেন না, সেটা debug করতে পারেন?** Shell ছাড়া একটি distroless image, একটি cold start হওয়া
-  function, একটি average-এর পেছনে লুকিয়ে থাকা p99। একটি system চালানো আর বানানো দুটি আলাদা দক্ষতা।
-- **Credential কোথা থেকে আসে?** Repository secret-এ রাখা দীর্ঘমেয়াদি cloud key এখনো সবচেয়ে সাধারণ finding।
+- **যে জায়গায় log in করতে পারেন না, সেখানে debug করবেন কীভাবে?** Shell ছাড়া distroless image, cold start হওয়া
+  function, average-এর আড়ালে লুকানো p99। System চালানো আর system বানানো দুটি আলাদা দক্ষতা।
+- **Credential আসে কোথা থেকে?** Repository secret-এ রাখা দীর্ঘমেয়াদি cloud key এখনো সবচেয়ে বেশি ধরা পড়া সমস্যা।
   প্রত্যাশিত উত্তর হলো স্বল্পমেয়াদি OIDC token।
 
-**একই প্রশ্নে mid আর senior:**
+**একই প্রশ্নে mid বনাম senior:**
 
-| প্রশ্ন | Mid উত্তর | Senior উত্তর |
-| ----- | ---------- | ------------- |
-| "আপনি কীভাবে deploy করেন?" | "Pipeline প্রতিটি environment-এর জন্য build আর deploy করে" | "একবার build করুন, artefact-টি promote করুন — প্রতিটি stage-এ নতুন build মানে staging অন্য কিছু test করেছে" |
-| "আপনি কীভাবে roll back করেন?" | "আমরা শুধু deploy-টি roll back করি" | "Code roll back হয়; একটি drop করা column, consume হয়ে যাওয়া message আর পাঠানো email হয় না। আমাদের এর কোনগুলো আছে, সেটা এই" |
-| "Production-এ কিছু একটি ভেঙেছে" | "আমি log দেখব" | "আগে route অনুযায়ী p99, কারণ average এটা লুকিয়ে রাখে — তারপর slow path-এর trace, তারপর log" |
+| প্রশ্ন | Mid-এর উত্তর | Senior-এর উত্তর |
+| ----- | ----------- | -------------- |
+| "Deploy করেন কীভাবে?" | "Pipeline প্রতিটি environment-এর জন্য build করে deploy করে" | "একবার build করুন, তারপর সেই artefact-টাই promote করুন। প্রতিটি stage-এ নতুন build মানে staging অন্য জিনিস test করেছে" |
+| "Roll back করেন কীভাবে?" | "Deploy-টা roll back করে দিই" | "Code roll back হয়। কিন্তু drop করা column, consume হয়ে যাওয়া message আর পাঠানো email ফেরে না। আমাদের system-এ এর কোনগুলো আছে, সেটা বলছি" |
+| "Production-এ কিছু একটা ভেঙেছে" | "Log দেখব" | "আগে route ধরে p99 দেখব, কারণ average এটা লুকিয়ে ফেলে। তারপর ধীর path-এর trace, তারপর log" |
 
 ## পড়ার ক্রম
 
-Git, তারপর CI/CD, তারপর Deployment, এই ক্রমে। প্রতিটি আগেরটির শব্দ ব্যবহার করে। আর
-[Chapter ?? — Platform Deploy ও Preview Environment](#ch-platform-deploys)-এর immutable-artefact model (build-এর পরে
-artefact কখনো বদলায় না) থেকেই rollback আর feature flag-এর মানে বোঝা যায়। Observability আর Cloud আলাদাভাবে দাঁড়িয়ে
-থাকে, যেকোনো জায়গায় পড়া যায়।
+প্রথমে Git, তারপর CI/CD, তারপর Deployment, এই ক্রমেই। প্রতিটি অংশ আগেরটার শব্দ ব্যবহার করে। আর immutable artefact-এর
+model (build-এর পরে artefact আর কখনো বদলানো হয় না) আছে
+[Chapter ?? — Platform Deploy ও Preview Environment](#ch-platform-deploys)-এ। এই model বুঝলেই rollback আর feature
+flag-এর যুক্তি পরিষ্কার হয়। Observability আর Cloud নিজের পায়ে দাঁড়ানো, যেকোনো সময় পড়া যায়।
 
 **Interview sprint:**
 
@@ -58,6 +58,5 @@ artefact কখনো বদলায় না) থেকেই rollback আর
 - [Chapter ?? — Metrics, Dashboard ও Alerting](#ch-metrics-and-dashboards)
 - [Chapter ?? — Cloud-এর মূল কথা, Storage ও Delivery](#ch-cloud-fundamentals)
 
-> ⚠️ **Terraform, Linux administration, Kubernetes operations আর AWS-এর গভীর সফর এই বইয়ের বিষয় নয়।**
-> একজন frontend-heavy engineer ship করেন, নজর রাখেন আর roll back করেন; ওগুলো platform team-এর জন্য লেখা বইয়ের
-> বিষয়।
+> ⚠️ **Terraform, Linux administration, Kubernetes operations আর AWS-এর গভীর আলোচনা এই বইয়ের বিষয় নয়।**
+> Frontend-heavy engineer ship করেন, নজর রাখেন আর roll back করেন। ওগুলো platform team-এর জন্য লেখা বইয়ের কাজ।

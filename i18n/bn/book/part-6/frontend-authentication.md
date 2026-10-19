@@ -1,35 +1,44 @@
 ---
 sourceHash: "eb520d133530a718ba43cb6a7d05ae9cb06ef5ecd055a309895455b0934637e1"
 title: "Frontend Authentication"
-translatedAt: "2026-10-12T12:28:19.292Z"
+translatedAt: "2026-10-19T07:56:55.594Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Frontend Authentication {#ch-frontend-authentication}
 
-> Credential কোথায় থাকবে তা ঠিক করুন, আর client কী enforce করতে পারে, সে বিষয়ে সৎ থাকুন।
+> Credential কোথায় থাকবে তা ঠিক করুন, আর client আসলে কী enforce করতে পারে, সে বিষয়ে সৎ থাকুন।
 
-**এই অধ্যায়ে:** একটি credential যে তিন জায়গায় থাকতে পারে · silent refresh আর thundering herd · মিথ্যা না বলে route guard করা · multi-tab logout · client যা কখনো enforce করতে পারে না
+**এই অধ্যায়ে:** credential রাখার তিনটি জায়গা · silent refresh আর thundering herd · মিথ্যা না বলে route guard করা · একাধিক tab-এ logout · client কখনো যা enforce করতে পারে না
 
 ## 💡 মূল ধারণা
 
-দুটি বাক্যেই frontend auth design-এর বেশিরভাগটা ধরা আছে।
+Frontend auth design-এর বেশিরভাগটা দুটি বাক্যেই ধরা যায়।
 
-**Browser-এ credential রাখার কোনো নিরাপদ জায়গা নেই।** আছে শুধু এমন জায়গা, যেগুলো আলাদা আলাদাভাবে fail করে। Memory refresh-এ মরে যায়। `localStorage` যেকোনো inject হওয়া script পড়তে পারে। একটি `httpOnly` cookie আপনার নিজের code থেকে লুকানো, কিন্তু এমন request-এর সাথেও যায় যেগুলো আপনি শুরু করেননি। এই failure-গুলোর মধ্যে বাছাই করাটাই design, আর বাকি সবকিছু এখান থেকেই আসে।
+**Browser-এ credential রাখার কোনো নিরাপদ জায়গা নেই।** আছে শুধু এমন জায়গা, যেগুলো আলাদা আলাদা ভাবে ব্যর্থ হয়।
+Memory refresh হলেই মুছে যায়। `localStorage` পড়তে পারে inject হওয়া যেকোনো script। `httpOnly` cookie আপনার নিজের
+code থেকে লুকানো থাকে, কিন্তু এমন request-এর সঙ্গেও চলে যায়, যা আপনি শুরু করেননি। এই ব্যর্থতাগুলোর মধ্যে বেছে নেওয়াটাই
+design, আর বাকি সব এখান থেকেই আসে।
 
-**Client যা করে, তার কিছুই enforcement নয়।** একটি route guard, একটি লুকানো button আর একটি permission check — সবই user interface। এগুলো product-কে সামঞ্জস্যপূর্ণ রাখে, কিন্তু কাউকে থামায় না। Server এর প্রতিটি আবার যাচাই করে, নয়তো check-টির কোনো অস্তিত্বই নেই। যে candidate কেউ জিজ্ঞেস না করতেই এটা বলেন, তিনি round-এর auth অংশ মোটামুটি পার করে ফেলেছেন।
+**Client যা-ই করুক, সেটা enforcement নয়।** Route guard, লুকানো button আর permission check, সবই user interface।
+এগুলো product-কে সামঞ্জস্যপূর্ণ রাখে, কিন্তু কাউকে আটকায় না। Server এর প্রতিটি আবার যাচাই করে, নয়তো সেই check-এর কোনো
+অস্তিত্বই নেই। যে candidate জিজ্ঞেস করার আগেই এটা বলেন, round-এর auth অংশে তিনি মোটামুটি পাস করে গেছেন।
 
-Protocol-এর দিক (session design, token issue করা আর OAuth flow) আছে [Chapter ?? — Credential, Session, CORS ও CSRF](#ch-credentials-and-sessions) আর [Chapter ?? — OAuth, OIDC ও Authorisation](#ch-oauth)-এ। এই অধ্যায় browser-এর অর্ধেক।
+Protocol-এর দিকটা (session design, token issue করা আর OAuth flow) আছে [Chapter ?? — Credential, Session, CORS ও CSRF](#ch-credentials-and-sessions)
+আর [Chapter ?? — OAuth, OIDC ও Authorisation](#ch-oauth)-এ। এই অধ্যায় browser-এর অর্ধেক।
 
 ## কীভাবে কাজ করে
 
-| Credential কোথায় থাকে | যা পার করে টিকে থাকে | যার কাছে উন্মুক্ত | কখন ব্যবহার করবেন |
+| Credential কোথায় থাকে | যা পেরিয়ে টিকে থাকে | কার নাগালে | কখন ব্যবহার করবেন |
 | ------------------------- | -------- | ---------- | -------- |
-| JavaScript memory | কিছুই না — refresh-এ চলে যায় | শুধু চলমান code | স্বল্পায়ু access token |
-| `localStorage` | Refresh, restart, অন্য tab | যেকোনো inject হওয়া script | প্রায় কখনোই না |
-| `httpOnly`, `Secure`, `SameSite` cookie | Refresh, restart, অন্য tab | মিলে যাওয়া request-এ নিজে থেকেই যায় | দীর্ঘজীবী credential |
+| JavaScript memory | কিছুই না — refresh হলেই শেষ | শুধু চলমান code | স্বল্পায়ু access token |
+| `localStorage` | Refresh, restart, অন্য tab | Inject হওয়া যেকোনো script | প্রায় কখনোই না |
+| `httpOnly`, `Secure`, `SameSite` cookie | Refresh, restart, অন্য tab | মিলে যাওয়া request-এ নিজে থেকেই চলে যায় | দীর্ঘায়ু credential |
 
-এই table যে pattern-এর দিকে ইঙ্গিত করে, সেটা হলো **memory-তে একটি স্বল্পায়ু access token, আর একটি `httpOnly` cookie-তে একটি দীর্ঘজীবী refresh token**। Cross-site scripting (XSS) cookie পড়তে পারে না, আর storage-এ বসে থাকা কোনো token-ও পায় না। Page খোলা থাকা অবস্থায় একটি inject হওয়া script তবুও user হিসেবে কাজ করতে পারে। Cross-site request forgery (CSRF) access token ব্যবহার করতে পারে না, কারণ সেটা থাকে একটি `Authorization` header-এ, যেটা একটি জাল form set করতে পারে না।
+এই table যে pattern-এর দিকে ইঙ্গিত করে, সেটা হলো **memory-তে স্বল্পায়ু access token, আর `httpOnly` cookie-তে
+দীর্ঘায়ু refresh token**। Cross-site scripting (XSS) cookie পড়তে পারে না, আর storage-এ পড়ে থাকা কোনো token-ও খুঁজে পায় না।
+তবে page খোলা থাকা অবস্থায় inject হওয়া script তখনো user সেজে কাজ করতে পারে। Cross-site request forgery (CSRF)
+access token ব্যবহার করতে পারে না, কারণ token-টা থাকে `Authorization` header-এ, যা জাল form set করতে পারে না।
 
 ```mermaid
 sequenceDiagram
@@ -46,28 +55,33 @@ sequenceDiagram
   R-->>C: 200
 ```
 
-**Silent refresh।** User কখনো 401 দেখেন না, আর দীর্ঘজীবী credential কখনো JavaScript-এর ভেতর দিয়ে যায় না।
+**Silent refresh।** User কখনো 401 দেখেন না, আর দীর্ঘায়ু credential কখনো JavaScript-এর ভেতর দিয়ে যায় না।
 
-> ⚠️ **`SameSite` একা কোনো CSRF strategy নয়।** `SameSite=Lax` তবুও top-level `GET` navigation হতে দেয়, তাই `GET` দিয়ে পৌঁছানো যায় এমন যেকোনো state change এখনো জাল করা যায়। পরিবর্তনগুলো `POST`-এর মতো method-এ রাখুন, আর cookie-র সাথে একটি token check জুড়ে দিন। দেখুন [Chapter ?? — Credential, Session, CORS ও CSRF](#ch-credentials-and-sessions)।
+> ⚠️ **`SameSite` একা কোনো CSRF strategy নয়।** `SameSite=Lax` তখনো top-level `GET` navigation হতে দেয়। তাই `GET` দিয়ে
+> পৌঁছানো যায় এমন যেকোনো state পরিবর্তন তখনো জাল করা যায়। পরিবর্তনগুলো `POST`-এর মতো method-এ রাখুন, আর cookie-র
+> সঙ্গে একটা token check জুড়ে দিন। দেখুন [Chapter ?? — Credential, Session, CORS ও CSRF](#ch-credentials-and-sessions)।
 
 ## কখন ব্যবহার করবেন
 
-Memory-তে token-এর pattern হলো default, একমাত্র উত্তর নয়।
+Memory-তে token রাখার pattern default, একমাত্র উত্তর নয়।
 
 | Application | Credential design | কেন |
 | --------------- | ----------------- | --- |
-| আপনার নিজের API-র বিপরীতে একটি single-page app | Memory-তে access token, cookie-তে refresh | XSS এটা পড়তে পারে না, আর CSRF ব্যবহার করতে পারে না |
-| একটি server-rendered app, একই origin | সাধারণ session cookie, client-এ কোনো token নেই | সহজ, তাৎক্ষণিকভাবে revoke করা যায়, আর চুরি করার মতো কোনো client নেই |
-| একটি mobile বা native client | Platform-এর secure storage, web pattern নয় | Browser-এর সীমাবদ্ধতা এখানে খাটে না |
-| তৃতীয় পক্ষের ব্যবহার করা একটি public API | প্রতি client-এর token-সহ OAuth | আপনিই একমাত্র client নন, তাই session-এর অর্থ এখানে মেলে না |
+| নিজের API-র সঙ্গে কথা বলা single-page app | Memory-তে access token, cookie-তে refresh | XSS এটা পড়তে পারে না, CSRF এটা ব্যবহার করতে পারে না |
+| Server-rendered app, একই origin | সাধারণ session cookie, client-এ কোনো token নেই | সহজ, সঙ্গে সঙ্গে revoke করা যায়, আর চুরি করার মতো কোনো client নেই |
+| Mobile বা native client | Platform-এর secure storage, web-এর pattern নয় | Browser-এর সীমাবদ্ধতা এখানে খাটে না |
+| Third party-রা ব্যবহার করে এমন public API | প্রতিটি client-এর জন্য আলাদা token-সহ OAuth | Client আপনি একা নন, তাই session-এর নিয়ম এখানে মানায় না |
 
-দ্বিতীয় row-টাই candidate-রা কম ব্যবহার করেন। Application যদি ইতিমধ্যে server-এ render হয়, token যোগ করে কিছুই পাওয়া যায় না, আর revocation হারাতে হয়। Server একটি session মুছে দিতে পারে, কিন্তু একটি token ফিরিয়ে নিতে পারে না।
+Candidate-রা দ্বিতীয় row-টা কম ব্যবহার করেন। Application যদি আগে থেকেই server-এ render হয়, token যোগ করে কিছুই পাওয়া
+যায় না, উল্টো revocation হারাতে হয়। Server একটা session মুছে দিতে পারে, কিন্তু একটা token ফেরত নিতে পারে না।
 
 ## হুড়োহুড়ি ছাড়া silent refresh
 
-আগ্রহের সমস্যাটা হলো concurrency। একটি dashboard আটটি request পাঠায়, token expire করে, আর আটটি 401 একসাথে আসে। একটি সরল interceptor আটটি refresh শুরু করে, আর সেগুলো দৌড়ে প্রতিযোগিতা করে। Refresh-token rotation থাকলে প্রথমটি জেতে, বাকি সাতটি প্রত্যাখ্যাত হয়, আর user logout হয়ে যান।
+আসল মজার সমস্যা হলো concurrency। একটা dashboard আটটি request পাঠায়, token expire করে, আর একসঙ্গে আটটি 401 ফেরে।
+সরল একটা interceptor আটটি refresh শুরু করে দেয়, আর সেগুলো একে অন্যের সঙ্গে দৌড়ায়। Refresh-token rotation থাকলে প্রথমটা
+জেতে, বাকি সাতটি reject হয়, আর user logout হয়ে যান।
 
-**Single-flight refresh — প্রতিটি caller একই promise-এর জন্য await করে:**
+**Single-flight refresh — প্রতিটি caller একই promise-এর জন্য অপেক্ষা করে:**
 
 ```typescript
 let token: string | null = null;
@@ -95,27 +109,33 @@ async function authedFetch(input: RequestInfo, init: RequestInit = {}): Promise<
 }
 ```
 
-তিনটি খুঁটিনাটি গুরুত্বপূর্ণ। Promise-টি share করা, তাই একসাথে আসা 401-গুলো একটি refresh-এ মিশে যায়। Retry হয় **একবারই**। দ্বিতীয় 401-এ retry করা মানে expire হওয়া session-এর বিপরীতে একটি অনন্ত loop। আর `finally` `inFlight` পরিষ্কার করে, তাই একটি fail করা refresh পরের প্রতিটি request-কে একটি rejected promise ধরিয়ে দেয় না।
+তিনটি খুঁটিনাটি জরুরি। Promise-টা ভাগ করা, তাই একসঙ্গে আসা 401-গুলো মিলে একটাই refresh হয়। Retry হয় **একবার**।
+দ্বিতীয় 401-এর পরও retry করা মানে expire হওয়া session-এর বিরুদ্ধে অনন্ত loop। আর `finally` `inFlight` খালি করে দেয়,
+তাই একটা refresh fail করলে পরের সব request-এর হাতে reject হওয়া promise ধরিয়ে দেওয়া হয় না।
 
-Expire হওয়ার ঠিক *আগে* refresh করা একটি timer কাজের বাড়তি জিনিস, কিন্তু এটার বিকল্প নয়। যে laptop expiry-র সময়টা ঘুমিয়ে কাটিয়েছে, সেটা একটি মৃত token নিয়ে জাগে, আর তবুও 401 path-টা লাগে।
+Expire হওয়ার ঠিক *আগে* refresh করে এমন timer কাজের বাড়তি জিনিস, কিন্তু এটার জায়গা নিতে পারে না। Expiry-র সময়
+ঘুমিয়ে থাকা laptop জেগে ওঠে মরা token নিয়ে, তাই 401-এর পথটা তবু লাগে।
 
 ## মিথ্যা না বলে route guard করা
 
-Authentication-এর তিনটি state আছে। যে design শুধু দুটি model করে, সেটা এই এলাকার সবচেয়ে খারাপ দুটি bug তৈরি করে।
+Authentication-এর তিনটি অবস্থা। যে design শুধু দুটি ধরে, সেটা এই এলাকার সবচেয়ে খারাপ দুটি bug তৈরি করে।
 
-| State | UI যা দেখায় | এই state না থাকলে যে bug |
+| অবস্থা | UI যা দেখায় | এই অবস্থা না থাকলে যে bug |
 | ----- | ------------ | ---------------------------------- |
-| Unknown | একটি skeleton, কোনো redirect নয় | প্রতিটি refresh user-কে login page-এ ছুড়ে দেয় |
-| Authenticated | Route-টি | — |
-| Anonymous | একটি redirect, গন্তব্য মনে রেখে | User login করে home page-এ গিয়ে পড়েন |
+| অজানা | Skeleton, কোনো redirect নয় | প্রতিটি refresh-এ user login page-এ ছিটকে যান |
+| Authenticated | Route-টা | — |
+| Anonymous | Redirect, গন্তব্য মনে রেখে | User login করে গিয়ে পড়েন home page-এ |
 
-প্রথম load-এ client এখনো জানে না user কে, কারণ সে এখনো refresh cookie বিনিময় করেনি। এটাকে "anonymous" ধরলে প্রতিটি hard refresh-এ user logout হন। "Authenticated" ধরলে redirect-এর আগে সুরক্ষিত content এক ঝলক দেখা যায়।
+প্রথম load-এ client এখনো জানে না user কে, কারণ refresh cookie বদলে নেওয়া এখনো হয়নি। এই অবস্থাকে "anonymous" ধরলে
+প্রতিটি hard refresh-এ user logout হয়ে যান। "Authenticated" ধরলে redirect-এর আগে এক ঝলক সুরক্ষিত content দেখা যায়।
 
-Login-এর round trip জুড়ে উদ্দিষ্ট গন্তব্যটি ধরে রাখুন, আর ফেরত redirect করার আগে সেটা validate করুন। Validate না করা একটি `returnTo` parameter হলো একটি open redirect। যে penetration test এটা খোঁজে, প্রতিটি সেটা report করে।
+Login-এর পুরো আসা-যাওয়ার সময় কোথায় যাওয়ার কথা ছিল, সেটা মনে রাখুন, আর ফেরত পাঠানোর আগে সেটা যাচাই করুন। যাচাই না
+করা `returnTo` parameter মানে open redirect। এমন জিনিস খোঁজে এমন প্রতিটি penetration test এটা report করে।
 
-## Multi-tab আর logout
+## একাধিক tab আর logout
 
-Access token memory-তে থাকে, তাই প্রতিটি tab-এর কাছে নিজের একটি copy থাকে। একটিতে logout করলে বাকিগুলো এমন একটি session-এর জন্য signed-in interface দেখাতে থাকে, যেটার আর অস্তিত্ব নেই।
+Access token থাকে memory-তে, তাই প্রতিটি tab-এর কাছে নিজের একটা copy থাকে। একটায় logout করলে বাকিগুলো এমন session-এর
+জন্য signed-in interface দেখাতে থাকে, যা আর নেই।
 
 **অন্য tab-গুলোকে জানানো:**
 
@@ -133,56 +153,71 @@ channel.onmessage = (event: MessageEvent<{ type: string }>) => {
 };
 ```
 
-এটা user experience-এর একটি সমাধান, security control নয়। Cookie মুছে যাওয়ার মুহূর্তেই server-এ session মৃত। যে tab broadcast-টি পায়নি, সে তার পরের request-এ এমনিতেই fail করে। Message-টি শুধু ততক্ষণ পর্যন্ত তাকে stale data দেখানো থেকে থামায়। একই channel উল্টো ক্ষেত্রেও সাহায্য করে। যে tab refresh করে, সে নতুন token share করতে পারে, যাতে বাকিরা প্রত্যেকে নিজের 401 trigger না করে।
+এটা user experience-এর সমাধান, security control নয়। Cookie মুছে ফেলার মুহূর্তেই server-এ session মারা যায়। যে tab
+broadcast-টা পায়নি, পরের request-এ সেটা এমনিতেই fail করে। Message শুধু ততক্ষণ পুরনো data দেখানো বন্ধ রাখে। উল্টো
+ক্ষেত্রেও একই channel কাজে আসে। যে tab refresh করে, সেটা নতুন token ভাগ করে দিতে পারে, ফলে বাকিগুলোকে আলাদা আলাদা 401
+খেতে হয় না।
 
 ## সাধারণ ভুল
 
-❌ **`localStorage`-এ token।** একটি inject হওয়া script origin-এর প্রতিটি credential পড়ে ফেলে।
-✅ Memory-তে access token, একটি `httpOnly` cookie-তে refresh token।
+❌ **`localStorage`-এ token।** Inject হওয়া একটা script-ই origin-এর সব credential পড়ে ফেলে।
+✅ Memory-তে access token, `httpOnly` cookie-তে refresh token।
 
-❌ **একসাথে কয়েকটি refresh।** আটটি 401 আটটি refresh শুরু করে, আর rotation user-কে logout করে দেয়।
-✅ Refresh-কে single-flight করুন, আর প্রতিটি caller-কে একই promise-এর জন্য await করান।
+❌ **একসঙ্গে কয়েকটি refresh।** আটটি 401 আটটি refresh শুরু করে, আর rotation user-কে logout করে দেয়।
+✅ Refresh single-flight করুন, আর প্রতিটি caller-কে একই promise-এর জন্য অপেক্ষা করান।
 
-❌ **Action আটকানোর বদলে একটি control লুকানো।** Button চলে গেছে; endpoint যায়নি।
-✅ প্রতিটি permission server-এ আবার যাচাই করুন। Client-এর copy শুধু উপস্থাপনা।
+❌ **কাজ আটকানোর বদলে control লুকানো।** Button নেই; endpoint কিন্তু আছে।
+✅ প্রতিটি permission server-এ আবার যাচাই করুন। Client-এর copy শুধু দেখানোর জন্য।
 
-❌ **কোনো "unknown" auth state নেই।** হয় প্রতিটি refresh-এ login-এ ছুড়ে দেওয়া, নয়তো সুরক্ষিত content-এর এক ঝলক।
-✅ তিনটি state model করুন, আর session resolve না হওয়া পর্যন্ত একটি skeleton render করুন।
+❌ **Auth-এর "অজানা" অবস্থা নেই।** হয় প্রতিটি refresh-এ login-এ ছিটকে যাওয়া, নয়তো এক ঝলক সুরক্ষিত content।
+✅ তিনটি অবস্থা ধরুন, আর session ঠিক না হওয়া পর্যন্ত skeleton দেখান।
 
-❌ **Validate না করা একটি `returnTo`-তে redirect করা।** একটি open redirect, বিশ্বাসযোগ্য phishing-এ ব্যবহৃত।
-✅ শুধু একটি জানা set থেকে same-origin relative path অনুমোদন করুন।
+❌ **যাচাই না করা `returnTo`-তে redirect।** Open redirect, যা দিয়ে বিশ্বাসযোগ্য phishing করা হয়।
+✅ চেনা তালিকা থেকে শুধু একই origin-এর relative path অনুমতি দিন।
 
-❌ **ধরে নেওয়া যে একটি tab-এ logout করলে বাকিগুলোও logout হয়।** পাঁচটি tab একটি revoke হওয়া session নিয়ে কাজ করে যায়।
-✅ পরিবর্তনটি সব tab-এ broadcast করুন, আর পরের 401-কে কাজটা শেষ করতে দিন।
+❌ **ধরে নেওয়া যে একটা tab-এ logout করলে বাকিগুলোও logout হয়।** পাঁচটি tab revoke হওয়া session নিয়েই চলতে থাকে।
+✅ পরিবর্তনটা সব tab-এ broadcast করুন, আর বাকি কাজটা পরের 401 শেষ করুক।
 
 ## 🔑 মূল শিক্ষা
 
-- Browser-এ নিরাপদ কোনো credential store নেই, আছে শুধু আলাদাভাবে fail করা store; যে failure নিয়ে বাঁচতে পারবেন, সেটা বাছুন।
-- Memory-তে একটি স্বল্পায়ু access token আর একটি `httpOnly` refresh cookie দুটিকেই XSS চুরি আর CSRF-এর নাগালের বাইরে রাখে।
-- Refresh-কে single-flight হতে হবে আর ঠিক একবার retry হতে হবে, নাহলে token rotation একঝাঁক 401-কে একটি logout-এ পরিণত করে।
-- Authentication-এর তিনটি state আছে, আর "unknown" বাদ দিলে হয় login-এ ছুড়ে দেওয়া, নয়তো সুরক্ষিত content-এর এক ঝলক ঘটে।
-- Route guard আর লুকানো button হলো user interface, আর প্রতিটি নিয়ম server enforce করে, কোনো ব্যতিক্রম ছাড়া।
+- Browser-এ নিরাপদ credential store নেই, আছে শুধু আলাদা আলাদা ভাবে ব্যর্থ হওয়া store; যে ব্যর্থতা মেনে নিতে পারবেন, সেটা বাছুন।
+- Memory-তে স্বল্পায়ু access token আর `httpOnly` refresh cookie, দুটিকেই XSS-এর চুরি আর CSRF-এর নাগালের বাইরে রাখে।
+- Refresh হতে হবে single-flight, আর retry ঠিক একবার। নইলে token rotation একঝাঁক 401-কে logout বানিয়ে দেয়।
+- Authentication-এর তিনটি অবস্থা। "অজানা" বাদ দিলে হয় login-এ ছিটকে যাওয়া, নয়তো এক ঝলক সুরক্ষিত content।
+- Route guard আর লুকানো button হলো user interface, আর প্রতিটি নিয়ম enforce করে server, কোনো ব্যতিক্রম ছাড়া।
 
 ## Interview-এর প্রশ্ন
 
-**Q: Token কোথায় রাখেন, আর `localStorage`-এ কেন নয়?**
+**Q: Token কোথায় রাখবেন, আর `localStorage`-এ কেন নয়?**
 
-Access token যায় একটি module-scoped variable-এ, আর refresh token একটি `httpOnly`, `Secure`, `SameSite` cookie-তে। Origin-এ চলা যেকোনো script `localStorage` পড়তে পারে। তাই একটি dependency বা একটি tag manager থেকে আসা একটি inject হওয়া script প্রতিটি session চুরি করতে পারে। Cookie JavaScript থেকে লুকানো। Access token যায় একটি `Authorization` header-এ, নিজে থেকে নয়, তাই একটি জাল cross-site request-ও এটা ব্যবহার করতে পারে না।
+Access token যায় module-scope-এর একটা variable-এ, আর refresh token `httpOnly`, `Secure`, `SameSite` cookie-তে।
+Origin-এ চলা যেকোনো script `localStorage` পড়তে পারে। তাই dependency বা tag manager থেকে inject হওয়া একটা script-ই সব
+session চুরি করতে পারে। Cookie JavaScript থেকে লুকানো। Access token যায় `Authorization` header-এ, নিজে থেকে নয়,
+তাই জাল cross-site request-ও সেটা ব্যবহার করতে পারে না।
 
-**Q: আটটি request একই মুহূর্তে 401 পায়। কী ঘটে?**
+**Q: একই মুহূর্তে আটটি request 401 পেল। কী হয়?**
 
-একটি refresh। Interceptor একটিমাত্র in-flight promise ধরে রাখে, আর এর মধ্যে আসা caller-রা নিজেরটা শুরু না করে সেটার জন্যই await করে। এটা না থাকলে আটটি refresh দৌড়ায়। Refresh-token rotation থাকলে প্রথমটি সেই token invalid করে দেয়, যেটা বাকি সাতটি ব্যবহার করছে, তাই user-এর নিজের dashboard-ই তাঁকে logout করে দেয়। Refresh resolve হওয়ার পর প্রতিটি request ঠিক একবার retry করে। দ্বিতীয় 401 একটি আসল failure, আর সেটা login-এ যায়।
+একটাই refresh। Interceptor চলমান একটা promise ধরে রাখে, আর সেই সময়ে আসা caller-রা নিজেরা নতুন করে শুরু না করে ওই
+promise-এর জন্যই অপেক্ষা করে। এটা না থাকলে আটটি refresh দৌড়ায়। Refresh-token rotation থাকলে প্রথমটা সেই token বাতিল
+করে দেয়, যা বাকি সাতটি ব্যবহার করছে। ফলে user-এর নিজের dashboard-ই তাঁকে logout করে দেয়। Refresh শেষ হলে প্রতিটি
+request ঠিক একবার retry করে। দ্বিতীয় 401 আসল ব্যর্থতা, আর সেটা login-এ যায়।
 
-**Q: Client non-admin-দের জন্য delete button লুকিয়ে রাখে। এটা কি authorisation?**
+**Q: Admin নন এমন user-দের জন্য client delete button লুকিয়ে রাখে। এটা কি authorisation?**
 
-না, এটা layout। এটা একটি admin-only action-কে interface-এর বাইরে রাখে, যেটা করা উচিত। কিন্তু যে কেউ একটি terminal থেকে endpoint-এ পৌঁছাতে পারে, আর token-এর role claim এমন data, যেটা client দেখতে পায়। Authorisation হলো প্রতিটি request-এ server-এর check। আমি client-এর permission map-কে rendering-এর জন্য policy-র একটি copy হিসেবে দেখব, কখনো policy হিসেবে নয়।
+না, এটা layout। শুধু admin-এর কাজ interface-এর বাইরে রাখে, সেটা করার মতোই। কিন্তু যে কেউ terminal থেকে endpoint-এ
+পৌঁছাতে পারে, আর token-এর ভেতরের role claim এমন data, যা client দেখতে পায়। Authorisation হলো প্রতিটি request-এ
+server-এর যাচাই। Client-এর permission map-কে আমি দেখব render করার জন্য policy-র একটা copy হিসেবে, কখনো policy হিসেবে
+নয়।
 
-**Q: কখন একেবারেই token ব্যবহার করবেন না?**
+**Q: কখন token একেবারেই ব্যবহার করবেন না?**
 
-যখন application একটি origin-এ server-rendered। একটি সাধারণ session cookie সহজ, আর client-কে leak করার মতো কিছুই দেয় না। যে অংশটা সাধারণত সিদ্ধান্ত ঠিক করে: এটা সাথে সাথে revoke করা যায়, কারণ session row মুছে দিলেই এটা শেষ। একটি token ফিরিয়ে নেওয়া যায় না। হয় এর আয়ু শেষ হওয়া পর্যন্ত অপেক্ষা করতে হয়, নয়তো সেই denylist বানাতে হয়, যেটা এড়ানোর জন্যই stateless token তৈরি হয়েছিল। আমি token নেব শুধু তখন, যখন কয়েকটি client বা origin জড়িত।
+যখন application একটা origin-এ server-rendered। সাধারণ session cookie সহজ, আর client-এর কাছে ফাঁস হওয়ার মতো কিছুই রাখে
+না। সাধারণত যে জিনিসটা সিদ্ধান্ত ঠিক করে দেয়: এটা সঙ্গে সঙ্গে revoke করা যায়, কারণ session row মুছলেই শেষ। Token ফেরত
+নেওয়া যায় না। হয় তার মেয়াদ ফুরানো পর্যন্ত অপেক্ষা করতে হয়, নয়তো সেই denylist বানাতে হয়, stateless token যা এড়ানোর
+জন্যই এসেছিল। Token আমি নেব কেবল তখন, যখন কয়েকটি client বা origin জড়িত।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Credential, Session, CORS ও CSRF](#ch-credentials-and-sessions) — server-এর অর্ধেক: issue, rotation আর revocation
-- [Chapter ?? — OAuth, OIDC ও Authorisation](#ch-oauth) — permission আসলে কোথায় enforce হয়, আর model-টি কীভাবে design করা হয়
-- [Chapter ?? — XSS প্রতিরোধ ও অবিশ্বস্ত Input](#ch-xss-prevention) — ওপরের পুরো storage যুক্তি যে attack-এর বিরুদ্ধে রক্ষা করছে
+- [Chapter ?? — Credential, Session, CORS ও CSRF](#ch-credentials-and-sessions) — server-এর অর্ধেক: issue করা, rotation আর revocation
+- [Chapter ?? — OAuth, OIDC ও Authorisation](#ch-oauth) — permission আসলে কোথায় enforce হয়, আর model-টা কীভাবে design করা হয়
+- [Chapter ?? — XSS প্রতিরোধ ও অবিশ্বস্ত Input](#ch-xss-prevention) — ওপরের পুরো storage-এর যুক্তি যে আক্রমণ ঠেকানোর জন্য

@@ -1,32 +1,32 @@
 ---
 sourceHash: "39322248d7c1c3a362a339fced35b2ebd639cc3cff48d15a81f1695b3fce8bb7"
 title: "Depth-First Search"
-translatedAt: "2026-10-13T03:14:56.130Z"
+translatedAt: "2026-10-19T10:26:09.999Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Depth-First Search {#ch-depth-first-search}
 
-> একটি path যতদূর যায়, ততদূর যান। তারপর পিছিয়ে এসে পরেরটা ধরুন — একটি visited set সাথে রেখে, যাতে কোনো cycle আপনাকে আটকে ফেলতে না পারে।
+> একটি path ধরে যতদূর যাওয়া যায় যান, তারপর পিছিয়ে এসে পরেরটা ধরুন। সঙ্গে রাখুন visited set, যাতে cycle-এ আটকে না যান।
 
-**এই অধ্যায়ে:** recursive template · কেন graph-এ visited set লাগে আর tree-তে লাগে না · implicit graph হিসেবে grid · recurse করার আগে mark করা · path-টিই track করা · যে recursion depth explicit stack বাধ্য করে
+**এই অধ্যায়ে:** recursive template · graph-এ visited set লাগে কেন, tree-তে লাগে না কেন · grid আসলে লুকোনো graph · recurse করার আগে mark করা · path-টাই মনে রাখা · recursion কত গভীরে গেলে explicit stack লাগে
 
 ## 💡 মূল ধারণা
 
-Depth-first search একবার পথ ধরলে সেটাতেই লেগে থাকে। আপনি যেখানেই থাকুন, প্রথম অনাবিষ্কৃত neighbour-টি নিন, আর এগোতে
-থাকুন যতক্ষণ না পথ ফুরায়। তারপর এক ধাপ পিছিয়ে পরেরটা চেষ্টা করুন। Tree traversal হলো এমন একটি গঠনের ওপর DFS,
-যেটায় ঘটনাচক্রে কোনো cycle নেই —
-[Chapter ?? — Binary Tree Traversal](#ch-binary-tree-traversal) দেখুন।
+Depth-first search একদিক বেছে নিয়ে সেদিকেই এগোয়। যেখানে আছেন, সেখান থেকে প্রথম যে neighbour এখনো দেখা
+হয়নি, সেটা ধরুন। এগোতে থাকুন যতক্ষণ না পথ ফুরায়। তারপর এক ধাপ পিছিয়ে পরের neighbour চেষ্টা করুন। Tree traversal
+আসলে DFS-ই, শুধু structure-টায় কোনো cycle নেই। দেখুন
+[Chapter ?? — Binary Tree Traversal](#ch-binary-tree-traversal)।
 
-গঠনটা সাধারণ graph হয়ে গেলে দুটি জিনিস বদলায়:
+Structure-টা সাধারণ graph হয়ে গেলে দুটি জিনিস বদলায়:
 
-- **একটি node-এ দুবার পৌঁছানো যায়**, তাই একটি visited set লাগে, নইলে একই কাজ বারবার হয়।
-- **Path ঘুরে আগের জায়গায় ফিরতে পারে**, তাই ওই set ছাড়া recursion কখনো শেষ হয় না।
+- **একই node-এ দুবার পৌঁছানো যায়।** তাই visited set লাগে, নইলে একই কাজ বারবার হয়।
+- **Path ঘুরে আগের জায়গায় ফিরতে পারে।** তাই set না থাকলে recursion কখনো থামে না।
 
-পার্থক্য পুরোটা এটুকুই। Recursion সেই একই চার line।
+পার্থক্য এটুকুই। Recursion সেই একই চার line।
 
-> Recursion আপনাকে backtracking বিনামূল্যে দেয় — একটি call থেকে return করা *মানেই* পিছিয়ে আসা। এ কারণেই DFS-এর
-> code ছোট, আর এর খরচ কোনো explicit data structure নয়, stack space।
+> Backtracking আপনি recursion থেকে বিনা খরচে পেয়ে যান, কারণ call থেকে return করা *মানেই* পিছিয়ে আসা। এজন্যই
+> DFS-এর code এত ছোট। আর এজন্যই এর খরচ আলাদা কোনো data structure নয়, stack space।
 
 ## কীভাবে কাজ করে
 
@@ -55,16 +55,15 @@ function dfs(graph: Graph, start: number): number[] {
 // Time: O(V + E) — each node once, each edge once. Space: O(V) for the set plus O(V) worst-case stack
 ```
 
-**ঢোকার সময়েই mark করুন।** Recursive call-গুলো return করার পরে node mark করলে, mark বসার আগেই একটি cycle আবার
-সেখানে ঢুকে পড়ে, আর recursion চিরকাল চলে। DFS-এর সবচেয়ে সাধারণ bug এটাই।
+**Node-এ ঢুকেই mark করুন।** Recursive call-গুলো return করার পরে mark করলে cycle ঘুরে আবার সেই node-এ ঢুকে পড়ে,
+mark বসার আগেই। ফলে recursion চলতেই থাকে। DFS-এ সবচেয়ে বেশি হওয়া bug এটাই।
 
-যে complexity বলবেন, সেটা `O(V + E)`: প্রতিটি node-এ একবার ঢোকা হয়, আর প্রতিটি edge তার প্রতিটি প্রান্ত থেকে একবার
-দেখা হয়।
+Complexity বলবেন `O(V + E)`: প্রতিটি node-এ একবার ঢোকা হয়, আর প্রতিটি edge দুই প্রান্ত থেকে একবার করে দেখা হয়।
 
 ### Grid-ও graph
 
-Grid-এর প্রশ্নে খুব কমই "graph" শব্দটা থাকে। কিন্তু একটি cell-এর neighbour হলো তার চারপাশের চারটি cell, আর বাকি কিছুই
-বদলায় না। Number of Islands হলো প্রতিটি unvisited land cell-এর জন্য একবার করে DFS চালানো:
+Grid-এর প্রশ্নে "graph" শব্দটা খুব কমই থাকে। কিন্তু একটি cell-এর neighbour তার চারপাশের চারটি cell, আর বাকি সব
+একই রকম। Number of Islands মানে প্রতিটি না-দেখা land cell থেকে একবার করে DFS চালানো:
 
 ```typescript
 function numIslands(grid: string[][]): number {
@@ -97,17 +96,17 @@ function numIslands(grid: string[][]): number {
 // Time: O(rows × cols), Space: O(rows × cols) worst-case stack on a grid that is all land
 ```
 
-এই code-এর দুটি অভ্যাস সব জায়গায় খাটে:
+এই code-এর দুটি অভ্যাস অন্য জায়গাতেও কাজে লাগে:
 
-- **সব বাতিলের শর্ত ওপরে একটিই guard-এ গুটিয়ে আনুন।** Call-এর জায়গায় bounds check করলে একই শর্তের চারটি copy হয়।
-  আর যেটা ভুলে যাবেন, সেটাই throw করবে।
-- **Grid-টি mutate করাও একটি বৈধ visited set** — `r,c` key-এর একটি `Set`-এর বদলে `O(1)` space। মুখে বলুন যে
-  এটা input নষ্ট করে। আর caller-এর মূল grid দরকার হলে আলাদা একটি `visited` grid-এর প্রস্তাব দিন।
+- **বাতিলের সব শর্ত ওপরে একটি guard-এ রাখুন।** Call করার জায়গায় bounds check করলে একই শর্ত চারবার লিখতে হয়।
+  আর যেটা লিখতে ভুলে যাবেন, error ঠিক সেখানেই throw হবে।
+- **Grid-টাই বদলে দেওয়া visited set হিসেবে পুরোপুরি চলে।** `r,c` key-এর একটি `Set`-এর বদলে space লাগে `O(1)`।
+  তবে মুখে বলে দিন যে এতে input নষ্ট হয়। Caller-এর আসল grid দরকার হলে আলাদা `visited` grid রাখার প্রস্তাব দিন।
 
-### শুধু উত্তর নয়, path-টিও track করা
+### শুধু উত্তর নয়, path-টাও মনে রাখা
 
-"একটি path আছে কি না" — এর জন্য কোনো হিসাব রাখতে হয় না। "Path-টি দিন" — এর জন্য আগে push, পরে pop লাগে।
-Backtracking-এর ঠিক একই আকার:
+"Path আছে কি না" জানতে কোনো হিসাব রাখতে হয় না। "Path-টা দিন" বললে লাগে push আগে, pop পরে। Backtracking-এর
+গড়নও ঠিক এটাই:
 
 ```typescript
 interface TreeNode {
@@ -143,13 +142,13 @@ function pathSum(root: TreeNode | null, target: number): number[][] {
 // Time: O(n × h) — the copies dominate. Space: O(h)
 ```
 
-`results.push(path)`-এর বদলে `results.push([...path])` কোনো style-এর ব্যাপার নয়। Reference push করলে এমন একটি
-array জমা হয়, যেটা `pop()` একটু পরেই খালি করে দেবে। ফলে প্রতিটি result ভুল হয়ে যায়।
+`results.push(path)` না লিখে `results.push([...path])` লেখাটা style-এর ব্যাপার নয়। Reference push করলে এমন
+array জমা হয়, যেটা `pop()` একটু পরেই খালি করে দেবে। ফলে প্রতিটি result ভুল আসে।
 
-### যখন recursion চলবে না
+### যখন recursion চলে না
 
-Call stack একটি সত্যিকারের সীমা — V8-এ throw করার আগে মোটামুটি 10⁴ frame। একটি chain-এ 10⁵ node-এর graph overflow
-করবে। Explicit stack-এর version crash-এর বদলে heap memory খরচ করে:
+Call stack-এর সীমা সত্যিই আছে। V8-এ মোটামুটি 10⁴ frame-এর পর error throw হয়। 10⁵ node একটানা chain-এ থাকলে
+stack overflow হবেই। Explicit stack-এর version crash-এর বদলে heap memory খরচ করে:
 
 ```typescript
 function dfsIterative(graph: Graph, start: number): number[] {
@@ -172,31 +171,31 @@ function dfsIterative(graph: Graph, start: number): number[] {
 // Time: O(V + E), Space: O(V)
 ```
 
-⚠️ Iterative version-এ একই node stack-এ একাধিকবার থাকতে পারে। তাই visited check push-এর সাথে (বা push-এর বদলে)
-**pop-এর সময়েও** করতে হবে। শুধু push-এর আগে check করা ভুল নয়, কিন্তু দুটি মিশিয়ে ফেলা ভুল।
+⚠️ Iterative version-এ একই node stack-এ একাধিকবার থাকতে পারে। তাই visited check করতে হবে **pop করার সময়**,
+push-এর সময়ের সঙ্গে অথবা তার বদলে। শুধু push-এর আগে check করা ভুল নয়, কিন্তু দুটি মিশিয়ে ফেলা ভুল।
 
 ## কখন ব্যবহার করবেন
 
-| প্রশ্নে যে সংকেত থাকে                                     | কী ব্যবহার করবেন       | কেন                                        |
+| প্রশ্নে যে সংকেত থাকে                                        | কী ব্যবহার করবেন   | কেন                                          |
 | ---------------------------------------------------------- | --------------- | ------------------------------------------ |
-| "…এর মধ্যে কোনো path আছে কি"                                | DFS             | যেকোনো path হলেই চলে, তাই একটিতে লেগে থাকুন          |
-| Connected component — island, region, province          | প্রতিটি unvisited cell-এ DFS | প্রতিবার চালু করলে একটি component শেষ হয়  |
-| সব root-to-leaf path, বা সব বৈধ configuration         | DFS + backtracking | Path তৈরি হয় নিচে নামার পথে    |
-| Directed graph-এ cycle খুঁজে বের করা                         | তিন state-এর DFS | এখনো stack-এ থাকা একটি node-এ back edge মানেই cycle |
-| Unweighted graph-এ **shortest** path                    | **BFS**         | DFS একটি path খুঁজে পায়, shortest-টি নয়           |
-| উত্তর root-এর কাছে, বা tree খুব গভীর       | BFS             | DFS আগে একটি লম্বা ভুল branch-এ নেমে যেতে পারে    |
-| Weighted shortest path                                     | Dijkstra        | সাধারণ DFS বা BFS কোনোটাই weight সামলায় না    |
+| "…এর মধ্যে কোনো path আছে কি"                                | DFS             | যেকোনো path হলেই চলে, তাই একটি ধরে এগোন       |
+| Connected component: island, region, province              | প্রতিটি না-দেখা cell থেকে DFS | প্রতিবার চালালে একটি component শেষ হয় |
+| Root থেকে leaf পর্যন্ত সব path, বা সব বৈধ configuration       | DFS + backtracking | নামার পথেই path তৈরি হয়               |
+| Directed graph-এ cycle খোঁজা                                 | তিন state-এর DFS | এখনো stack-এ থাকা node-এ back edge মানেই cycle |
+| Unweighted graph-এ **সবচেয়ে ছোট** path                       | **BFS**         | DFS কোনো একটি path দেয়, সবচেয়ে ছোটটা নয়            |
+| উত্তর root-এর কাছে, বা tree খুব গভীর                         | BFS             | DFS আগে লম্বা কোনো ভুল branch-এ নেমে যেতে পারে |
+| Weighted shortest path                                     | Dijkstra        | সাধারণ DFS বা BFS কোনোটাই weight সামলায় না     |
 
-Cycle detection-ই সবচেয়ে বেশি আসার সম্ভাবনা থাকা রূপভেদ, কারণ Course Schedule একটি প্রচলিত প্রশ্ন। প্রতি node-এ একটি
-নয়, দুটি boolean লাগে: বর্তমান recursion stack-এ থাকা node-এর জন্য `visiting`, আর পুরোপুরি explore করা node-এর
-জন্য `visited`। একটি `visiting` node-এ পৌঁছানো মানে cycle। একটি `visited` node-এ পৌঁছানো মানে শুধু শেষ হয়ে যাওয়া
-একটি subgraph-এ যাওয়ার দ্বিতীয় একটি পথ। একটি flag দুটিকে গুলিয়ে ফেলে, আর এমন cycle report করে যার অস্তিত্বই নেই।
-Topological sort এর ওপরেই দাঁড়ায় —
-[Chapter ?? — Graph Algorithm](#ch-graph-algorithms) দেখুন।
+এই রূপগুলোর মধ্যে cycle detection-ই সবচেয়ে বেশি আসে, কারণ Course Schedule খুব চেনা প্রশ্ন। এখানে প্রতিটি node-এ
+একটি নয়, দুটি boolean লাগে। `visiting` হলো এখনকার recursion stack-এ থাকা node-এর জন্য, আর `visited` হলো
+পুরোপুরি দেখা হয়ে যাওয়া node-এর জন্য। `visiting` node-এ পৌঁছানো মানে cycle। `visited` node-এ পৌঁছানো মানে শুধু
+শেষ হয়ে যাওয়া subgraph-এ ঢোকার আরেকটি রাস্তা। একটি flag দিয়ে দুটিকে এক করে ফেললে এমন cycle-ও ধরা পড়ে, যা আসলে
+নেই। Topological sort এর ওপরেই দাঁড়ানো। দেখুন
+[Chapter ?? — Graph Algorithm](#ch-graph-algorithms)।
 
 ## সাধারণ ভুল
 
-**Graph-এ কোনো visited set না রাখা:**
+**Graph-এ কোনো visited set নেই:**
 
 ```typescript
 // ❌ recursing into neighbours with no guard — a cycle means infinite recursion
@@ -210,35 +209,35 @@ Topological sort এর ওপরেই দাঁড়ায় —
 // ✅ visited.add(node) first — a cycle re-enters before the mark lands
 ```
 
-**Call-এর জায়গায় bounds check করা:**
+**Call করার জায়গায় bounds check:**
 
 ```typescript
 // ❌ if (r + 1 < rows) sink(r + 1, c);   // four copies, and the missing one throws
 // ✅ one guard at the top of sink handles bounds and visited together
 ```
 
-**Path reference হিসেবে জমা রাখা:**
+**Path-টা reference হিসেবে রেখে দেওয়া:**
 
 ```typescript
 // ❌ results.push(path);        // every result aliases the same array, which pop() empties
 // ✅ results.push([...path]);
 ```
 
-**Path Sum-এ leaf test ভুল করা:**
+**Path Sum-এ leaf-এর test ভুল করা:**
 
 ```typescript
 // ❌ if (node.left === null || node.right === null)   // a one-child node is not a leaf
 // ✅ if (node.left === null && node.right === null)
 ```
 
-**Shortest path-এর জন্য DFS ব্যবহার করা:**
+**Shortest path-এর জন্য DFS চালানো:**
 
 ```typescript
 // ❌ DFS returns the first path it finds, which is rarely the shortest
 // ✅ BFS on an unweighted graph; Dijkstra when edges have weights
 ```
 
-**Directed cycle detection-এ একটিমাত্র visited flag:**
+**Directed cycle খুঁজতে একটিমাত্র visited flag:**
 
 ```typescript
 // ❌ one Set — reports a cycle whenever two paths reach the same finished node
@@ -247,71 +246,71 @@ Topological sort এর ওপরেই দাঁড়ায় —
 
 ## অনুশীলনের জন্য Problem
 
-| #   | Problem                              | কঠিনতা | যা অনুশীলন করায়                                  |
+| #   | Problem                              | কঠিনতা     | কী অনুশীলন হয়                                     |
 | --- | ------------------------------------ | ---------- | ----------------------------------------------- |
-| 104 | Maximum Depth of Binary Tree         | Easy       | সম্ভাব্য সবচেয়ে ছোট DFS                        |
-| 112 | Path Sum                             | Easy       | Leaf test, আর বিয়োগটা               |
-| 200 | Number of Islands                    | Medium     | Graph হিসেবে grid, আর grid নিজেই তার visited set |
-| 113 | Path Sum II                          | Medium     | আগে push, পরে pop, আর result copy করা   |
-| 695 | Max Area of Island                   | Medium     | Recursion থেকে ওপরে একটি value return করা          |
-| 133 | Clone Graph                          | Medium     | একটি `Map`, যেটা একসাথে visited আর output    |
-| 207 | Course Schedule                      | Medium     | দুই-state-এর cycle detection                        |
-| 124 | Binary Tree Maximum Path Sum         | Hard       | একটি value return করা, আর অন্য একটি record করা      |
+| 104 | Maximum Depth of Binary Tree         | Easy       | সবচেয়ে ছোট DFS                                    |
+| 112 | Path Sum                             | Easy       | Leaf-এর test, আর বিয়োগের কৌশল                     |
+| 200 | Number of Islands                    | Medium     | Graph হিসেবে grid, আর grid-ই তার নিজের visited set |
+| 113 | Path Sum II                          | Medium     | Push আগে, pop পরে, আর result copy করা             |
+| 695 | Max Area of Island                   | Medium     | Recursion থেকে value ওপরে ফেরত পাঠানো              |
+| 133 | Clone Graph                          | Medium     | একটি `Map`, যা একসঙ্গে visited আর output দুটিই      |
+| 207 | Course Schedule                      | Medium     | দুই state দিয়ে cycle detection                    |
+| 124 | Binary Tree Maximum Path Sum         | Hard       | একটি value return করা, অন্যটি আলাদা করে রেকর্ড রাখা  |
 
-আগে 200, তারপর 695 করুন — দ্বিতীয়টা হলো প্রথমটাই, শুধু কিছু না দিয়ে একটি count return করে। তারপর 207, যেখানে
-দুই-state-এর visited set এড়ানো আর যায় না।
+আগে 200, তারপর 695। দ্বিতীয়টা আসলে প্রথমটাই, শুধু কিছু না দিয়ে একটি count return করে। তারপর 207। দুই state-এর
+visited set ছাড়া যে চলে না, সেটা এখানে এসেই বোঝা যায়।
 
 ## 🔑 মূল শিক্ষা
 
-- Graph-এ DFS হলো tree traversal আর একটি visited set। Set না থাকলে একটি cycle মানে infinite loop।
-- Node visited mark করুন **ঢোকার সময়েই**, recurse করার আগে। নইলে একটি cycle আগেই আবার ঢুকে পড়ে।
-- Grid হলো এমন একটি graph, যার neighbour পাশের চারটি cell। একে mutate করাও একটি বৈধ `O(1)` visited set।
-- Path record করতে আগে push, পরে pop লাগে। আর result জমা রাখার সময় একটি **copy** লাগে।
-- DFS *একটি* path খুঁজে পায়, কখনোই shortest-টি নয় — সেটা BFS-এর কাজ। আর weighted shortest path-এর জন্য Dijkstra লাগে।
+- Graph-এ DFS মানে tree traversal, সঙ্গে একটি visited set। Set না থাকলে cycle মানেই infinite loop।
+- Node-কে visited mark করুন **ঢোকার সঙ্গে সঙ্গে**, recurse করার আগে। নইলে cycle ঘুরে আগেই আবার সেখানে ঢুকে পড়ে।
+- Grid এমন graph, যার neighbour পাশের চারটি cell। Grid-টাই বদলে দেওয়া বৈধ `O(1)` visited set।
+- Path রেকর্ড করতে লাগে push আগে, pop পরে, আর result জমা রাখার সময় একটি **copy**।
+- DFS *কোনো একটি* path খুঁজে দেয়, সবচেয়ে ছোটটা কখনো নয়। সেটা BFS-এর কাজ, আর weighted shortest path-এ লাগে Dijkstra।
 
 ## Interview-এর প্রশ্ন
 
-**Q: Tree traversal-এ visited set লাগে না, কিন্তু graph-এ DFS-এর কেন লাগে?**
+**Q: Tree traversal-এ visited set লাগে না, অথচ graph-এ DFS করতে লাগে কেন?**
 
-একটি tree-তে প্রতিটি node-এ যাওয়ার ঠিক একটিই path, আর কোনো cycle নেই। তাই কোনো node-এ দুবার পৌঁছানো যায় না।
-সাধারণ graph-এ এর কোনো নিশ্চয়তাই নেই। Visited set না থাকলে একটি diamond আকার কাজ দ্বিগুণ করে, আর একটি cycle
-recursion-কে কখনো শেষ হতে দেয় না। Set-টি "সব path explore করুন"-কে "সব node explore করুন"-এ বদলে দেয়। এটাই
-complexity-কে `O(V + E)`-তে নামিয়ে আনে।
+Tree-তে প্রতিটি node-এ যাওয়ার path ঠিক একটি, আর কোনো cycle নেই। তাই কোনো node-এ দুবার পৌঁছানো যায় না। সাধারণ
+graph-এ এর কোনোটারই নিশ্চয়তা নেই। Visited set না থাকলে diamond আকারের অংশে কাজ দুবার হয়, আর cycle-এ recursion
+কখনো থামে না। Set থাকলে "সব path ঘুরে দেখা" হয়ে যায় "সব node ঘুরে দেখা"। Complexity `O(V + E)`-এ নামে এ কারণেই।
 
-**Q: ঠিক কোথায় একটি node visited mark করবেন, আর ভুল করলে কী ভাঙে?**
+**Q: ঠিক কোথায় node-কে visited mark করবেন, আর ভুল জায়গায় করলে কী ভাঙে?**
 
-Node-এ ঢোকার সাথে সাথে, তার neighbour-দের ওপর iterate করার আগে। Recursive call return করার পরে mark করলে,
-A → B → A cycle-এ A-তে দ্বিতীয় visit ঘটে যখন A তখনো unmarked, আর recursion চিরকাল চলতে থাকে। `visited.has()`
-check আর `visited.add()` function-এর প্রথম দুটি line হওয়া উচিত।
+Node-এ ঢোকার সঙ্গে সঙ্গে, তার neighbour-গুলো ঘোরার আগেই। Recursive call return করার পরে mark করলে A → B → A
+cycle-এ A-তে দ্বিতীয়বার ঢোকা হয় তখন, যখন A-তে mark পড়েনি। ফলে recursion চিরকাল ঘুরতে থাকে। Function-এর প্রথম
+দুই line হওয়া উচিত `visited.has()` check আর `visited.add()`।
 
-**Q: কখন BFS-ই সঠিক পছন্দ?**
+**Q: কখন BFS বেছে নেওয়াই ঠিক?**
 
-যখন প্রশ্নে unweighted graph-এ shortest path বা সবচেয়ে কম step চাওয়া হয় — BFS দূরত্বের ক্রমে node-এ পৌঁছায়, তাই
-প্রথমবার যেখানে পৌঁছায়, সেটাই সবচেয়ে ছোট পথ। এছাড়া যখন উত্তর সম্ভবত শুরুর কাছেই, কারণ DFS আগে একটি লম্বা ভুল branch-এ
-নেমে যেতে পারে। আর যখন graph এত গভীর যে recursion stack overflow করবে।
+যখন প্রশ্নে unweighted graph-এ shortest path বা সবচেয়ে কম কয়টি step লাগে, তা জানতে চাওয়া হয়। BFS node-এ পৌঁছায়
+দূরত্বের ক্রমে, তাই প্রথমবার যেখানে পৌঁছায়, সেটাই সবচেয়ে ছোট পথ। উত্তর শুরুর কাছাকাছি থাকার সম্ভাবনা থাকলেও
+BFS ভালো, কারণ DFS আগে লম্বা কোনো ভুল branch-এ নেমে যেতে পারে। আর graph এত গভীর হলে যে recursion-এ stack
+overflow হবে, তখনও।
 
 **Q: DFS দিয়ে directed graph-এ cycle কীভাবে খুঁজবেন?**
 
-প্রতিটি node-কে তিনটি state দিন: unvisited, বর্তমান recursion stack-এ আছে, আর পুরোপুরি explore করা। বর্তমান stack-এ
-থাকা একটি node-এ পৌঁছানো মানে একটি back edge, অর্থাৎ cycle। পুরোপুরি explore করা একটি node-এ পৌঁছানো মানে শুধু
-আগেই শেষ করা একটি subgraph-এ ঢোকার দ্বিতীয় পথ, তাতে কোনো সমস্যা নেই। দুটিকে একটি flag-এ মিশিয়ে ফেলাই চিরাচরিত
-ভুল উত্তর, যেটা একটি acyclic diamond-এ cycle report করে।
+প্রতিটি node-কে তিনটি state দিন: এখনো দেখা হয়নি, এখনকার recursion stack-এ আছে, আর পুরোপুরি দেখা শেষ। যে node
+এখনকার stack-এ আছে, সেখানে পৌঁছানো মানে back edge, আর back edge মানেই cycle। পুরো দেখা শেষ এমন node-এ পৌঁছানো
+মানে শুধু আগেই শেষ করা subgraph-এ ঢোকার আরেকটি রাস্তা, তাতে সমস্যা নেই। এই দুটিকে একটি flag-এ মিশিয়ে ফেলাই
+চিরচেনা ভুল উত্তর। তাতে cycle-হীন diamond-এও cycle ধরা পড়ে।
 
 **Q: DFS আর backtracking-এর পার্থক্য কী?**
 
-Backtracking হলো একটি নির্দিষ্ট graph-এর বদলে *candidate solution*-এর একটি space-এর ওপর DFS, দুটি সংযোজন সহ:
-ফেরার পথে state আগের অবস্থায় ফিরিয়ে আনা হয়, আর যে branch থেকে বৈধ উত্তর আসা সম্ভব নয়, সেটা সাথে সাথে prune করা
-হয়। Path Sum II হলো সীমানার উদাহরণ — একটি সত্যিকারের tree-এর ওপর DFS, কিন্তু push/pop-এর এমন নিয়মে, যে পড়তে
-backtracking-এর মতো লাগে।
+Backtracking-ও DFS, তবে নির্দিষ্ট কোনো graph-এর ওপর নয়, *সম্ভাব্য সমাধানের* জগতের ওপর। সঙ্গে দুটি জিনিস যোগ হয়।
+ফেরার পথে state আগের মতো করে দেওয়া হয়। আর যে branch থেকে বৈধ উত্তর আসতে পারে না, সেটা সঙ্গে সঙ্গে ছেঁটে ফেলা
+হয়। Path Sum II দুটির সীমানায় পড়ে: সত্যিকারের tree-র ওপর DFS, কিন্তু push/pop-এর নিয়মের জন্য পড়তে backtracking-এর
+মতো লাগে।
 
-**Q: Graph-এ একটি chain-এ 10⁵ node আছে। কী বদলায়?**
+**Q: Graph-এ 10⁵ node একটানা chain-এ আছে। কী বদলায়?**
 
-Recursion call stack overflow করে — V8 মোটামুটি 10⁴ frame পর্যন্ত দেয়। তাই একই algorithm heap-এ একটি explicit stack
-দিয়ে লিখতে হয়। Complexity বদলায় না, `O(V + E)`-ই থাকে। শুধু memory কোথায় থাকে, সেটা বদলায়। তখন visited check
-pop-এর সময় করতে হয়, কারণ প্রথমবার process হওয়ার আগে একটি node একাধিক neighbour দিয়ে push হতে পারে।
+Recursion-এ call stack overflow হয়, কারণ V8 মোটামুটি 10⁴ frame পর্যন্ত চলতে দেয়। তাই একই algorithm heap-এর
+ওপর explicit stack দিয়ে লিখতে হয়। Complexity একই থাকে, `O(V + E)`। বদলায় শুধু memory কোথায় থাকে। তখন visited
+check করতে হয় pop করার সময়, কারণ প্রথমবার process হওয়ার আগেই একটি node একাধিক neighbour থেকে push হয়ে যেতে পারে।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Breadth-First Search](#ch-breadth-first-search) — একই exploration, দূরত্বের ক্রমে সাজানো, আর এটা কেন shortest path খুঁজে পায়
-- [Chapter ?? — Backtracking](#ch-backtracking) — candidate solution-এর ওপর DFS, pruning সহ
-- [Chapter ?? — Graph Algorithm](#ch-graph-algorithms) — topological sort, যা এই অধ্যায়ের cycle detection-এরই পূর্ণ রূপ
+- [Chapter ?? — Breadth-First Search](#ch-breadth-first-search) — একই অনুসন্ধান, তবে দূরত্বের ক্রমে, আর সেজন্যই shortest path পাওয়া যায়
+- [Chapter ?? — Backtracking](#ch-backtracking) — সম্ভাব্য সমাধানের ওপর DFS, pruning-সহ
+- [Chapter ?? — Graph Algorithm](#ch-graph-algorithms) — topological sort, এই অধ্যায়ের cycle detection-এর পূর্ণ রূপ

@@ -1,38 +1,38 @@
 ---
 sourceHash: "053d7ad5dd43246e058fa0550e15a410844a802586afa46b1d326a4198c1cbdf"
 title: "Deployment"
-translatedAt: "2026-10-13T03:09:02.063Z"
+translatedAt: "2026-10-19T07:55:19.191Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Deployment
 
-Pipeline পরিবর্তনটি build করে। এই section তার পরের ঘটনা নিয়ে: এটা কীভাবে user-দের কাছে পৌঁছায়, কে প্রথম দেখে, আর
-কীভাবে এটা ফিরিয়ে আনা যায়। শেষ অংশটাতেই seniority বোঝা যায়। অনেক engineer একটি deployment বর্ণনা করতে পারেন। কম
-জনই release বের হওয়ার আগে বলতে পারেন, এর কোন অংশ একটি rollback ফিরিয়ে আনবে না।
+Pipeline পরিবর্তনটা build করে। এই section তার পরের ঘটনা নিয়ে: পরিবর্তনটা কীভাবে user-দের কাছে পৌঁছায়, প্রথমে কে
+দেখে, আর কীভাবে সেটা ফিরিয়ে আনা যায়। Seniority ধরা পড়ে এই শেষ অংশেই। অনেক engineer-ই একটি deployment-এর বর্ণনা দিতে
+পারেন। কিন্তু release বের হওয়ার আগেই বলতে পারেন এর কোন অংশ rollback দিয়ে ফেরানো যাবে না, এমন মানুষ কম।
 
-দুটি অধ্যায়ই একটি ধারণা মেনে চলে: একটি deployment হলো একটি immutable artefact (একটি build output, যেটা কখনো বদলায়
-না), আর একটি domain হলো সেরকম একটির দিকে তাক করা একটি pointer।
-Preview environment, instant rollback আর প্রতি-user release — এই সবকিছুই এই model সস্তা করে দেয়।
+দুটি অধ্যায়ই একটি ধারণা মেনে চলে: deployment হলো একটি immutable artefact (এমন build output যা কখনো বদলায় না), আর
+domain হলো তার একটির দিকে তাক করা pointer।
+Preview environment, instant rollback আর user-ভিত্তিক release, সবই এই model-এর কারণে সস্তা হয়ে যায়।
 
 ## অধ্যায়গুলো
 
-| #  | অধ্যায়                                                                             | কোন প্রশ্নের উত্তর দেয়                                              |
+| #  | অধ্যায়                                                                             | কোন প্রশ্নের উত্তর দেয়                                             |
 | -- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------------- |
-| 01 | [Platform Deploy ও Preview Environment](#ch-platform-deploys)                      | একটি deployment promote করলে কী হয়, আর একটি pull request কীভাবে একটি আসল URL পায়? |
-| 02 | [Deployment Strategy, Rollback ও Feature Flag](#ch-deployment-strategies)          | আপনি কোন ঝুঁকি কমাচ্ছেন, আর কোন পরিবর্তন ফিরিয়ে আনা যায় না? |
+| 01 | [Platform Deploy ও Preview Environment](#ch-platform-deploys)                      | একটি deployment promote করলে কী হয়, আর একটি pull request কীভাবে আসল URL পায়? |
+| 02 | [Deployment Strategy, Rollback ও Feature Flag](#ch-deployment-strategies)          | কোন ঝুঁকিটা আপনি কমাচ্ছেন, আর কোন পরিবর্তন আর ফেরানো যায় না? |
 
 ## Interviewer-রা যা যাচাই করেন
 
-Part VIII-এর শুরুর অধ্যায়ের part-স্তরের সংকেতগুলোর ওপর, deployment নিয়ে তিনটি প্রশ্ন:
+Part VIII-এর শুরুর অধ্যায়ের part-স্তরের signal-গুলোর ওপর, deployment নিয়ে তিনটি প্রশ্ন:
 
-- **Code কোথায় চলে, আর কেন সেখানে?** Edge execution latency-তে লাভ, আর data access-এ ক্ষতি। একটি database-নির্ভর
-  route-কে দ্রুত করতে edge-এ সরানো একটি সাধারণ, আত্মবিশ্বাসী ভুল উত্তর।
-- **Preview কি production data ব্যবহার করে?** উত্তর হওয়া উচিত না। আসল trade-off-এর আলোচনা হয় পরের প্রশ্নে: একটি
-  branched database, একটি seeded ephemeral database, নাকি একটি shared আর ভঙ্গুর database।
-- **Deploy বনাম release।** Feature flag, canary আর preview URL একটি প্রশ্নেরই তিনটি উত্তর: সবার আগে একটি ছোট
-  দর্শকের সামনে একটি পরিবর্তন কীভাবে আনবেন?
+- **Code কোথায় চলে, আর কেন সেখানে?** Edge-এ চালালে latency-তে লাভ, কিন্তু data-র কাছে পৌঁছাতে ক্ষতি। দ্রুত করার
+  জন্য database-নির্ভর একটি route edge-এ সরিয়ে নেওয়া খুব চেনা একটি ভুল উত্তর, যা লোকে আত্মবিশ্বাসের সঙ্গে দেয়।
+- **Preview কি production data ব্যবহার করে?** উত্তর হওয়া উচিত না। আসল লাভ-ক্ষতির আলোচনা হয় পরের প্রশ্নে: branch করা
+  database, seed করা অস্থায়ী database, নাকি সবার ভাগের একটি ভঙ্গুর database।
+- **Deploy বনাম release।** Feature flag, canary আর preview URL একই প্রশ্নের তিনটি উত্তর: সবার সামনে আনার আগে একটি
+  পরিবর্তন কীভাবে ছোট একদল মানুষের সামনে আনবেন?
 
 ## পড়ার ক্রম
 
-আগে 01 পড়ুন। অধ্যায় 02 সেখানে তৈরি করা immutable-artefact model-এর ওপর নির্ভর করে।
+আগে 01 পড়ুন। অধ্যায় 02 সেখানে দাঁড় করানো immutable-artefact model-এর ওপর নির্ভর করে।

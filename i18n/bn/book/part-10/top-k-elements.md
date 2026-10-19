@@ -1,37 +1,37 @@
 ---
 sourceHash: "4a78790bc76c342cbfa54bc440ba663ba7a730bf77b7a9caccd67e6e086bc139"
 title: "Top K Element"
-translatedAt: "2026-10-13T03:10:20.140Z"
+translatedAt: "2026-10-19T10:26:02.488Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Top K Element {#ch-top-k-elements}
 
-> একটি heap-এ শুধু `k`টি candidate রাখুন। তাতে খরচ `O(n log n)` থেকে নেমে `O(n log k)` হয়, আর streaming input-ও চলে।
+> Heap-এ শুধু `k`টি candidate রাখুন। তাতে খরচ `O(n log n)` থেকে নেমে আসে `O(n log k)`-এ, আর streaming input-ও সামলানো যায়।
 
-**এই অধ্যায়ে:** কেন একটি **min**-heap আপনাকে `k`টি **largest** দেয় · TypeScript-এ একটি heap, কারণ ভাষাটিতে কোনো heap নেই · frequency অনুযায়ী top-k · কখন quickselect বা bucket sort heap-কে হারায় · streaming-এর ক্ষেত্র, যেটা শুধু heap-ই সামলাতে পারে
+**এই অধ্যায়ে:** `k`টি **largest** পেতে কেন **min**-heap লাগে · TypeScript-এ heap, কারণ language-টায় কোনো heap নেই · frequency ধরে top-k · কখন quickselect বা bucket sort heap-কে হারায় · streaming-এর ক্ষেত্র, যেটা শুধু heap সামলাতে পারে
 
 ## 💡 মূল ধারণা
 
-"দশ লাখ সংখ্যার মধ্যে সবচেয়ে বড় 5টি" — এর সহজ উত্তর হলো sort করে পাঁচটি নিয়ে নেওয়া। তাতে পাঁচটি value পেতে
-`O(n log n)` কাজ হয়, আর পুরো input একসাথে memory-তে রাখতে হয়।
+"দশ লাখ সংখ্যার মধ্যে সবচেয়ে বড় 5টি" চাইলে সহজ উত্তর হলো sort করে পাঁচটি তুলে নেওয়া। কিন্তু তাতে মাত্র পাঁচটি value
+পেতে `O(n log n)` কাজ হয়, আর পুরো input একসঙ্গে memory-তে রাখতে হয়।
 
-`k` size-এর একটি heap এর চেয়ে ভালো করে। এখন পর্যন্ত দেখা সেরা `k`টি ধরে রাখুন। প্রতিটি নতুন element-কে সেই `k`টির
-মধ্যে **সবচেয়ে দুর্বলটির** সাথে তুলনা করুন, আর নতুনটি জিতলে অদলবদল করুন। Input-এর বাকি অংশ কখনো সাজানোই হয় না।
+`k` size-এর heap এর চেয়ে ভালো করে। এ পর্যন্ত দেখা সেরা `k`টি element ধরে রাখুন। নতুন element এলে সেটাকে মেলান ওই `k`টির
+মধ্যে **সবচেয়ে দুর্বল**-টার সঙ্গে, আর নতুনটা জিতলে জায়গা বদলে দিন। বাকি input-কে কখনো সাজাতেই হয় না।
 
-উল্টো মনে হওয়া অংশটা হলো heap-এর দিক। `k`টি **largest**-এর জন্য **min**-heap ব্যবহার করুন। আপনার `k`জন রক্ষিতের
-মধ্যে সবচেয়ে ছোটটি root-এ বসে থাকে। নতুন কাউকে ঠিক এটাকেই হারাতে হবে — আর ঠিক এটাকেই বের করে দিতে হবে। Max-heap
-আপনার সেরা element-টিকে সেখানে রাখত, যেখানে আপনার দরকার সবচেয়ে দুর্বলটি।
+উল্টো মনে হয় heap-এর দিকটা। `k`টি **largest**-এর জন্য লাগে **min**-heap। রাখা `k`টির মধ্যে সবচেয়ে ছোটটা বসে থাকে root-এ।
+নতুন element-কে ঠিক এটাকেই হারাতে হয়, আর বের করে দিতেও হয় ঠিক এটাকেই। Max-heap হলে root-এ বসত আপনার সেরা element,
+অথচ সেখানে আপনার দরকার সবচেয়ে দুর্বলটা।
 
-> **নিয়ম:** `k` largest → min-heap। `k` smallest → max-heap। Heap-এর root সবসময় সেই candidate, যার বাদ পড়ার
+> **নিয়ম:** `k`টি largest → min-heap। `k`টি smallest → max-heap। Heap-এর root-এ সবসময় সেই candidate, যার বাদ পড়ার
 > ঝুঁকি সবচেয়ে বেশি।
 
 ## কীভাবে কাজ করে
 
-### একটি heap, কারণ TypeScript-এ কোনো heap নেই
+### Heap, কারণ TypeScript-এ নেই
 
-JavaScript-এ কোনো priority queue নেই। Interviewer-রা সাধারণত ধরে নিতে দেন যে একটি আছে, কিন্তু সেটা মুখে বলুন। এমন
-একটি API চুপচাপ ব্যবহার করবেন না, যার অস্তিত্বই নেই। Comparator দিয়ে চলা একটি binary heap মোটামুটি পঁচিশ line-এর:
+JavaScript-এ কোনো priority queue আসে না। Interviewer-রা সাধারণত ধরে নিতে দেন যে priority queue আছে। তবে সেটা মুখে বলে নিন,
+চুপচাপ এমন API ব্যবহার করবেন না যার অস্তিত্বই নেই। Comparator দিয়ে চলা binary heap লিখতে মোটামুটি পঁচিশ line লাগে:
 
 ```typescript
 class Heap<T> {
@@ -83,8 +83,8 @@ class Heap<T> {
 // push: O(log n), pop: O(log n), peek: O(1)
 ```
 
-Array-কে tree হিসেবে ব্যবহারের কৌশলটা জানা দরকার: index `i`-এর জন্য child-রা থাকে `2i + 1` আর `2i + 2`-এ, আর
-parent থাকে `(i - 1) >> 1`-এ। কোনো node object নেই, কোনো pointer নেই।
+Array-কে tree হিসেবে ব্যবহারের কৌশলটা জেনে রাখুন: index `i` হলে children থাকে `2i + 1` আর `2i + 2`-এ, আর parent থাকে
+`(i - 1) >> 1`-এ। কোনো node object লাগে না, pointer-ও না।
 
 ### `k`টি largest
 
@@ -101,13 +101,13 @@ function findKthLargest(nums: number[], k: number): number {
 // Time: O(n log k), Space: O(k)  — sorting is O(n log n) and O(n)
 ```
 
-Size-এর সীমা থেকে দুটি বৈশিষ্ট্য আপনা থেকেই আসে। সংজ্ঞা অনুযায়ীই root হলো `k`তম largest, কারণ ঠিক `k − 1`টি
-element তার ওপরে আছে। আর memory `O(k)`, `O(n)` নয়। তাই input কখনো ধরে রাখতেই হয় না — এই pattern-এর অস্তিত্বের
-পুরো কারণ এটাই।
+Size-এর এই সীমা থেকে দুটি গুণ আপনাআপনি আসে। প্রথমত, root সংজ্ঞা অনুযায়ীই `k`-তম largest, কারণ তার ওপরে আছে ঠিক
+`k − 1`টি element। দ্বিতীয়ত, memory লাগে `O(k)`, `O(n)` নয়। ফলে input কখনো পুরোটা ধরে রাখতে হয় না, আর এই pattern-এর
+অস্তিত্বের কারণই এটা।
 
-### Frequency অনুযায়ী top `k`
+### Frequency ধরে top `k`
 
-দুই ধাপ: গুনুন, তারপর count-গুলোর ওপর একই heap চালান।
+দুটি ধাপ: আগে গুনুন, তারপর গোনা সংখ্যার ওপর একই heap চালান।
 
 ```typescript
 function topKFrequent(nums: number[], k: number): number[] {
@@ -129,22 +129,22 @@ function topKFrequent(nums: number[], k: number): number[] {
 // Time: O(n + m log k) where m is the number of distinct values, Space: O(m)
 ```
 
-Complexity সৎভাবে বলুন: যা-ই করুন, map-টি `O(m)` space নেবে। তাই heap-এর `O(k)` সাশ্রয় শুধু দ্বিতীয় ধাপে খাটে।
-`O(n)` গোনাটা এড়ানো যায় না।
+Complexity সৎভাবে বলুন। Map যেভাবেই বানান, তাতে `O(m)` space লাগবেই। তাই heap-এর `O(k)` সাশ্রয় খাটে শুধু দ্বিতীয়
+ধাপে। `O(n)` গোনা এড়ানোর কোনো উপায় নেই।
 
-### যখন heap সবচেয়ে দ্রুত উত্তর নয়
+### কখন heap সবচেয়ে দ্রুত উত্তর নয়
 
-| পরিস্থিতি                                        | ভালো tool        | খরচ                              |
+| পরিস্থিতি                                        | এর চেয়ে ভালো        | খরচ                              |
 | ------------------------------------------------ | ------------------ | --------------------------------- |
-| একবারের `k`তম largest, পুরো array memory-তে      | Quickselect        | গড়ে `O(n)`, সবচেয়ে খারাপে `O(n²)`      |
-| Frequency অনুযায়ী top `k`, count `n` দিয়ে সীমিত       | Bucket sort        | নিশ্চিতভাবে `O(n)`                  |
-| Input stream হিসেবে আসে, বা `n` memory-তে আঁটে না    | `k` size-এর heap   | `O(n log k)`, `O(k)` space         |
-| `k` প্রায় `n`-এর কাছাকাছি                               | সরাসরি sort          | `O(n log n)`, আর পড়তে সহজ   |
-| `k = 1`                                           | একটি সাধারণ scan      | `O(n)`, `O(1)`                     |
-| Data বদলানোর সাথে বারবার query                  | Heap, সবসময় চালু রাখা    | প্রতি update-এ `O(log k)`              |
+| একবারের `k`-তম largest, পুরো array memory-তে      | Quickselect        | গড়ে `O(n)`, worst-এ `O(n²)`      |
+| Frequency ধরে top `k`, count-এর সীমা `n`       | Bucket sort        | নিশ্চিতভাবে `O(n)`                  |
+| Input আসে stream হিসেবে, বা `n` memory-তে ধরে না    | `k` size-এর heap   | `O(n log k)`, `O(k)` space         |
+| `k` প্রায় `n`-এর সমান                               | সোজা sort          | `O(n log n)`, আর পড়তেও সহজ   |
+| `k = 1`                                           | একটি scan      | `O(n)`, `O(1)`                     |
+| Data বদলাতে থাকে, আর বারবার query হয়                  | Heap, সবসময় চালু রাখা    | প্রতি update-এ `O(log k)`              |
 
-Top K Frequent Elements-এ interviewer-রা আসলে bucket sort-এর উত্তরটাই খোঁজেন। কোনো frequency কখনো `n` ছাড়াতে
-পারে না। তাই count দিয়ে index করা `n + 1`টি bucket-এর একটি array বানান, আর ওপর থেকে পড়ুন:
+Top K Frequent Elements-এ interviewer-রা আসলে bucket sort-এর উত্তরটাই শুনতে চান। কোনো frequency কখনো `n` ছাড়াতে
+পারে না। তাই `n + 1`টি bucket-এর array বানিয়ে count দিয়ে index করুন, আর ওপর থেকে পড়ুন:
 
 ```typescript
 function topKFrequentBuckets(nums: number[], k: number): number[] {
@@ -166,23 +166,23 @@ function topKFrequentBuckets(nums: number[], k: number): number[] {
 // Time: O(n), Space: O(n)
 ```
 
-⚠️ Quickselect-এর `O(n)` একটি গড়, নিশ্চয়তা নয়। শত্রুভাবাপন্ন input-এ এর সবচেয়ে খারাপ ক্ষেত্র `O(n²)`। এটা
-array-এর ক্রমও বদলে দেয়। সেরা solution হিসেবে প্রস্তাব করার আগে দুটি খরচই উল্লেখ করুন।
+⚠️ Quickselect-এর `O(n)` শুধু গড়, নিশ্চয়তা নয়। ইচ্ছে করে বানানো খারাপ input-এ এর worst case `O(n²)`। তার ওপর
+এটা array-র ক্রমও বদলে দেয়। Optimal সমাধান হিসেবে quickselect দেওয়ার আগে দুটি খরচই বলে নিন।
 
 ## কখন ব্যবহার করবেন
 
-| প্রশ্নে যে সংকেত থাকে                                | কী ব্যবহার করবেন            | কেন                                       |
+| প্রশ্নে যে ইঙ্গিত থাকে                                | কী ব্যবহার করবেন            | কেন                                       |
 | ----------------------------------------------------- | -------------------- | ----------------------------------------- |
-| "`k` largest", "`k` most frequent", "`k` closest"      | `k` size-এর heap     | সংজ্ঞা দেওয়ার মতো উদাহরণ                          |
-| "…একটি stream থেকে" বা "element আসার সাথে সাথে"              | Heap, সবসময় চালু রাখা      | সীমাহীন input আর কিছুই সামলাতে পারে না       |
-| "Median of a stream"                                  | **দুটি** heap        | নিচের অর্ধেকের জন্য max-heap, ওপরের জন্য min |
-| "Merge `k` sorted lists"                              | `k`টি head-এর heap    | পরের output সবসময় `k`টির একটি        |
-| `k`তম **smallest** element                        | `k` size-এর max-heap | নিয়মটা উল্টে দিন                            |
-| পুরো sorted ক্রম এমনিতেই দরকার                | Sort                 | Heap কিছুই বাঁচায় না                     |
+| "`k` largest", "`k` most frequent", "`k` closest"      | `k` size-এর heap     | এটাই এই pattern-এর মূল ক্ষেত্র                  |
+| "…stream থেকে" বা "element আসার সঙ্গে সঙ্গে"              | Heap, সবসময় চালু রাখা      | সীমাহীন input আর কিছু সামলাতে পারে না       |
+| "Stream-এর median"                                  | **দুটি** heap        | নিচের অর্ধেকের জন্য max-heap, ওপরের অর্ধেকের জন্য min |
+| "`k`টি sorted list merge করুন"                              | `k`টি head-এর heap    | পরের output সবসময় ওই `k`টির একটি        |
+| `k`-তম **smallest** element                        | `k` size-এর max-heap | নিয়মটা উল্টে নিন                            |
+| পুরো sorted ক্রম এমনিতেই লাগবে                | Sort                 | Heap-এ কোনো সাশ্রয় নেই                     |
 
-যে রূপভেদটা অনুশীলন করা দরকার, সেটা Find Median from Data Stream। কারণ দুই-heap-এর উত্তরটা স্পষ্ট নয়, আর প্রশ্নটা
-প্রায়ই আসে। ছোট অর্ধেক একটি max-heap-এ রাখুন আর বড় অর্ধেক একটি min-heap-এ। আবার ভারসাম্য আনুন, যাতে size-এর
-পার্থক্য বড়জোর এক থাকে। Median হলো একটি বা দুটি root।
+Find Median from Data Stream-এর রূপটা অনুশীলন করার মতো। কারণ দুই heap-এর উত্তর সহজে মাথায় আসে না, অথচ প্রশ্নটা
+প্রায়ই আসে। ছোট অর্ধেক রাখুন max-heap-এ, বড় অর্ধেক min-heap-এ। দুটির size-এর তফাত যেন বড়জোর এক থাকে, সেভাবে
+rebalance করুন। তাহলে median হলো একটি root, বা দুটি root-ই।
 
 ## সাধারণ ভুল
 
@@ -193,7 +193,7 @@ array-এর ক্রমও বদলে দেয়। সেরা solution 
 // ✅ min-heap capped at k — O(n log k) and O(k) space
 ```
 
-দুটিই সঠিক। কিন্তু input একটি stream হলে শুধু একটিই কাজ করে।
+দুটিই সঠিক। কিন্তু input stream হলে কাজ করে শুধু একটি।
 
 **Heap-কে `k` ছাড়িয়ে বাড়তে দেওয়া:**
 
@@ -216,14 +216,14 @@ array-এর ক্রমও বদলে দেয়। সেরা solution 
 // ✅ unshift, or push then reverse
 ```
 
-**`k` input-এর চেয়ে বড় হলে সেটা না সামলানো:**
+**Input-এর চেয়ে বড় `k` সামলাতে ভুলে যাওয়া:**
 
 ```typescript
 // ❌ heap.peek()! after fewer than k pushes returns the minimum, silently wrong
 // ✅ clamp k, or return early — check the constraints for whether it is guaranteed
 ```
 
-**`k ≈ n` হলেও দাবি করা যে `O(n log k)` `O(n log n)`-কে হারায়:**
+**`k ≈ n` হলেও দাবি করা যে `O(n log k)` জিতছে `O(n log n)`-এর বিরুদ্ধে:**
 
 ```typescript
 // ❌ "the heap is always faster"
@@ -234,61 +234,60 @@ array-এর ক্রমও বদলে দেয়। সেরা solution 
 
 | #   | Problem                          | কঠিনতা | যা অনুশীলন করায়                                   |
 | --- | -------------------------------- | ---------- | ------------------------------------------------ |
-| 703 | Kth Largest Element in a Stream  | Easy       | কেন size-এর সীমাটাই পুরো pattern             |
+| 703 | Kth Largest Element in a Stream  | Easy       | Size-এর সীমাই কেন পুরো pattern             |
 | 215 | Kth Largest Element in an Array  | Medium     | `k` size-এর min-heap, তারপর quickselect            |
 | 347 | Top K Frequent Elements          | Medium     | আগে গোনা, তারপর heap, আর bucket-sort বিকল্প  |
-| 973 | K Closest Points to Origin       | Medium     | Derived key-এর ওপর একটি comparator                     |
+| 973 | K Closest Points to Origin       | Medium     | Derived key-এর ওপর comparator                     |
 | 658 | Find K Closest Elements          | Medium     | এখানে binary search heap-কে হারায়                 |
-| 692 | Top K Frequent Words             | Medium     | Comparator-এর ভেতরে টাই ভাঙা                |
-| 23  | Merge k Sorted Lists             | Hard       | `k`টি list head-এর একটি heap                          |
-| 295 | Find Median from Data Stream     | Hard       | দুটি heap, আর ভারসাম্যের invariant          |
+| 692 | Top K Frequent Words             | Medium     | Comparator-এর ভেতরে tie ভাঙা                |
+| 23  | Merge k Sorted Lists             | Hard       | `k`টি list head-এর heap                          |
+| 295 | Find Median from Data Stream     | Hard       | দুটি heap, আর rebalancing invariant          |
 
-215 দুবার solve করুন — একবার heap দিয়ে, একবার quickselect দিয়ে। তারপর 347 দুবার, heap আর bucket দিয়ে। সৎ
-complexity-সহ দুটি solution দিতে পারা — প্রশ্নটা আসলে এটাই যাচাই করে।
+215 দুবার করুন, একবার heap দিয়ে, একবার quickselect দিয়ে। তারপর 347 দুবার, heap আর bucket দিয়ে। সৎ complexity-সহ দুটি
+সমাধান দিতে পারা, প্রশ্নটা আসলে এটাই যাচাই করে।
 
 ## 🔑 মূল শিক্ষা
 
-- `k`-তে সীমিত একটি heap-এর খরচ `O(n log k)` time আর `O(k)` space। Sort করলে লাগে `O(n log n)` আর `O(n)`।
-- `k`টি largest-এর জন্য **min**-heap ব্যবহার করুন: root হলো সবচেয়ে দুর্বল রক্ষিত, আর আপনি ঠিক এটারই তুলনা করেন ও বাদ দেন।
-- Size-এর সীমাটাই pattern — pop করুন loop-এর ভেতরে, পরে নয়।
-- JavaScript-এ built-in heap নেই, তাই array-as-tree layout জেনে রাখুন: child-রা `2i + 1` আর `2i + 2`-এ।
-- একবারের query-তে quickselect গড়ে দ্রুততর। Stream শুধু heap-ই সামলাতে পারে।
+- `k`-তে আটকে রাখা heap-এ লাগে `O(n log k)` time আর `O(k)` space, আর sort করলে লাগে `O(n log n)` আর `O(n)`।
+- `k`টি largest-এর জন্য **min**-heap ব্যবহার করুন: root-এ থাকে সবচেয়ে দুর্বল element, আর তুলনা আর বাদ দেওয়া হয় সেটাকেই।
+- Size-এর সীমাই এই pattern। Pop করুন loop-এর ভেতরে, loop শেষ হওয়ার পরে নয়।
+- JavaScript-এ built-in heap নেই, তাই array-কে tree হিসেবে সাজানোর layout জেনে রাখুন: children থাকে `2i + 1` আর `2i + 2`-এ।
+- একবারের query-তে quickselect গড়ে দ্রুত। কিন্তু stream সামলাতে পারে শুধু heap।
 
 ## Interview-এর প্রশ্ন
 
 **Q: `k`টি largest-এর জন্য min-heap কেন? শুনতে তো উল্টো লাগে।**
 
-কারণ আপনি বারবার যে element-টি পরীক্ষা করেন, সেটা আপনার বর্তমান রক্ষিতদের মধ্যে *সবচেয়ে দুর্বল*। Min-heap সেটাকে
-root-এ রাখে। তাই নতুন কারও সাথে তুলনা আর হেরে যাওয়াটিকে বাদ দেওয়া — দুটিতেই পৌঁছাতে `O(1)` আর ঠিক করতে `O(log k)`।
-Max-heap-এ root হলো আপনার সেরা element, আর সবচেয়ে ছোট রক্ষিতটি খুঁজতে প্রতি ধাপে `O(k)` খরচ হতো।
+কারণ বারবার যে element-টা যাচাই করতে হয়, সেটা এখনকার রাখা element-গুলোর মধ্যে *সবচেয়ে দুর্বল*। Min-heap সেটাকেই
+root-এ রাখে। তাই নতুন element-এর সঙ্গে তুলনা আর হেরে যাওয়াটাকে বাদ দেওয়া, দুটিতেই পৌঁছাতে লাগে `O(1)`, আর heap
+ঠিক করতে লাগে `O(log k)`। Max-heap হলে root-এ থাকে আপনার সেরা element, আর সবচেয়ে ছোটটা খুঁজতে প্রতি ধাপে লাগত `O(k)`।
 
-**Q: Sort করার তুলনায় আসল সাশ্রয়টা কী?**
+**Q: Sort করার তুলনায় আসল সাশ্রয়টা কোথায়?**
 
-Time `O(n log n)` থেকে নেমে `O(n log k)` হয়। এটা কাজে আসে যখন `k` `n`-এর চেয়ে অনেক ছোট — দশ লাখের মধ্যে সবচেয়ে
-বড় পাঁচটি। বড় লাভটা space-এ: `O(n)`-এর বদলে `O(k)`। মানে input কখনো memory-তে ধরে রাখতে হয় না, তাই একই code
-একটি stream-এও চলে। `k ≈ n` হলে দুটি সমান, আর তখন sort-এর code বেশি পরিষ্কার।
+Time নামে `O(n log n)` থেকে `O(n log k)`-এ। `k` যখন `n`-এর চেয়ে অনেক ছোট, যেমন দশ লাখের মধ্যে সবচেয়ে বড় পাঁচটি, তখন
+এটা গুরুত্বপূর্ণ। তবে বড় লাভ space-এ: `O(n)`-এর বদলে `O(k)`। মানে input কখনো memory-তে ধরে রাখতে হয় না, তাই একই code
+stream-এর ওপরও চলে। `k ≈ n` হলে দুটি সমান, আর তখন sort-এর code পড়তে বেশি পরিষ্কার।
 
-**Q: কখন এর বদলে quickselect ব্যবহার করবেন?**
+**Q: কখন বরং quickselect ব্যবহার করবেন?**
 
-এমন একটি array-তে একবারের `k`th-largest query-র জন্য, যেটা আগে থেকেই memory-তে আছে আর যার ক্রম বদলালে সমস্যা নেই।
-একটি pivot ঘিরে partition করে শুধু এক দিকে recursion চালিয়ে এটা গড়ে `O(n)`। যে খরচগুলো বলতে হবে: শত্রুভাবাপন্ন
-input-এ `O(n²)` worst case, যেটা random pivot বাছাই অসম্ভাব্য করে, কিন্তু অসম্ভব করে না। আর এটা input-কে mutate
-করে।
+যখন `k`-তম largest একবারই চাই, array আগে থেকেই memory-তে আছে, আর তার ক্রম বদলালেও ক্ষতি নেই। একটি pivot ঘিরে
+partition করে শুধু এক দিকে recursion চালায় বলে গড়ে লাগে `O(n)`। যে খরচগুলো বলে নিতে হবে: ইচ্ছে করে বানানো খারাপ
+input-এ worst case `O(n²)`, যেটা random pivot বাছলে কম সম্ভাব্য হয় কিন্তু অসম্ভব হয় না। আর এটা input-কেই বদলে দেয়।
 
-**Q: একটি stream-এর median কীভাবে বের করবেন?**
+**Q: Stream-এর median কীভাবে বের করবেন?**
 
-দুটি heap: নিচের অর্ধেকের জন্য একটি max-heap আর ওপরের অর্ধেকের জন্য একটি min-heap, size-এ বড়জোর এক element-এর
-পার্থক্য রেখে। প্রতিটি insert এক দিকে যায়, তারপর একটি root অন্য দিকে সরিয়ে ভারসাম্য আনা হয়। তাই median হলো বড়
-heap-এর root, অথবা size সমান হলে দুটি root-এর গড়। Insert `O(log n)`, আর median পড়া `O(1)`।
+দুটি heap দিয়ে: নিচের অর্ধেকের জন্য max-heap, ওপরের অর্ধেকের জন্য min-heap, আর দুটির size-এর তফাত বড়জোর এক।
+প্রতিটি insert যায় এক দিকে, তারপর একটি root অন্য দিকে সরিয়ে rebalance হয়। ফলে median হলো বড় heap-টার root, আর
+দুটির size সমান হলে দুই root-এর গড়। Insert-এ লাগে `O(log n)`, median পড়তে `O(1)`।
 
-**Q: নিশ্চিত linear time-এ Top K Frequent Elements — কীভাবে?**
+**Q: Top K Frequent Elements নিশ্চিত linear time-এ কীভাবে করবেন?**
 
-Bucket sort। কোনো frequency `n` ছাড়াতে পারে না। তাই `n + 1`টি bucket নিন, প্রতিটি আলাদা value তার count-এর সাথে
-মেলে এমন bucket-এ রাখুন। তারপর সবচেয়ে ওপরের bucket থেকে নিচে পড়তে থাকুন, যতক্ষণ না `k`টি value পান। এটা `O(n)`
-time আর `O(n)` space, কোনো তুলনা ছাড়াই — এটা কাজ করে কারণ key-এর পরিসর input-এর size দিয়ে সীমিত।
+Bucket sort দিয়ে। কোনো frequency `n` ছাড়াতে পারে না। তাই `n + 1`টি bucket বানান, প্রতিটি আলাদা value রাখুন তার
+count-এর bucket-এ, তারপর সবচেয়ে ওপরের bucket থেকে নিচে পড়তে থাকুন, যতক্ষণ না `k`টি value হাতে আসে। এতে লাগে `O(n)`
+time আর `O(n)` space, কোনো তুলনাই লাগে না। এটা কাজ করে কারণ key-এর পরিসর input-এর size দিয়েই বাঁধা।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Monotonic Stack](#ch-monotonic-stack) — এক pass-এ "এখন পর্যন্ত largest"-এর উত্তর দেওয়ার অন্য উপায়
-- [Chapter ?? — Modified Binary Search](#ch-modified-binary-search) — কেন Find K Closest Elements-এ heap দরকার নেই
-- [Chapter ?? — Time ও Space Complexity](#ch-time-and-space-complexity) — বাস্তবে `O(n log n)`-এর তুলনায় `O(n log k)` কোথায় দাঁড়ায়
+- [Chapter ?? — Monotonic Stack](#ch-monotonic-stack) — এক pass-এ "এ পর্যন্ত সবচেয়ে বড়" বের করার অন্য উপায়
+- [Chapter ?? — Modified Binary Search](#ch-modified-binary-search) — Find K Closest Elements-এ কেন heap চাই না
+- [Chapter ?? — Time ও Space Complexity](#ch-time-and-space-complexity) — বাস্তবে `O(n log k)` আর `O(n log n)`-এর তফাত কতটা

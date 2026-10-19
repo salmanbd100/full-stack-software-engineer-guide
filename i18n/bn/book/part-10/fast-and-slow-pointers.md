@@ -1,31 +1,32 @@
 ---
 sourceHash: "1b675471623630b5b0b29ccc457e1917239463516be5e8114ca2ffbc5b0c957b"
 title: "Fast ও Slow Pointer"
-translatedAt: "2026-10-13T03:10:41.382Z"
+translatedAt: "2026-10-19T10:27:55.177Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Fast ও Slow Pointer {#ch-fast-and-slow-pointers}
 
-> একটি pass-এ, constant বাড়তি space-এ, একটি cycle ধরুন বা মাঝখান খুঁজে বের করুন।
+> এক pass-এ, শুধু constant বাড়তি জায়গা খরচ করে cycle ধরুন বা মাঝের বিন্দু খুঁজে বের করুন।
 
-**এই অধ্যায়ে:** fast pointer কেন slow-কে ধরবেই · cycle detection · মাঝখান · যে সমীকরণ cycle কোথায় শুরু হয় তা খুঁজে দেয় · যে প্রশ্নগুলো আসলে ছদ্মবেশী cycle
+**এই অধ্যায়ে:** fast pointer কেন slow-কে ধরবেই · cycle ধরা · মাঝের বিন্দু · যে সমীকরণ দিয়ে cycle-এর শুরু পাওয়া যায় · ছদ্মবেশী cycle-এর প্রশ্ন
 
 ## 💡 মূল ধারণা
 
-দুটি pointer একই structure-এর ওপর দিয়ে ভিন্ন গতিতে হাঁটে — একটি প্রতি ধাপে এক node, অন্যটি দুই node। Structure-এর
-শেষ থাকলে fast-টি আগে শেষ প্রান্ত দিয়ে পড়ে যায়। Loop থাকলে fast-টি ঘুরে পেছন থেকে এসে slow-এর ওপর পড়ে।
+দুটি pointer একই structure-এর ওপর আলাদা গতিতে হাঁটে। একটি প্রতি ধাপে এক node, অন্যটি দুই node। Structure-এর
+শেষ থাকলে fast pointer আগে শেষ প্রান্ত পেরিয়ে পড়ে যায়। আর structure ঘুরে ফিরে এলে fast pointer পেছন থেকে এসে
+slow pointer-এর ঘাড়ে এসে পড়ে।
 
-পুরো pattern এটুকুই। এর মূল্য হলো এটা কী সরিয়ে দেয়। Cycle খোঁজার সোজা উপায় হলো আগে দেখা প্রতিটি node-এর একটি
-`Set`, যার খরচ `O(n)` memory। Two pointers-এর খরচ দুটি variable।
+পুরো pattern এটুকুই। এর দাম বোঝা যায় এটা কী সরিয়ে দেয় তা দেখে। Cycle খোঁজার সোজা উপায় হলো আগে দেখা সব node
+একটি `Set`-এ রাখা, যাতে `O(n)` memory লাগে। Two pointers-এ লাগে মাত্র দুটি variable।
 
-> Pointer দুটির মাঝের ব্যবধান প্রতি ধাপে ঠিক এক node করে কমে, কারণ fast এগোয় দুই, slow এগোয় এক। `L` দৈর্ঘ্যের একটি
-> cycle-এর ভেতরে ব্যবধান বড়জোর `L`, তাই `L` ধাপের মধ্যে তারা মিলিত হয়। Slow pointer-কে টপকে যাওয়ার কোনো উপায় নেই
-> — 1-এর ব্যবধান 0 হয়ে যায়।
+> প্রতি ধাপে দুই pointer-এর ফাঁক ঠিক এক node করে কমে। কারণ fast এগোয় দুই, slow এগোয় এক। দৈর্ঘ্য `L`-এর
+> cycle-এর ভেতরে ফাঁক বড়জোর `L`, তাই `L` ধাপের মধ্যেই দুটির দেখা হয়। Slow pointer-কে লাফিয়ে পার হওয়ার কোনো
+> উপায় নেই: 1-এর ফাঁক সোজা 0 হয়ে যায়।
 
 ## কীভাবে কাজ করে
 
-### Cycle detection
+### Cycle ধরা
 
 ```typescript
 interface ListNode {
@@ -48,12 +49,13 @@ function hasCycle(head: ListNode | null): boolean {
 // Time: O(n), Space: O(1)  — the Set version is O(n) space
 ```
 
-Cycle-হীন ক্ষেত্রের পুরো সঠিকতার যুক্তি loop-এর condition-এই আছে। `fast` দুই ধাপ সরে, তাই ধাপের আগে `fast` আর
-`fast.next` দুটিরই থাকতে হবে। কোনোটি `null` হলে list-এর একটি শেষ আছে, আর যে list শেষ হয় সেটা loop করতে পারে না।
+Cycle না থাকার case-এ সঠিকতার পুরো যুক্তি loop-এর শর্তেই আছে। `fast` দুই ঘর এগোয়, তাই ধাপ নেওয়ার আগে
+`fast` আর `fast.next` দুটিই থাকতে হবে। কোনো একটি `null` হলে বোঝা যায় list-এর শেষ আছে। আর যে list শেষ হয়,
+তাতে loop থাকতে পারে না।
 
-### মাঝখান খোঁজা
+### মাঝখান খুঁজে বের করা
 
-একই দুই গতি, কোনো cycle নেই। Fast শেষে পৌঁছালে slow থাকে মাঝপথে।
+একই দুই গতি, শুধু cycle নেই। Fast শেষে পৌঁছালে slow থাকে ঠিক মাঝপথে।
 
 ```typescript
 function middleNode(head: ListNode | null): ListNode | null {
@@ -69,14 +71,14 @@ function middleNode(head: ListNode | null): ListNode | null {
 // Time: O(n), Space: O(1)
 ```
 
-Fast যতটা দূরত্ব যায়, slow যায় তার অর্ধেক। তাই fast `n`-টি node পেরোলে slow পেরোয় `n / 2`। দুটিকেই `head` থেকে
-শুরু করলে জোড় দৈর্ঘ্যের list-এ **দ্বিতীয়** মাঝখান return হয় — `[1, 2, 3, 4]`-এর মধ্যে `3`। এর বদলে `fast`-কে
-`head.next` থেকে শুরু করলে প্রথমটি পাবেন। Problem statement পড়ুন: Reorder List আর Palindrome Linked List ভিন্ন
-অর্ধেক চায়।
+Fast যতটা যায়, slow যায় তার অর্ধেক। তাই fast `n`-টি node পার হলে slow পার হয়
+`n / 2`। দুটিকেই `head` থেকে শুরু করলে জোড় দৈর্ঘ্যের list-এ পাওয়া যায় **দ্বিতীয়** মাঝের node: `3`, যখন list-টা
+`[1, 2, 3, 4]`। `fast`-কে `head.next` থেকে শুরু করলে পাবেন প্রথমটা। Problem statement পড়ে নিন:
+Reorder List আর Palindrome Linked List আলাদা অর্ধেক চায়।
 
-### Cycle কোথায় শুরু হয় তা খোঁজা
+### Cycle কোথায় শুরু হয়, তা খুঁজে বের করা
 
-এই অংশটা মুখস্থ রাখার মতো, কারণ চাপের মধ্যে এই derivation নতুন করে বের করার জিনিস নয়।
+এই অংশটা মুখস্থ রাখার মতো। কারণ চাপের মধ্যে বসে এই derivation নতুন করে বের করার জিনিস নয়।
 
 ```mermaid
 flowchart LR
@@ -85,10 +87,10 @@ flowchart LR
     M -->|"c steps"| S
 ```
 
-**Tail-এর দৈর্ঘ্য `a`-টি node; মিলনবিন্দু cycle-এর ভেতরে `b` দূরে, শুরুতে ফিরতে আরও `c` বাকি।**
+**লেজটা `a`-টি node লম্বা। দেখা হওয়ার বিন্দু cycle-এর ভেতরে `b` দূরে, আর শুরুতে ফিরতে তখনও `c` বাকি।**
 
-তারা যখন মেলে, slow হেঁটেছে `a + b`, আর fast ঠিক তার দ্বিগুণ। Fast cycle-টি কোনো এক পূর্ণসংখ্যক বার ঘুরেও
-এসেছে, তাই কোনো `k ≥ 1`-এর জন্য তার দূরত্ব `a + b + k(b + c)`। দুটিকে সমান ধরলে:
+দেখা হওয়ার সময় slow হেঁটেছে `a + b`, আর fast ঠিক তার দ্বিগুণ। Fast cycle-টা কয়েকবার পুরো ঘুরেও এসেছে, তাই
+তার দূরত্ব `a + b + k(b + c)`, কোনো একটি `k ≥ 1`-এর জন্য। দুটিকে সমান ধরলে:
 
 ```text
 2(a + b) = a + b + k(b + c)
@@ -97,8 +99,8 @@ flowchart LR
          a = (k − 1)(b + c) + c
 ```
 
-তাহলে `a` আর `c`-এর পার্থক্য শুধু cycle-এর পূর্ণ চক্করে। একটি pointer `head` থেকে আর একটি মিলনবিন্দু থেকে হাঁটান,
-দুটিই এক ধাপ করে, আর তারা cycle-এর শুরুতে গিয়ে ধাক্কা খায়।
+তাহলে `a` আর `c`-এর পার্থক্য শুধু cycle-এর পুরো কয়েকটি পাক। একটি pointer `head` থেকে আর একটি দেখা হওয়ার বিন্দু
+থেকে হাঁটান, দুটিই এক ধাপ করে। দুটি ঠিক cycle-এর শুরুতে গিয়ে মিলবে।
 
 ```typescript
 function detectCycleStart(head: ListNode | null): ListNode | null {
@@ -127,17 +129,16 @@ function detectCycleStart(head: ListNode | null): ListNode | null {
 
 | প্রশ্নে যে সংকেত                                     | কী ব্যবহার করবেন                | কেন                                          |
 | ---------------------------------------------------------- | ------------------------ | -------------------------------------------- |
-| "এই linked list-এ কি cycle আছে?"                      | Fast আর slow            | সংজ্ঞাগত ক্ষেত্র                            |
+| "এই linked list-এ কি cycle আছে?"                      | Fast আর slow            | একদম মূল case                            |
 | "Cycle কোথায় শুরু হয়?"                              | Fast আর slow, দুই phase | ওপরের `a = c` সমীকরণ                    |
-| "মাঝখান খুঁজুন" বা "শেষ থেকে `n`th"              | Fast আর slow            | একটি pass, দৈর্ঘ্য গুনতে হয় না                    |
-| `x = f(x)` দিয়ে সংজ্ঞায়িত একটি sequence — Happy Number            | Fast আর slow            | বারবার function call আসলে একটি linked list     |
-| এমন array যেখানে `nums[i]` একটি valid index — LC 287         | Fast আর slow            | Array-টিই *হলো* `next` pointer             |
-| Random access আছে আর memory নিয়ে চিন্তা নেই              | Index-এর হিসাব         | যুক্তি দেওয়া সহজ                       |
-| প্রতিটি node ঠিক একবার, ক্রমানুসারে visit করতে হবে         | একটি মাত্র pointer         | দুটি pointer কিছুই যোগ করে না                      |
+| "মাঝখানটা খুঁজুন" বা "শেষ থেকে `n`-তম"              | Fast আর slow            | এক pass, দৈর্ঘ্য গুনতে হয় না                    |
+| `x = f(x)` দিয়ে সংজ্ঞায়িত sequence — Happy Number            | Fast আর slow            | বারবার function call আসলে linked list     |
+| এমন array, যেখানে `nums[i]` নিজেই valid index — LC 287         | Fast আর slow            | Array নিজেই `next` pointer             |
+| Random access আছে, আর memory নিয়ে চিন্তা নেই              | Index-এর হিসাব         | যুক্তি সাজানো সহজ                       |
+| প্রতিটি node ক্রমানুসারে ঠিক একবার দেখতে হবে         | একটিমাত্র pointer         | দুটি pointer কিছু যোগ করে না                     |
 
-মাঝের দুটি row-ই সেই candidate-কে আলাদা করে, যে 141 মুখস্থ করেছে, তার থেকে যে এটা বুঝেছে। যে function একটি value-কে
-ঠিক একটি পরের value-তে map করে, সেটা একটি অন্তর্নিহিত linked list বানায়, আর Floyd-এর algorithm অপরিবর্তিত
-খাটে:
+মাঝের দুটি row দিয়েই বোঝা যায়, কে 141 মুখস্থ করেছে আর কে সত্যিই বুঝেছে। যে function প্রতিটি value থেকে ঠিক
+একটি পরের value দেয়, সেটা আসলে অদৃশ্য linked list বানায়। আর Floyd-এর algorithm সেখানে হুবহু খাটে:
 
 ```typescript
 // LC 202 — a number is "happy" if repeatedly summing the squares of its digits reaches 1
@@ -158,7 +159,7 @@ function isHappy(n: number): boolean {
 
 ## সাধারণ ভুল
 
-**শুধু `fast`-কে guard করা:**
+**শুধু `fast`-কে পাহারা দেওয়া:**
 
 ```typescript
 // ❌ while (fast !== null) { fast = fast.next.next; }   // throws on the last node
@@ -172,7 +173,7 @@ function isHappy(n: number): boolean {
 // ✅ if (slow === fast) return true;           // same node object
 ```
 
-প্রথম version-এ cycle-হীন `[1, 1, 1]` list-ও `true` return করে।
+Cycle নেই এমন `[1, 1, 1]` list-এ প্রথম version `true` ফেরত দেয়।
 
 **Pointer দুটিকে আলাদা জায়গা থেকে শুরু করে, সরানোর আগেই যাচাই করা:**
 
@@ -182,16 +183,16 @@ function isHappy(n: number): boolean {
 // ✅ start both at head, move first, compare second
 ```
 
-Cycle-start-এর derivation ধরে নেয় যে দুটি pointer একসাথে `head` ছেড়েছে। এদের offset করলেও cycle ধরা পড়ে,
-কিন্তু মিলনবিন্দু সরে যায়, তাই phase 2 ভুল node return করে।
+Cycle-এর শুরু খোঁজার derivation ধরে নেয় যে দুটি pointer একসঙ্গে `head` ছেড়েছে। আলাদা জায়গা থেকে শুরু করলেও
+cycle ধরা পড়ে, কিন্তু দেখা হওয়ার বিন্দু সরে যায়। ফলে phase 2 ভুল node ফেরত দেয়।
 
-**Phase 2-এর জন্য 2:1 ছাড়া অন্য কোনো গতির অনুপাত ব্যবহার করা:**
+**Phase 2-এ 2:1 ছাড়া অন্য গতির অনুপাত নেওয়া:**
 
 ```typescript
 // ❌ fast = fast.next.next.next;   // detection still works; a = c no longer holds
 ```
 
-**কোন মাঝখান চাওয়া হয়েছে তা না পড়েই মাঝখান হিসেবে `slow` return করা:**
+**কোন মাঝখান চাওয়া হয়েছে তা না পড়েই মাঝখান হিসেবে `slow` ফেরত দেওয়া:**
 
 ```typescript
 // ❌ assuming [1,2,3,4] gives 2
@@ -200,63 +201,63 @@ Cycle-start-এর derivation ধরে নেয় যে দুটি pointer
 
 ## অনুশীলনের জন্য Problem
 
-| #   | Problem                          | Difficulty | যা অনুশীলন করায়                              |
+| #   | Problem                          | কঠিনতা | কী অনুশীলন হয়                              |
 | --- | -------------------------------- | ---------- | ------------------------------------------- |
-| 141 | Linked List Cycle                | Easy       | Null guard আর reference equality      |
-| 876 | Middle of the Linked List        | Easy       | Offset আপনাকে কোন মাঝখান দেয়           |
-| 202 | Happy Number                     | Easy       | এমন cycle, যেখানে কোনো linked list চোখেই পড়ে না        |
+| 141 | Linked List Cycle                | Easy       | Null guard আর reference-এর সমতা      |
+| 876 | Middle of the Linked List        | Easy       | কোন শুরু থেকে কোন মাঝখান পাওয়া যায়           |
+| 202 | Happy Number                     | Easy       | Cycle আছে, অথচ কোথাও linked list নেই        |
 | 142 | Linked List Cycle II             | Medium     | Phase 2, আর `a = c` সমীকরণ           |
-| 234 | Palindrome Linked List           | Medium     | মাঝখান, তারপর দ্বিতীয় অর্ধেক reverse      |
-| 143 | Reorder List                     | Medium     | মাঝখান, reverse, তারপর পালাক্রমে জোড়া          |
-| 287 | Find the Duplicate Number        | Medium     | `nums[i]`-কে একটি `next` pointer হিসেবে দেখা      |
-| 457 | Circular Array Loop              | Hard       | দিক বদলালে পাওয়া cycle বাতিল হয়  |
+| 234 | Palindrome Linked List           | Medium     | মাঝখান, তারপর দ্বিতীয় অর্ধেক উল্টানো      |
+| 143 | Reorder List                     | Medium     | মাঝখান, উল্টানো, তারপর পালা করে জোড়া          |
+| 287 | Find the Duplicate Number        | Medium     | `nums[i]`-কে `next` pointer হিসেবে দেখা      |
+| 457 | Circular Array Loop              | Hard       | দিক বদলালে পাওয়া cycle বাতিল হয়ে যায়  |
 
-141 আর 142 পরপর করুন, তারপর 287। তৃতীয়টি হলো linked list সরিয়ে নেওয়া প্রথম দুটি। কোনো hint ছাড়া এটা পারলে বুঝবেন
-pattern-টি মাথায় বসে গেছে।
+141 আর 142 পরপর করুন, তারপর 287। তৃতীয়টি আসলে প্রথম দুটিই, শুধু linked list সরিয়ে নেওয়া। কোনো hint ছাড়া
+এটা পারলে বুঝবেন pattern-টা মাথায় বসে গেছে।
 
 ## 🔑 মূল শিক্ষা
 
-- 1 আর 2 গতির দুটি pointer প্রতি ধাপে তাদের ব্যবধান এক node করে কমায়, তাই একটি cycle-এ তাদের মিলতেই হবে।
-- Pattern-টি `O(n)` memory-কে `O(1)`-এ নামায়, আর `Set`-এর চেয়ে একে বেছে নেওয়ার একমাত্র কারণ এটাই।
-- মিলনের পর `head` থেকে একটি pointer আর মিলনবিন্দু থেকে একটি pointer cycle-এর শুরুতে গিয়ে মেলে।
-- `while (fast && fast.next)`-ই guard; শুধু fast pointer-ই `null` dereference করতে পারে।
-- যেকোনো `x → f(x)` sequence একটি linked list, তাই Happy Number আর Find the Duplicate Number একই problem।
+- 1 আর 2 গতির দুটি pointer প্রতি ধাপে ফাঁক এক node করে কমায়, তাই cycle-এ দুটির দেখা হবেই।
+- এই pattern `O(n)` memory-কে `O(1)`-এ নামায়। `Set`-এর বদলে এটা বেছে নেওয়ার একমাত্র কারণ এটাই।
+- দেখা হওয়ার পর `head` থেকে একটি pointer আর দেখা হওয়ার বিন্দু থেকে আরেকটি pointer cycle-এর শুরুতে গিয়ে মেলে।
+- পাহারা হলো `while (fast && fast.next)`। একমাত্র fast pointer-ই `null` dereference করতে পারে।
+- যেকোনো `x → f(x)` sequence আসলে linked list। তাই Happy Number আর Find the Duplicate Number একই problem।
 
 ## Interview-এর প্রশ্ন
 
-**Q: Cycle-এর ভেতরে fast pointer সবসময় slow-কে কেন ধরে? এটা কি টপকে যেতে পারে?**
+**Q: Cycle-এর ভেতরে fast pointer সবসময় slow-কে ধরে কেন? লাফিয়ে পার হয়ে যেতে পারে না?**
 
-প্রতি ধাপে তাদের মাঝের ব্যবধান ঠিক এক করে কমে, কারণ fast দুই position এগোয় আর slow এক। তাই এক-এর ব্যবধান শূন্য
-হয়ে যায় — টপকে যাওয়ার কোনো উপায় নেই। ব্যবধান শুরুতে বড়জোর cycle-এর দৈর্ঘ্য `L`, তাই দুটিই cycle-এ ঢোকার পর `L`
-ধাপের মধ্যে তারা মেলে।
+প্রতি ধাপে দুটির ফাঁক ঠিক এক করে কমে, কারণ fast এগোয় দুই ঘর আর slow এক ঘর। তাই 1-এর ফাঁক সোজা 0 হয়ে যায়,
+পাশ কাটানোর কোনো উপায় নেই। আর শুরুতে ফাঁক বড়জোর cycle-এর দৈর্ঘ্য `L`। ফলে দুটিই cycle-এ ঢোকার পর `L` ধাপের
+মধ্যে দেখা হয়।
 
 **Q: 3:1 নয়, 2:1 কেন?**
 
-1:1-এর ওপরে যেকোনো অনুপাতে detection কাজ করে। কিন্তু 2:1-ই একমাত্র অনুপাত, যেখানে মিলনবিন্দুর দূরত্ব পরিষ্কারভাবে
-`a = c`-তে নেমে আসে, আর এটাই cycle-এর শুরু খোঁজাকে দুই লাইনের সংযোজন বানায়। বেশি অনুপাতে, ব্যবধান গতির
-পার্থক্যের গুণিতক না হলে slow pointer-কে টপকে যাওয়ার ঝুঁকিও থাকে। তাই কোনো লাভ ছাড়াই বাড়তি সতর্কতা লাগে।
+1:1-এর বেশি যেকোনো অনুপাতে cycle ধরা যায়। কিন্তু শুধু 2:1-এ দেখা হওয়ার বিন্দুর দূরত্ব পরিষ্কারভাবে `a = c`-তে
+নেমে আসে। এজন্যই cycle-এর শুরু খুঁজতে মাত্র দুই line যোগ করলেই চলে। বেশি অনুপাতে আরেকটা ঝুঁকিও আছে: ফাঁক
+যদি গতির পার্থক্যের গুণিতক না হয়, fast pointer slow-কে টপকে যেতে পারে। মানে কোনো লাভ ছাড়াই বাড়তি সাবধানতা।
 
-**Q: কখন এর বদলে `Set` ব্যবহার করবেন?**
+**Q: কখন বরং `Set` ব্যবহার করবেন?**
 
-যখন memory সীমাবদ্ধতা নয়, আর আপনার হ্যাঁ বা না-এর চেয়ে বেশি কিছু লাগে — cycle-এর node-গুলোর set, কোন ক্রমে
-visit হয়েছে, বা একটি count। `Set` version পড়াও সহজ, আর সময়ের চাপে ভুল করাও কঠিন। তাই এটা একটি বৈধ প্রথম উত্তর,
-যদি আপনি `O(n)` space-এর খরচটা বলেন আর তারপর optimisation হিসেবে Floyd-এর algorithm প্রস্তাব করেন।
+যখন memory সমস্যা নয়, আর হ্যাঁ-না-এর চেয়ে বেশি কিছু দরকার: cycle-এর node-গুলো, কোন ক্রমে দেখা হয়েছিল, বা
+কতগুলো। `Set` version পড়তেও সহজ, আর চাপের মধ্যে ভুল হওয়ার সম্ভাবনাও কম। তাই প্রথম উত্তর হিসেবে এটা পুরোপুরি
+চলে, যতক্ষণ আপনি `O(n)` space-এর খরচটা বলেন আর তারপর optimisation হিসেবে Floyd-এর algorithm প্রস্তাব করেন।
 
-**Q: Find the Duplicate Number কীভাবে একটি cycle problem হয়ে যায়?**
+**Q: Find the Duplicate Number কীভাবে cycle-এর problem হয়ে যায়?**
 
-`1…n` range-এ `n + 1`-টি value থাকলে `i → nums[i]` ধরলে প্রতিটি index-এর ঠিক একটি successor থাকে। তাই এটা একটি
-linked list, যেখানে duplicate value হলো এমন একটি node, যেখানে দুটি pointer ভিন্ন জায়গা থেকে এসে পৌঁছায়। এটাই একে
-cycle-এ ঢোকার node বানায়, আর phase 2 input না বদলেই `O(1)` space-এ একে খুঁজে দেয় — input বদলানোই ঠিক সেই কাজ,
-যা problem নিষেধ করে।
+`n + 1`-টি value যদি `1…n` range-এ থাকে, আর `i → nums[i]` ধরে নেন, তাহলে প্রতিটি index ঠিক একটি পরের index পায়।
+তাই এটা আসলে linked list, যেখানে duplicate value হলো সেই node, যেখানে দুটি আলাদা জায়গা থেকে দুটি pointer এসে
+পৌঁছায়। মানে সেটাই cycle-এ ঢোকার node, আর phase 2 সেটা খুঁজে দেয় `O(1)` space-এ, input না বদলে। Problem-টা
+ঠিক এটাই শর্ত দেয়: input বদলানো চলবে না।
 
-**Q: Input যদি doubly linked list বা tree হয়, তাহলে কী ভাঙে?**
+**Q: Input doubly linked list বা tree হলে কী ভাঙে?**
 
-হিসাবের কিছুই ভাঙে না, কিন্তু pattern-টি তার অর্থ হারায়। Doubly linked list পেছনের দিকেও হাঁটা যায়, আর tree-র
-একক কোনো `next` নেই, তাই "একই পথে দুই গতি" আর structure-টিকে বর্ণনা করে না। Pattern-টির লাগে প্রতিটি node-এর একটি
-একক, নির্ধারিত successor।
+হিসাবের কিছুই ভাঙে না, কিন্তু pattern-টার আর মানে থাকে না। Doubly linked list-এ পেছন দিকেও হাঁটা যায়, আর
+tree-তে একটিমাত্র `next` নেই। তাই "একই পথে দুই গতি" দিয়ে structure-টাকে আর বর্ণনা করা যায় না। এই pattern-এর
+জন্য প্রতিটি node-এর ঠিক একটি নির্দিষ্ট পরের node থাকা চাই।
 
 ## এরপর কী পড়বেন
 
 - [Chapter ?? — In-Place Linked List Reversal](#ch-in-place-linked-list-reversal) — Palindrome Linked List আর Reorder List-এর বাকি অর্ধেক
-- [Chapter ?? — Two Pointers](#ch-two-pointers) — array sorted আর index করা গেলে একই দুই-index ধারণা
-- [Chapter ?? — Time ও Space Complexity](#ch-time-and-space-complexity) — একটি `O(1)` space উত্তর কেন বাড়তি ভাবনার যোগ্য
+- [Chapter ?? — Two Pointers](#ch-two-pointers) — array sorted আর index দিয়ে ধরা গেলে একই দুই-index ধারণা
+- [Chapter ?? — Time ও Space Complexity](#ch-time-and-space-complexity) — `O(1)` space-এর উত্তর কেন বাড়তি ভাবনার যোগ্য

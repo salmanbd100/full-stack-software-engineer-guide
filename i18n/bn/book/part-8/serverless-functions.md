@@ -1,31 +1,31 @@
 ---
 sourceHash: "c43a6eebe5ba75281f219e2ac965d5594f82106ebfba6ff73d67cc7c72571e96"
 title: "Serverless Function"
-translatedAt: "2026-10-13T03:08:48.793Z"
+translatedAt: "2026-10-19T08:01:47.098Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Serverless Function {#ch-serverless-functions}
 
-> আপনার deploy আর আপনার handler-এর মাঝে platform কী করে তা জানুন, আর একটি function-কে এমনভাবে সাজান যাতে cold start কখনো কোনো user পর্যন্ত না পৌঁছায়।
+> আপনার deploy আর আপনার handler-এর মাঝখানে platform কী করে, তা জানুন। আর function-এর মাপ এমনভাবে ঠিক করুন, যাতে cold start কখনো কোনো user-এর কাছে না পৌঁছায়।
 
-**এই অধ্যায়ে:** instance-এর lifecycle · invocation-এর তিনটি রূপ · cold start আর আসলে কী সেটা ঘটায় · concurrency আর bill · যে ভুলগুলো শুধু load-এর মধ্যে দেখা দেয়
+**এই অধ্যায়ে:** instance-এর জীবনচক্র · invocation-এর তিনটি ধরন · cold start আর তার আসল কারণ · concurrency আর bill · যে ভুলগুলো শুধু load-এর মধ্যেই দেখা দেয়
 
 ## 💡 মূল ধারণা
 
-আপনি platform-কে একটি handler আর একটি trigger দেন। বাকি সবকিছুর মালিক platform: কখন একটি process শুরু হবে, কতগুলো
-চলবে, কখন সেগুলো kill হবে। এই একটি বিনিময়ে আপনি এমন scaling পান যেটা কখনো configure করতে হয় না, আর এমন একটি bill
-যেটা কেউ call না করলে শূন্যে নেমে যায়।
+আপনি platform-কে একটা handler আর একটা trigger দেন। বাকি সবকিছু platform-এর: কখন process শুরু হবে, কয়টি চলবে, কখন
+সেগুলো মেরে ফেলা হবে। এই একটি লেনদেনে আপনি এমন scaling পান যা কখনো configure করতে হয় না, আর এমন bill যা কেউ call না
+করলে শূন্যে নেমে যায়।
 
-এটা সেই জিনিসটাও কেড়ে নেয়, যেটা একটি দীর্ঘস্থায়ী server বিনামূল্যে দেয়: এমন একটি process, যেটা _আগে থেকেই চলছে_।
-এই অধ্যায়ের প্রতিটি serverless failure mode এই একটি হারানো থেকেই আসে।
+কিন্তু এতে একটি জিনিস হারায়, যা দীর্ঘক্ষণ চলা server বিনা পয়সায় দেয়: এমন process, যা _আগে থেকেই চলছে_। এই
+অধ্যায়ের প্রতিটি serverless ব্যর্থতা আসে ওই একটি ক্ষতি থেকেই।
 
 ## কীভাবে কাজ করে
 
-### Instance-এর lifecycle
+### Instance-এর জীবনচক্র
 
-একটি function instance প্রতি request-এ তৈরি হয় না। এটা তৈরি হয়, অনেক request-এ ব্যবহার হয়, আর শেষে kill হয়। সেই
-boundary-র তুলনায় আপনার code কোথায় বসে আছে, তা-ই এর performance-এর প্রায় সবকিছু ঠিক করে।
+প্রতিটি request-এর জন্য নতুন function instance তৈরি হয় না। Instance তৈরি হয়, অনেকগুলো request-এ ব্যবহৃত হয়, আর একসময়
+মেরে ফেলা হয়। ওই boundary-র তুলনায় আপনার code কোথায় বসে আছে, তা-ই তার performance-এর প্রায় সবকিছু ঠিক করে।
 
 ```mermaid
 stateDiagram-v2
@@ -37,9 +37,9 @@ stateDiagram-v2
   Frozen --> [*]: reclaimed after idle
 ```
 
-**একবার init, অনেকবার handler call — module scope-ই একমাত্র জায়গা যেখানে একটি warm instance কিছু ধরে রাখতে পারে।**
+**একবার init, অনেকবার handler call — warm instance কিছু ধরে রাখতে পারে শুধু module scope-এ।**
 
-**ব্যয়বহুল setup module scope-এ রাখুন, handler-এ নয়:**
+**দামি setup handler-এ নয়, module scope-এ রাখুন:**
 
 ```typescript
 import { S3Client } from "@aws-sdk/client-s3";
@@ -56,24 +56,24 @@ export async function handler(event: { key: string }): Promise<Response> {
 }
 ```
 
-> ⚠️ Module scope একটি **cache, storage নয়**। Instance যেকোনো মুহূর্তে kill হতে পারে, আর দ্বিতীয় একটি instance কখনো
-> প্রথমটির variable দেখে না। সেখানে একটি client বা একটি secret cache করুন। কখনো counter, session, বা হারালে আপনার
-> খারাপ লাগবে এমন কিছু রাখবেন না।
+> ⚠️ Module scope হলো **cache, storage নয়**। Instance যেকোনো মুহূর্তে মারা যেতে পারে, আর দ্বিতীয় instance কখনো প্রথমটির
+> variable দেখতে পায় না। সেখানে client বা secret cache করুন। কিন্তু কোনো counter, session, বা হারালে মন
+> খারাপ হবে এমন কিছু কখনো রাখবেন না।
 
-### Invocation-এর তিনটি রূপ
+### Invocation-এর তিনটি ধরন
 
-Trigger ঠিক করে কে retry করবে, আর কতবার। এটা ভুল করলেই event হারিয়ে যায়।
+কে retry করবে, আর কতবার, তা ঠিক করে trigger। এখানে ভুল হলেই event হারিয়ে যায়।
 
-| রূপ                  | কী দিয়ে trigger হয়                    | Caller কি অপেক্ষা করে? | Retry                                       | আপনাকে যা সামলাতে হবে           |
-| -------------------- | ---------------------------------- | ------------------- | ------------------------------------------- | ------------------------------ |
-| **Synchronous**      | HTTP request, সরাসরি SDK call         | হ্যাঁ                  | নেই — error caller-এর কাছে ফেরত যায়          | Error response                 |
-| **Asynchronous**     | Object upload, pub/sub, schedule    | না                   | স্বয়ংক্রিয়, সাধারণত দুবার, তারপর বাদ             | Idempotency আর একটি dead-letter queue |
-| **Queue-polled**     | একটি queue বা change stream          | না                   | Acknowledge হওয়া পর্যন্ত, বা queue হাল ছাড়া পর্যন্ত | Batch-এর আংশিক failure          |
+| ধরন                | কী থেকে চালু হয়                       | Caller অপেক্ষা করে? | Retry                                | আপনাকে যা সামলাতে হবে             |
+| -------------------- | ---------------------------------- | ------------- | -------------------------------------- | --------------------------- |
+| **Synchronous**      | HTTP request, সরাসরি SDK call       | হ্যাঁ           | নেই — error caller-এর কাছে ফেরত যায় | Error response          |
+| **Asynchronous**     | Object upload, pub/sub, schedule    | না            | নিজে থেকেই, সাধারণত দুবার, তারপর বাদ  | Idempotency আর dead-letter queue |
+| **Queue-polled**     | Queue বা change stream            | না            | যতক্ষণ না acknowledge হয় বা queue হাল ছেড়ে দেয় | Batch-এর আংশিক ব্যর্থতা       |
 
-Asynchronous রূপটিই মানুষকে অবাক করে। Platform মূল caller-কে না জানিয়েই আপনার handler retry করে। যে handler
-idempotent নয় (দুবার চালালে নিরাপদ নয়), সেটা একটি card-এ দুবার charge করবে।
+মানুষকে অবাক করে asynchronous ধরনটাই। Platform মূল caller-কে না জানিয়েই আপনার handler আবার চালায়। যে handler idempotent
+নয় (দুবার চালালেও নিরাপদ নয়), সেটা card থেকে দুবার টাকা কেটে নেবে।
 
-**একটি batch-এ শুধু fail হওয়া message-গুলো report করুন, পুরো batch নয়:**
+**পুরো batch নয়, batch-এর শুধু ব্যর্থ message-গুলো জানান:**
 
 ```typescript
 interface QueueRecord { messageId: string; body: string }
@@ -96,123 +96,122 @@ export async function handler(event: { Records: QueueRecord[] }): Promise<BatchR
 
 ### Cold start
 
-Cold start হলো ওপরের init ধাপটি, যেটা একজন user অপেক্ষা করার সময় ঘটে। এটা একটি সংখ্যা নয়। এটা একটি যোগফল, আর এর
-শুধু কিছু অংশ আপনার।
+Cold start হলো ওপরের init ধাপটা, যখন সেটা চলে কোনো user অপেক্ষা করার সময়। এটা কোনো একক সংখ্যা নয়, কয়েকটি অংশের যোগফল।
+আর তার কিছু অংশই শুধু আপনার হাতে।
 
-| Cold start-এর অংশ               | সাধারণ খরচ           | আপনি কি এটা বদলাতে পারেন?                         |
-| ----------------------------- | ------------------ | ----------------------------------------------- |
-| Platform একটি sandbox provision করে | 50–200 ms        | না — pre-warming এটা এড়ায়, কিছুই এটা ছোট করে না   |
-| Runtime boot হয়               | 5 ms–1 s           | হ্যাঁ: হালকা একটি runtime, বা isolate-ভিত্তিক একটি   |
-| আপনার bundle load হয়           | Size-এর সমানুপাতিক   | হ্যাঁ: bundle করুন, tree-shake করুন, ভারী SDK বাদ দিন |
-| আপনার module scope চলে          | আপনি যা লিখেছেন       | হ্যাঁ: এই অংশটাই মানুষ ভুলে যায়                     |
-| Private network attachment     | সবকিছু ছাপিয়ে যেতে পারে | হ্যাঁ: দরকার না হলে attach করবেন না                 |
+| Cold start-এর অংশ        | সাধারণ খরচ      | আপনি কি বদলাতে পারেন?                              |
+| ----------------------------- | ----------------- | ----------------------------------------------- |
+| Platform sandbox তৈরি করে  | 50–200 ms         | না — pre-warming এড়াতে পারে, কিছুই এটা ছোট করে না   |
+| Runtime চালু হয়                  | 5 ms–1 s          | হ্যাঁ: হালকা runtime, বা isolate-ভিত্তিক runtime  |
+| আপনার bundle load হয়          | আকারের অনুপাতে | হ্যাঁ: bundle করুন, tree-shake করুন, ভারী SDK বাদ দিন   |
+| আপনার module scope চলে         | আপনি যা লিখেছেন  | হ্যাঁ: এই অংশটাই মানুষ ভুলে যায়            |
+| Private network জোড়া লাগানো     | সবকিছু ছাপিয়ে যেতে পারে      | হ্যাঁ: দরকার না হলে জোড়া লাগাবেন না       |
 
-**যা আসলে সাহায্য করে, মোটামুটি প্রভাবের ক্রমে:**
+**সত্যিই যা কাজে দেয়, মোটামুটি প্রভাবের ক্রমে:**
 
-- **Function-টি bundle করুন।** একটি 40 MB `node_modules` tree load করতে handler চালানোর চেয়ে বেশি খরচ হয়।
-- **Module scope-এ কম কাজ করুন।** Init-এর সময় তিনটি secret একটির পর একটি fetch করলে প্রতিটি cold start-এ সেই সময় যোগ হয়।
-- **Function-কে private network-এ রাখবেন না**, যদি না এর ভেতরের কিছুতে পৌঁছানো বাধ্যতামূলক হয়।
-- **Instance pre-warm করুন**, latency-সংবেদনশীল কোনো path-এর জন্য। এটা কাজ করে, আর আপনি অলস capacity-র জন্য টাকা দেন।
+- **Function bundle করুন।** 40 MB-র `node_modules` tree load করতে handler চালানোর চেয়ে বেশি খরচ হয়।
+- **Module scope-এ কম কাজ করুন।** Init-এর সময় পরপর তিনটি secret আনলে সেই সময়টা প্রতিটি cold start-এ যোগ হয়।
+- **Function-কে private network-এ বসাবেন না**, যদি না তার ভেতরের কিছুর কাছে পৌঁছাতেই হয়।
+- Latency-সংবেদনশীল পথের জন্য **instance pre-warm করুন**। এতে কাজ হয়, আর অলস capacity-র জন্য টাকা দিতে হয়।
 
-> ✅ Tune করার আগে মাপুন। একই request কয়েকবার পাঠান, আর প্রথমটিকে বাকিগুলোর সঙ্গে তুলনা করুন। পার্থক্যটাই আপনার
-> cold start। এটা প্রায়ই পাশের database query-র চেয়ে ছোট।
+> ✅ Tune করার আগে মাপুন। একই request কয়েকবার পাঠান, আর প্রথমটির সঙ্গে বাকিগুলোর তুলনা করুন। মাঝের ফাঁকটাই আপনার cold
+> start। প্রায়ই এটা পাশের database query-র চেয়েও ছোট।
 
 ### Concurrency আর bill
 
-পুরোনো model দেয় **একটি instance-এ একবারে একটি request**। একসঙ্গে দশটি request মানে দশটি instance। প্রথম spike-এ
+পুরনো ধাঁচের model-এ **একটি instance একবারে একটি request** নেয়। একসঙ্গে দশটি request মানে দশটি instance। প্রথম spike-এ
 এর মানে দশটি cold start আর দশটি database connection।
 
-নতুন model-গুলো এটা বদলায়। Isolate-ভিত্তিক runtime (একটি process-এর ভেতরে অনেক ছোট sandbox) আর "fluid" ধাঁচের
-function একসঙ্গে চলা request-গুলোতে একটি instance পুনরায় ব্যবহার করে। যে handler-এর সময় I/O-র অপেক্ষায় কাটে,
-তার খরচ তখন অনেক কমে যায়। সমস্যা হলো, চলমান কাজ এখন একে অপরের ওপর পড়ে। Module-scope state একই সময়ে চলা
-request-গুলোর মধ্যে shared থাকে।
+নতুন model-গুলো এটা বদলায়। Isolate-ভিত্তিক runtime (এক process-এর ভেতরে অনেক ছোট sandbox) আর "fluid" ধাঁচের
+function একসঙ্গে আসা request-গুলোর জন্য একই instance আবার ব্যবহার করে। যে handler-এর বেশিরভাগ সময় I/O-র অপেক্ষায়
+কাটে, তার খরচ তখন অনেক কমে যায়। সমস্যা হলো, চলমান কাজগুলো এখন একটির ওপর আরেকটি পড়ে। একই সময়ে চলা request-গুলোর মধ্যে
+module-scope-এর state ভাগাভাগি হয়।
 
-> ⚠️ **যা বদলাতে থাকে:** এখানে প্রকাশিত প্রতিটি limit বদলায়। Duration, memory-র সর্বোচ্চ সীমা, concurrency model আর
-> pricing unit — সবই গত দুই বছরে বদলেছে, আর vendor-রা সবগুলো নিয়েই একমত নয়। AWS Lambda-র সীমা 15 মিনিট আর 10 GB।
-> Vercel Functions `vercel.json`-এ route অনুযায়ী duration আর project অনুযায়ী memory ঠিক করে। Cloudflare Workers
-> wall time নয়, CPU time-এর bill করে, আর default হিসেবে এর 30 সেকেন্ড দেয়। টেকসই নীতি: **কোনো limit-এর চারপাশে
-> design করার আগে আপনার platform-এর বর্তমান limit দেখুন, আর কখনো এমন request path design করবেন না যেটার সীমার
-> কাছাকাছি কোনো সংখ্যা লাগে।**
+> ⚠️ **যা বদলাতে থাকে:** এখানে প্রকাশিত প্রতিটি সীমা বদলায়। Duration, memory-র সর্বোচ্চ সীমা, concurrency model আর
+> দামের একক, সবই গত দুই বছরে বদলেছে, আর vendor-রা কোনোটাতেই একমত নয়। AWS Lambda-র সীমা 15 মিনিট আর 10 GB। Vercel
+> Functions-এ duration ঠিক হয় প্রতিটি route-এর জন্য `vercel.json`-এ, আর memory প্রতিটি project-এর জন্য। Cloudflare
+> Workers wall time নয়, CPU time-এর জন্য bill করে, আর default হলো তার 30 সেকেন্ড। টেকসই নীতি: **কোনো সীমা ধরে design
+> করার আগে আপনার platform-এর বর্তমান সীমা দেখে নিন, আর এমন request path কখনো design করবেন না, যার দরকার সর্বোচ্চ
+> সীমার কাছাকাছি কোনো সংখ্যা।**
 
 ## কখন ব্যবহার করবেন
 
-| Workload                                        | Serverless function? | কেন                                                        |
-| ----------------------------------------------- | -------------------- | --------------------------------------------------------- |
-| হঠাৎ বাড়ে এমন বা কম volume-এর HTTP API              | ✅ হ্যাঁ                | অলস অবস্থায় আপনি কিছুই দেন না, আর কখনো fleet-এর size ঠিক করেন না |
-| একটি event-এ সাড়া দেওয়া — upload, webhook, cron    | ✅ হ্যাঁ                | Trigger-ই পুরো design                                       |
-| স্থির, বেশি, অনুমানযোগ্য traffic                      | ⚠️ তুলনা করুন         | একটি নির্দিষ্ট বিন্দুর পরে reserved server প্রায়ই সস্তা          |
-| দীর্ঘ job — video encoding, বড় report              | ❌ না                 | এটা duration-এর সীমায় ধাক্কা খাবে; একটি job runner ব্যবহার করুন |
-| Scale-এ persistent connection — WebSockets       | ❌ না                 | Model ধরে নেয় যে একটি request শেষ হয়                          |
-| Warm local cache দরকার এমন যেকোনো কিছু              | ❌ না                 | Instance কোনো সতর্কতা ছাড়াই মরে; একটি shared cache ব্যবহার করুন |
+| Workload                                     | Serverless function? | কেন                                                     |
+| -------------------------------------------- | -------------------- | ------------------------------------------------------- |
+| হঠাৎ হঠাৎ বাড়ে বা কম volume-এর HTTP API                  | ✅ হ্যাঁ                | অলস অবস্থায় কোনো খরচ নেই, fleet-এর মাপও ঠিক করতে হয় না           |
+| কোনো event-এ সাড়া দেওয়া — upload, webhook, cron  | ✅ হ্যাঁ                | Trigger-টাই পুরো design                          |
+| স্থির, বেশি, আগে থেকে বোঝা যায় এমন traffic             | ⚠️ তুলনা করুন           | নির্দিষ্ট একটা বিন্দুর পরে reserved server প্রায়ই সস্তা |
+| লম্বা কাজ — video encoding, বড় report     | ❌ না                 | Duration-এর সীমায় ঠেকবে; job runner ব্যবহার করুন        |
+| বড় মাপে স্থায়ী connection — WebSocket  | ❌ না                 | Model ধরে নেয় request একসময় শেষ হবে                          |
+| যেকোনো কিছু, যার warm local cache লাগে           | ❌ না                 | Instance কোনো সতর্কতা ছাড়াই মরে যায়; shared cache ব্যবহার করুন         |
 
 ## সাধারণ ভুল
 
-❌ **Handler-এর ভেতরে database connection খোলা।** একশোটি একসঙ্গে চলা instance একশোটি connection খোলে, আর database-এর
-pool শেষ করে ফেলে। ✅ Client module scope-এ তৈরি করুন। Function আর database-এর মাঝে একটি connection pooler রাখুন।
+❌ **Handler-এর ভেতরে database connection খোলা।** একসঙ্গে চলা একশোটি instance একশোটি connection খোলে, আর database-এর
+pool ফুরিয়ে যায়। ✅ Client বানান module scope-এ। Function আর database-এর মাঝে connection pooler বসান।
 
-❌ **ধরে নেওয়া যে একটি event একবারই আসে।** Asynchronous আর queue trigger retry করে, তাই guarantee হলো
-at-least-once। ✅ Handler-কে idempotent করুন। কাজটিকে একটি event ID দিয়ে key করুন, আর পুনরাবৃত্তি উপেক্ষা করুন।
+❌ **ধরে নেওয়া যে event একবারই আসে।** Asynchronous আর queue trigger retry করে, তাই guarantee হলো at-least-once। ✅
+Handler idempotent বানান। কাজটাকে event ID দিয়ে চিহ্নিত করুন, আর একই ID আবার এলে উপেক্ষা করুন।
 
-❌ **Timeout সর্বোচ্চে রেখে দেওয়া।** তখন একটি আটকে থাকা upstream call পনেরো মিনিটের bill করে। পুরো সময়টা এটা
-concurrency-ও ধরে রাখে। ✅ Timeout বাস্তবসম্মত সবচেয়ে খারাপ অবস্থার একটু ওপরে রাখুন। এর ভেতরের HTTP client-এ আরও
-ছোট একটি দিন।
+❌ **Timeout সর্বোচ্চ সীমায় রেখে দেওয়া।** তখন upstream-এর আটকে যাওয়া একটি call পনেরো মিনিটের bill তোলে। পুরো সময়টা
+concurrency-ও আটকে রাখে। ✅ Timeout রাখুন বাস্তবসম্মত সবচেয়ে খারাপ অবস্থার একটু ওপরে। ভেতরের HTTP client-এ আরও ছোট
+timeout দিন।
 
-❌ **সাধারণ environment variable-এ secret রাখা।** Console access আছে এমন যে কেউ এগুলো পড়তে পারে, আর এগুলো log-এ
-গিয়ে পড়ে। ✅ Init-এর সময় একটি secret store থেকে fetch করুন আর module scope-এ cache করুন।
+❌ **Secret সাধারণ environment variable-এ রাখা।** Console-এ ঢোকার অনুমতি থাকা যে কেউ সেগুলো পড়তে পারে, আর সেগুলো log-এ
+গিয়ে পড়ে। ✅ Init-এর সময় secret store থেকে আনুন, আর module scope-এ cache করুন।
 
-❌ **সংকীর্ণ role একবার fail করেছিল বলে সবচেয়ে বিস্তৃত role attach করা।** ✅ নির্দিষ্ট resource-এ নির্দিষ্ট action-এর
-অনুমতি দিন। যে function একটি bucket prefix পড়ে, তার সেটাই বলা উচিত।
+❌ **সরু role একবার fail করেছিল বলে সবচেয়ে চওড়া role জুড়ে দেওয়া।** ✅ নির্দিষ্ট resource-এর ওপর নির্দিষ্ট action-এর
+অনুমতি দিন। যে function শুধু একটি bucket prefix পড়ে, তার role-এ সেটাই লেখা থাকা উচিত।
 
-❌ **সাধারণ string log করা।** পরে কিছুই এগুলোতে query চালাতে পারে না। ✅ একটি request ID-সহ structured JSON log করুন,
-যাতে একটি ধীর request-কে সে যতগুলো function ছুঁয়েছে, সবগুলোর মধ্য দিয়ে trace করা যায়।
+❌ **সাধারণ string log করা।** পরে কিছুই সেগুলো query করতে পারে না। ✅ Request ID-সহ structured JSON log করুন, যাতে একটি
+ধীর request যত function ছুঁয়েছে, সবগুলোর মধ্য দিয়ে তাকে trace করা যায়।
 
 ## 🔑 মূল শিক্ষা
 
-- একটি instance তার module scope একবার চালায়, আর handler অনেকবার। এই boundary-ই পুরো performance model।
-- Trigger retry-র নিয়ম ঠিক করে, তাই এটাই ঠিক করে আপনার handler-কে idempotent হতে হবে কি না।
-- Cold start হলো platform-এর সময় আর আপনার bundle-এর যোগফল। শুধু দ্বিতীয় অর্ধেকটা ঠিক করা আপনার কাজ।
-- প্রতি concurrent request-এ একটি instance — এটাই database connection শেষ করে ফেলে। Function-এর বাইরে pool করুন।
-- Serverless server management সরায়, operational চিন্তা নয়। Timeout, concurrency আর retry এখনো আপনার।
+- একটি instance তার module scope চালায় একবার, আর handler চালায় অনেকবার। পুরো performance model ওই boundary-তেই।
+- Retry-র নিয়ম ঠিক করে trigger, তাই আপনার handler-কে idempotent হতে হবে কি না, সেটাও trigger-ই ঠিক করে।
+- Cold start হলো platform-এর সময় আর আপনার bundle-এর যোগফল। ঠিক করার দায়িত্ব আপনার শুধু দ্বিতীয় অংশটুকুর।
+- প্রতিটি একসঙ্গে আসা request-এর জন্য একটি instance, এটাই database connection ফুরিয়ে দেয়। Pool রাখুন function-এর বাইরে।
+- Serverless server চালানোর ঝামেলা সরায়, কিন্তু operation নিয়ে ভাবার দায় সরায় না। Timeout, concurrency আর retry এখনো আপনার।
 
 ## Interview-এর প্রশ্ন
 
 **Q: Cold start-এ আসলে কী ঘটে, আর কোন অংশগুলোতে আপনি প্রভাব ফেলতে পারেন?**
 
-Handler call হওয়ার আগে platform একটি sandbox provision করে, runtime শুরু করে, আপনার bundle load করে, আর আপনার
-module-scope code চালায়। প্রথম দুটি platform-এর, আর শুধু pre-warming এগুলো এড়ায়। শেষ দুটি আপনার। Bundle size
-load time ঠিক করে। Module scope-এ আপনি যা-ই করেন, যেমন secret fetch করা, client তৈরি করা বা config পড়া, তা প্রতিটি
-cold start-এ যোগ হয়। একটি private network attach করার খরচ প্রায়ই এই সবকিছুর যোগফলের চেয়েও বেশি।
+Handler call হওয়ার আগে platform sandbox তৈরি করে, runtime চালু করে, আপনার bundle load করে, আর আপনার module-scope
+code চালায়। প্রথম দুটি platform-এর, আর সেগুলো এড়ানো যায় শুধু pre-warming দিয়ে। শেষ দুটি আপনার। Load-এর সময় ঠিক করে
+bundle-এর আকার। Module scope-এ যা কিছু করেন, যেমন secret আনা, client বানানো বা config পড়া, তা প্রতিটি cold start-এ যোগ
+হয়। আর private network জোড়া লাগানোর খরচ প্রায়ই এই সবকিছু মিলিয়েও বেশি।
 
-**Q: Serverless function কেন database ভেঙে ফেলে, আর এ নিয়ে আপনি কী করেন?**
+**Q: Serverless function database-কে কেন ভেঙে ফেলে, আর আপনি কী করবেন?**
 
-পুরোনো model প্রতি instance-এ একটি request চালায়, তাই concurrency আর connection-এর সংখ্যা একসঙ্গে বাড়ে। কয়েকশো
-instance-এর একটি spike কয়েকশো connection খোলে, আর database নতুনগুলো প্রত্যাখ্যান করে। সমাধানগুলো একটির ওপর
-আরেকটি যোগ হয়। Client module scope-এ তৈরি করুন, যাতে request-গুলোর মধ্যে এটা পুনরায় ব্যবহার হয়। Database-এর
-সামনে একটি connection pooler রাখুন, আর function-এর concurrency-র সীমা দিন। Workload হঠাৎ হঠাৎ বাড়লে একটি
-HTTP-ভিত্তিক data API বেছে নিন।
+পুরনো ধাঁচের model-এ প্রতিটি instance একটি করে request চালায়, তাই concurrency আর connection-এর সংখ্যা একসঙ্গে বাড়ে।
+কয়েকশো instance-এর একটি spike কয়েকশো connection খোলে, আর database নতুন connection নিতে অস্বীকার করে। সমাধানগুলো একটির
+ওপর আরেকটি বসে। Client module scope-এ বানান, যাতে request-গুলোর মধ্যে আবার ব্যবহার হয়। Database-এর সামনে connection
+pooler বসান, আর function-এর concurrency-র সীমা বেঁধে দিন। Workload হঠাৎ হঠাৎ বাড়লে HTTP-ভিত্তিক data API বেছে নিন।
 
-**Q: একটি function file upload-এ চলে, আর মাঝে মাঝে একই file দুবার process করে। কেন?**
+**Q: File upload হলে একটি function চালু হয়, আর মাঝে মাঝে একই file দুবার process করে। কেন?**
 
-Asynchronous trigger failure-এ retry করে, আর delivery guarantee হলো at-least-once। যে handler সফল হয়েছিল কিন্তু
-response-এ timeout হয়েছিল, সেটাও আবার call হয়। সমাধান হলো idempotency, আরও retry নয়। Event থেকে একটি key বের
-করুন, কাজ করার আগে সেটা record করুন, আর পুনরাবৃত্তিতে যেন কিছুই না হয় তা নিশ্চিত করুন। একটি dead-letter queue
-যোগ করুন, যাতে প্রতিটি retry-তে fail হওয়া event চুপচাপ বাদ না পড়ে দেখা যায়।
+Asynchronous trigger ব্যর্থ হলে retry করে, আর delivery-র guarantee হলো at-least-once। যে handler সফল হয়েছিল কিন্তু
+response দিতে গিয়ে timeout হয়েছে, সেটাও আবার call হয়। সমাধান idempotency, বাড়তি retry নয়। Event থেকে key বানান,
+কাজ শুরুর আগে সেটা লিখে রাখুন, আর একই key আবার এলে কিছুই করবেন না। Dead-letter queue যোগ করুন, যাতে প্রতিটি retry-তে
+ব্যর্থ event-গুলো চুপচাপ হারিয়ে না গিয়ে চোখে পড়ে।
 
-**Q: কখন আপনি function-এর বদলে একটি দীর্ঘস্থায়ী server বাছবেন?**
+**Q: কখন function-এর বদলে দীর্ঘক্ষণ চলা একটি server বেছে নেবেন?**
 
-যখন request শেষ হয় না, যেমন WebSockets, server-sent events বা একটি streaming session-এ। অথবা যখন কাজ একটি
-request-এর চেয়ে বেশি সময় বাঁচে, যেমন video encoding বা একটি বড় export। এছাড়া যখন traffic যথেষ্ট স্থির আর বেশি যে
-reserved capacity প্রতি-invocation pricing-কে হারিয়ে দেয়। অথবা যখন process সত্যিই এমন একটি warm in-memory cache
-থেকে লাভবান হয়, যেটা request-গুলোর মাঝে টিকে থাকে।
+যখন request শেষ হয় না, যেমন WebSocket, server-sent events বা streaming session। অথবা যখন কাজটা একটি request-এর
+চেয়ে বেশি সময় চলে, যেমন video encoding বা বড় export। আবার যখন traffic এতটা স্থির আর বেশি যে প্রতিটি invocation-এর
+দামের চেয়ে reserved capacity সস্তা পড়ে। কিংবা যখন process-টা সত্যিই এমন warm in-memory cache থেকে লাভবান হয়, যা
+request-এর পর request টিকে থাকে।
 
-**Q: একটি function-এর environment variable থেকে secret কীভাবে দূরে রাখবেন?**
+**Q: Function-এর environment variable থেকে secret দূরে রাখবেন কীভাবে?**
 
-এগুলো একটি managed secret store-এ রাখুন, আর function-এর role-কে শুধু তার দরকারি নির্দিষ্ট secret পড়ার অনুমতি দিন।
-Init-এর সময় একবার fetch করুন আর module scope-এ ধরে রাখুন, যাতে প্রতি request-এ আবার fetch না হয়। তখন rotation
-হয় store-এ, redeploy-এ নয়। Value কখনো deployment configuration, console বা কোনো log line-এ দেখা যায় না।
+Secret রাখুন managed secret store-এ, আর function-এর role-কে অনুমতি দিন শুধু দরকারি নির্দিষ্ট secret-টা পড়ার।
+Init-এর সময় একবার এনে module scope-এ রাখুন, যাতে প্রতিটি request-এ আবার আনতে না হয়। তখন rotation হয় store-এ, redeploy
+করে নয়। Value-টা deployment configuration, console বা কোনো log line-এ কখনো দেখা যায় না।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Cloud-এর মূল কথা, Storage ও Delivery](#ch-cloud-fundamentals) — managed-service-এর মইয়ে function কোথায় বসে
+- [Chapter ?? — Cloud-এর মূল কথা, Storage ও Delivery](#ch-cloud-fundamentals) — managed service-এর মইয়ে function কোথায় বসে
 - [Chapter ?? — Platform Deploy ও Preview Environment](#ch-platform-deploys) — edge আর regional execution-এর মধ্যে বাছাই
-- [Chapter ?? — Monitoring ও Observability-র মূল কথা](#ch-monitoring-fundamentals) — দেখার মতো কোনো server না থাকলে কী log আর measure করবেন
+- [Chapter ?? — Monitoring ও Observability-র মূল কথা](#ch-monitoring-fundamentals) — দেখার মতো কোনো server না থাকলে কী log করবেন আর কী মাপবেন

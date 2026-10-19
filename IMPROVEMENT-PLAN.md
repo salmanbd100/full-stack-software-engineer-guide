@@ -27,7 +27,7 @@ Attach this file and say **"continue"**. Claude then does this:
 **An item is not finished until steps 5 and 6 are done.** If an item is wrong or blocked, **amend it
 and say so.**
 
-**Last updated:** 2026-10-17 · **Progress:** 16 / 28
+**Last updated:** 2026-10-19 · **Progress:** 27 / 28
 **Owner:** Salman Rahman
 **Locked spec:** [BOOK-SPEC.md](./BOOK-SPEC.md) — the authority. If this file and the spec disagree,
 **the spec wins.**
@@ -493,7 +493,7 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 
 ---
 
-### - [ ] 128p. Natural Bangla: Part 6 (3 of 3) `M`
+### - [x] 128p. Natural Bangla: Part 6 (3 of 3) `M` — ✅ **done 2026-10-19**
 
 9 pages, about 1491 Bangla lines:
 
@@ -502,9 +502,23 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
 
+**Delivered:**
+
+- All 9 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. Done in parallel with the other five of #128p–#128u, one subagent per batch. All nine passed on the first attempt
+- Sharding, real-time, offline, auth and case-study terms (shard key, consistent hashing,
+  scatter-gather, saga, outbox, SSE, backoff, jitter, CRDT/OT, tombstone, last-write-wins, silent
+  refresh, refresh-token rotation, cursor pagination, virtualisation, base62, `warm-up`) stay in English
+- "Shape" of a problem is `ধাঁচ` (the case-studies column reads `যে ধাঁচ শেখায়`); short- and
+  long-lived tokens are `স্বল্পায়ু` / `দীর্ঘায়ু`; a stampede is `হুড়োহুড়ি`
+- Three `সে` used of things (all in `frontend-real-time-features`) were rewritten before the write;
+  the demonstratives `সে বিষয়ে` / `সে কারণেই` stay. No brief changes. No `দুটো`/`তিনটে`/`চারটে`/`পাঁচটা`,
+  `পরিণত করে` or গরম in the batch
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
+
 ---
 
-### - [ ] 128q. Natural Bangla: Part 7 (1 of 3) `M`
+### - [x] 128q. Natural Bangla: Part 7 (1 of 3) `M` — ✅ **done 2026-10-19**
 
 10 pages, about 1726 Bangla lines:
 
@@ -513,9 +527,22 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
 
+**Delivered:**
+
+- All 10 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. Done in parallel with the other five of #128p–#128u, one subagent per batch. All ten passed on the first attempt
+- AI and integration terms (token, context window, system prompt, temperature, eval, golden set,
+  prompt caching, compaction, constrained decoding, JSON mode, repair loop, tool call, dispatcher,
+  approval gate, SSE, backpressure) stay in English
+- "The Running Project" is `## চলমান Project`, used the same way in #128r and #128s. "Constrained" is
+  `বাঁধা`; "untrusted" `অবিশ্বস্ত`; "Moving target, by construction" `যা বদলাতে থাকে, আর সেটা স্বভাবগতভাবেই`
+- A `পরিণত করে`, a `দুটো` and three `সে` used of things were fixed before the write; a `তাকে` used of
+  a subscriber in `streaming-responses` was fixed after it and the page re-written. No brief changes
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
+
 ---
 
-### - [ ] 128r. Natural Bangla: Part 7 (2 of 3) `M`
+### - [x] 128r. Natural Bangla: Part 7 (2 of 3) `M` — ✅ **done 2026-10-19**
 
 9 pages, about 1547 Bangla lines:
 
@@ -524,9 +551,23 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
 
+**Delivered:**
+
+- All 9 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. Done in parallel with the other five of #128p–#128u, one subagent per batch. All nine passed on the first attempt
+- MCP, RAG and agent terms (host/client/server, transport, `stdio`, trust boundary, chunk, embedding,
+  recall@k, reranker, BM25, HNSW, pgvector, agent loop, step limit, orchestrator, handoff,
+  checkpoint, idempotency key, durable workflow) stay in English
+- Index pages use `## চলমান Project` with `অধ্যায় | Assistant-এ কী যোগ হয়`. "Stop condition" is
+  `থামার শর্ত`, "stale" `বাসি`, "ten million" `এক কোটি`. In `durability-and-long-running-work` the
+  inline-code order (`setStatus('sent')` before `incrementCounter()`) is kept for the validator
+- Six `সে` used of things and a `দুটো` were fixed before the write; four counting `একটা` became `একটি`
+  after it and three pages were re-written. No brief changes
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
+
 ---
 
-### - [ ] 128s. Natural Bangla: Part 7 (3 of 3) `M`
+### - [x] 128s. Natural Bangla: Part 7 (3 of 3) `M` — ✅ **done 2026-10-19**
 
 8 pages, about 1693 Bangla lines:
 
@@ -535,9 +576,23 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
 
+**Delivered:**
+
+- All 8 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. Done in parallel with the other five of #128p–#128u, one subagent per batch. All eight passed on the first attempt
+- All 8 were then re-written once more to move about 170 counting `একটা` (and three `পাঁচটা`) to the
+  `-টি` form; every rewrite passed
+- Eval, safety and AI-UX terms (golden set, grader, LLM-as-judge, rubric, holdout, guardrail,
+  over-refusal, prompt injection, lethal trifecta, exfiltration channel, egress allow-list, citation
+  chip, `warm`) stay in English. "Calibrated trust" is `মাপা বিশ্বাস`; "disclaimer theatre"
+  `disclaimer-এর অভিনয়`, after #128k; "exfiltration" `data পাচার`
+- Three `সে` and two `তাকে` used of things were rewritten; `সে` for the attacker and `সে কারণেই` stay.
+  `পরিণত অবস্থায়` in `evals` became `পোক্ত হলে`. No brief changes
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
+
 ---
 
-### - [ ] 128t. Natural Bangla: Part 8 (1 of 2) `M`
+### - [x] 128t. Natural Bangla: Part 8 (1 of 2) `M` — ✅ **done 2026-10-19**
 
 9 pages, about 1593 Bangla lines:
 
@@ -546,9 +601,22 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
 
+**Delivered:**
+
+- All 9 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. Done in parallel with the other five of #128p–#128u, one subagent per batch. All nine passed on the first attempt
+- Git, CI/CD, container and pipeline-security terms (rebase, reflog, bisect, pipeline, artefact,
+  quality gate, flaky, image, layer, distroless, digest, SBOM, OIDC, reusable workflow, provenance,
+  the DORA metric names, trunk-based, GitFlow) stay in English
+- Long- and short-lived credentials are `দীর্ঘমেয়াদি` / `স্বল্পমেয়াদি`; "least privilege" is `ন্যূনতম
+  অধিকার`; "compromised" `বেহাত`. The part opener's sections table follows #128n
+- Three `সে` used of things (in `github-actions` and `docker-fundamentals`) were rewritten and those
+  pages re-written. No brief changes. No `দুটো`/`তিনটে`/`চারটে`/`পাঁচটা`, `পরিণত করে` or গরম in the batch
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
+
 ---
 
-### - [ ] 128u. Natural Bangla: Part 8 (2 of 2) `M`
+### - [x] 128u. Natural Bangla: Part 8 (2 of 2) `M` — ✅ **done 2026-10-19**
 
 8 pages, about 1701 Bangla lines:
 
@@ -557,9 +625,23 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
 
+**Delivered:**
+
+- All 8 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. Done in parallel with the other five of #128p–#128u, one subagent per batch. All eight passed on the first attempt
+- Six pages were re-written once to drop `একটি` used as an English article (305 down to 134 across the
+  batch), keeping it where it means "one"; every rewrite passed
+- Observability, cloud and deployment terms (cardinality, histogram, SLI/SLO, error budget, burn rate,
+  runbook, presigned URL, cold start, `warm`, dead-letter queue, version skew, blue/green, canary,
+  feature flag, expand/contract) stay in English. The managed-service ladder is `মই` / `ধাপ`, as in
+  #128h; "one-way doors" `একমুখী দরজা`; "tradeoff" `লাভ-ক্ষতি`
+- One `পরিণত হয়` was reworded before the write and one `সে` used of a provider after it. No brief
+  changes. No `দুটো`/`তিনটে`/`চারটে`/`পাঁচটা`, `পরিণত করে` or গরম in the batch
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
+
 ---
 
-### - [ ] 128v. Natural Bangla: Part 9 `M`
+### - [x] 128v. Natural Bangla: Part 9 `M` — ✅ **done 2026-10-19**
 
 10 pages, about 1716 Bangla lines:
 
@@ -568,9 +650,22 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
 
+**Delivered:**
+
+- All 10 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. Done in parallel with the other four of #128v–#128z, one subagent per batch. All ten passed on the first attempt
+- Behavioural and communication terms (the STAR parts, story bank, coverage grid, escalation,
+  blameless post-mortem, psychological safety, WIP limit, cycle time, the DORA names, on-call, bus
+  factor, ADR, RFC, BLUF, SBI) stay in English. The interviewer is `তিনি` / `তাঁরা`, the reader `আপনি`
+- "Trade-off" is `লাভ-ক্ষতি`, as in #128u; "narration" `ধারাবিবরণী`; "judgement" `বিচারবুদ্ধি`; the
+  debugging beats `পর্যবেক্ষণ / অনুমান / যাচাই / প্রতিরোধ`. Fenced STAR stories stay English (Open Notes)
+- Three `সে` and one `ওর` used of a model were fixed before the write; `ওরাই` for grid cells and `তাকে`
+  for a practice after it, and two pages re-written. No brief changes
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
+
 ---
 
-### - [ ] 128w. Natural Bangla: Book 2 (part-10) (1 of 3) `M`
+### - [x] 128w. Natural Bangla: Book 2 (part-10) (1 of 3) `M` — ✅ **done 2026-10-19**
 
 7 pages, about 1508 Bangla lines:
 
@@ -579,9 +674,21 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
 
+**Delivered:**
+
+- All 7 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. Done in parallel with the other four of #128v–#128z, one subagent per batch. All seven passed on the first attempt
+- All 7 were re-written once more after the sweep moved 53 `একটা` to a `-টি` count or dropped them
+  where they only copied "a/an"; every rewrite passed
+- Algorithm terms (array, pointer, window, hash map, linked list, prefix sum, invariant, subarray,
+  dummy node, off-by-one, `warm-up`) and LeetCode problem names stay in English. "Shape" is `ধাঁচ`, as
+  in #128p; "signal" `সংকেত`; a list's "tail" `লেজ`. Practice tables read `কঠিনতা | কী অনুশীলন হয়`
+- Two people-words used of indices and values (`যারা`, `কারও`) were reworded. No brief changes
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
+
 ---
 
-### - [ ] 128x. Natural Bangla: Book 2 (part-10) (2 of 3) `M`
+### - [x] 128x. Natural Bangla: Book 2 (part-10) (2 of 3) `M` — ✅ **done 2026-10-19**
 
 5 pages, about 1381 Bangla lines:
 
@@ -590,9 +697,21 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
 
+**Delivered:**
+
+- All 5 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. Done in parallel with the other four of #128v–#128z, one subagent per batch. All five passed on the first attempt
+- Stack, heap, interval, binary-search and tree terms (min-heap, deque, sweep line, predicate, answer
+  space, BST, the traversal orders, quickselect, sentinel) stay in English. "kth" is `k-তম`
+- Daily Temperatures' "warmer day" is `তাপমাত্রা বাড়তে আর কত দিন বাকি`, so গরম stays out. Clock times
+  keep `-টা`, as the brief allows
+- A `সে`, two `তাকে` and a `তাদের` used of elements and bars, one `একটা` and nine article `একটি` were
+  fixed; four pages re-written. No brief changes
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
+
 ---
 
-### - [ ] 128y. Natural Bangla: Book 2 (part-10) (3 of 3) `M`
+### - [x] 128y. Natural Bangla: Book 2 (part-10) (3 of 3) `M` — ✅ **done 2026-10-19**
 
 5 pages, about 1568 Bangla lines:
 
@@ -601,9 +720,20 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
 
+**Delivered:**
+
+- All 5 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. Done in parallel with the other four of #128v–#128z, one subagent per batch. All five passed on the first attempt
+- Graph, backtracking and DP terms (DFS/BFS, pruning, memoisation, tabulation, recurrence, base case,
+  topological sort, in-degree, Dijkstra, Bellman-Ford, Union-Find, frontier, back edge) stay in English
+- "Prune" is `ছেঁটে ফেলা`; "settled node" `হিসাব মিটে যাওয়া node`; a state's "shape" `গড়ন`
+- Five `একটা` and two `সে` used of things (the FIFO queue, BFS itself) were fixed and four pages
+  re-written. No brief changes
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
+
 ---
 
-### - [ ] 128z. Natural Bangla: Back matter `M`
+### - [x] 128z. Natural Bangla: Back matter `M` — ✅ **done 2026-10-19**
 
 5 pages, about 1551 Bangla lines:
 
@@ -611,6 +741,20 @@ English"** standard and written through `--write`. `pnpm site:translate --check`
 
 **Done when:** every page above is re-translated to the brief's **"Write Bangla, not translated
 English"** standard and written through `--write`. `pnpm site:translate --check` passes.
+
+**Delivered:**
+
+- All 5 pages re-translated from the English (`--source`), not patched from the first pass, and
+  written through `--write`. Done in parallel with the other four of #128v–#128z, one subagent per batch. All five passed on the first attempt
+- Glossary terms stay in English, with Bangla definitions that start from the bare noun rather than an
+  article `একটি`. Further-reading titles stay English; its tiers are `মূল উৎস` / `গভীরতা` / `অনুশীলন`
+- About-the-author uses `লেখক` throughout, with no gendered pronoun
+- The interview index's 647 questions were matched in order against each chapter's Bangla `**Q:`
+  line, and 108 were rewritten to drop article `একটি`. **Not fully aligned:** the indexes were
+  written while #128v–#128y ran, so the 87 DSA questions and a few Part IX questions may differ
+  slightly from the new chapter wording (see Open Notes)
+- One `সে` and one `তাকে` used of things and three article `একটা` were fixed. No brief changes
+- `pnpm site:translate --check`: 222 fresh, 0 stale, 0 invalid, 0 missing
 
 ---
 
@@ -644,6 +788,10 @@ chapter loads with its font. `pnpm plan:check` passes.
 - **warm / warm up:** 31 first-pass pages use গরম, mostly for *warm*, and সীমানা. The brief keeps
   hot, cold and boundary in English but says nothing about warm. The owner has not ruled on it. Until
   they do, #128a–#128z write `warm` / `warm up` in English, the same as hot and cold
+- **The Bangla question indexes may drift from their chapters.** `back/interview-question-index` and
+  `back/dsa-question-index` were re-translated (#128z) in parallel with Part IX and Book 2 (#128v–#128y),
+  so a few Part IX questions and the 87 DSA questions may be worded differently from the new
+  chapter `**Q:` lines. A sweep that copies each chapter's Bangla question into its index would fix it
 
 ---
 
@@ -651,5 +799,5 @@ chapter loads with its font. `pnpm plan:check` passes.
 
 | Phase | Items | Done | Status |
 | ----- | ----- | ---- | ------ |
-| 11 | 128 · 128a–128z · 130 | 16/28 | 🟡 In progress |
-| **Total** | **28** | **16/28** | **57%** |
+| 11 | 128 · 128a–128z · 130 | 27/28 | 🟡 In progress |
+| **Total** | **28** | **27/28** | **96%** |

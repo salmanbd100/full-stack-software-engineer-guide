@@ -1,31 +1,30 @@
 ---
 sourceHash: "b94942be21848976383e394404c6a7b96ca5666d027f11df2f45b25c34dbdf7a"
 title: "Tool Calling ও Tool Surface"
-translatedAt: "2026-10-12T12:29:10.053Z"
+translatedAt: "2026-10-19T08:01:04.485Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Tool Calling ও Tool Surface {#ch-tool-calling}
 
-> আপনার কোন function চলবে, তা model-কে বাছতে দিন, যে loop সেগুলো চালায় তার মালিকানা নিজের হাতে রাখুন, আর tool-গুলো এমনভাবে design করুন যাতে model ভালোভাবে বাছে।
+> আপনার কোন function চলবে, তা model-কে বাছতে দিন। সেগুলো চালানোর loop নিজের হাতে রাখুন। আর tool এমনভাবে design করুন, যাতে model ঠিকটা বাছে।
 
-**এই অধ্যায়ে:** loop আর তার থামার শর্ত · একটি tool define করা · permission boundary · tool surface design করা · এমন error, যা দেখে model কাজ করতে পারে
+**এই অধ্যায়ে:** loop আর তার থামার শর্ত · tool define করা · permission boundary · tool surface design করা · এমন error, যা দেখে model কিছু করতে পারে
 
 ## 💡 মূল ধারণা
 
-একটি tool call মানে model আপনার code চালাচ্ছে, তা নয়। **Model একটি structured request ফেরত দেয় — একটি tool-এর নাম আর
-argument — আর সেটা চলবে কি না, তা ঠিক করে আপনার code।** Result conversation-এ ফিরে যায়, আর model এগিয়ে চলে। আপনার
-code বসে থাকে মাঝখানে। বাকি প্রতিটি security বৈশিষ্ট্য এর ওপরেই দাঁড়িয়ে।
+Tool call মানে model আপনার code চালাচ্ছে, তা নয়। **Model ফেরত দেয় একটি structured request: tool-এর নাম আর argument। সেটা
+চলবে কি না, তা ঠিক করে আপনার code।** ফলটা conversation-এ ফিরে যায়, আর model এগিয়ে চলে। আপনার code বসে আছে মাঝখানে।
+বাকি প্রতিটি security গুণ দাঁড়িয়ে আছে এর ওপরই।
 
-Tool set-ও একটি API। এর একমাত্র consumer ইংরেজি পড়ে, আপনার description একবার পড়ে, কোনো প্রশ্ন করতে পারে না, আর প্রতিটি
-parameter কিছু একটি দিয়ে ভরবেই। সেই consumer-এর জন্য design করুন, তাহলে agent-এর বেশিরভাগ সমস্যা দূর হয়ে যায়।
-মানুষের জন্য বানানো একটি API paste করে দিন, আর model বিশ্বাসযোগ্য argument দিয়ে ভুল tool call করবে।
+Tool-এর সেটটাও একটি API। এর একমাত্র consumer English পড়ে, আপনার description একবারই পড়ে, কোনো প্রশ্ন করতে পারে না, আর
+প্রতিটি parameter কিছু একটা দিয়ে ভরবেই। এই consumer-এর কথা ভেবে design করুন, agent-এর বেশিরভাগ সমস্যা চলে যাবে। মানুষের
+জন্য বানানো একটি API paste করে দিন, model বিশ্বাসযোগ্য argument দিয়ে ভুল tool call করবে।
 
-> ⚠️ **যা বদলাতে থাকে:** যেকোনো AI SDK-তে tool definition-ই সবচেয়ে ঘন ঘন নাম বদলানো surface। Version 5
-> `parameters`-এর জায়গায় `inputSchema` আর `maxSteps`-এর জায়গায় `stopWhen` এনেছে। Version 7 stop
-> helper-এর নাম আবার বদলেছে, `stepCountIs` থেকে `isStepCount`-এ। নিচের protocol বদলায় না। Model
-> একটি নাম আর একটি JSON object ফেরত দেয়। সেটা চলবে কি না, তা ঠিক করে আপনার code। Result ফিরে যায়
-> আরেকটি message হিসেবে।
+> ⚠️ **যা বদলাতে থাকে:** যেকোনো AI SDK-তে সবচেয়ে বেশি নাম বদলায় tool definition-এর surface। Version 5 `parameters`-এর
+> জায়গায় আনে `inputSchema`, আর `maxSteps`-এর জায়গায় `stopWhen`। Version 7 থামার helper-এর নাম আবার বদলেছে, `stepCountIs`
+> থেকে `isStepCount`। নিচের protocol বদলায় না। Model একটি নাম আর একটি JSON object ফেরত দেয়। সেটা চলবে কি না, আপনার code
+> ঠিক করে। ফলটা আরেকটি message হয়ে ফিরে যায়।
 
 ## কীভাবে কাজ করে
 
@@ -44,16 +43,16 @@ flowchart TD
   G -- Yes --> H[Stop and report]
 ```
 
-**Tool-calling loop। প্রতিটি step একটি পূর্ণ model call, যার bill হয় পুরো conversation জুড়ে।**
+**Tool calling-এর loop। প্রতিটি ধাপ একটি পুরো model call, আর bill হয় পুরো conversation জুড়ে দিয়ে।**
 
-এর দুটি ফল আছে। Step-এর সংখ্যার চেয়ে খরচ দ্রুত বাড়ে, কারণ প্রতিটি step তার আগের সবকিছু আবার পাঠায়। আর loop-এর
-একটি কড়া step limit দরকার, নইলে যে model তার থামার শর্ত পূরণ করতে পারে না, সে চলতেই থাকে।
+এ থেকে দুটি কথা আসে। ধাপের সংখ্যার চেয়ে খরচ দ্রুত বাড়ে, কারণ প্রতিটি ধাপ আগের সবকিছু আবার পাঠায়। আর loop-এর একটি কড়া
+ধাপের সীমা লাগে। নইলে থামার শর্ত মেটাতে না পারা model চলতেই থাকে।
 
-### একটি tool define করা
+### Tool define করা
 
-Documentation assistant-এর একটি মূল tool আছে: docs-এ search করা।
+Documentation assistant-এর মূল tool একটিই: docs-এ search করা।
 
-**Documentation assistant-এর জন্য একটি tool, আর যে loop সেটা চালায়**
+**Documentation assistant-এর একটি tool, আর যে loop সেটা চালায়**
 
 ```typescript
 import { generateText, tool, isStepCount } from 'ai';
@@ -85,12 +84,12 @@ const { text, steps } = await generateText({
 });
 ```
 
-### Parallel call
+### একসঙ্গে কয়েকটি call
 
-একটি model এক step-এ কয়েকটি tool চাইতে পারে। যেগুলো স্বাধীন, সেগুলো একসঙ্গে চলা উচিত। আর কোনটা স্বাধীন, তা ঠিক করেন
-আপনি, model নয়।
+Model এক ধাপে কয়েকটি tool চাইতে পারে। যেগুলো একটি আরেকটির ওপর নির্ভর করে না, সেগুলো একসঙ্গে চলা উচিত। আর কোনগুলো
+স্বাধীন, তা ঠিক করেন আপনি, model নয়।
 
-**শুধু-read call-গুলো একসঙ্গে চালান**
+**শুধু-পড়ার call-গুলো একসঙ্গে চালান**
 
 ```typescript
 const results = await Promise.all(
@@ -98,8 +97,8 @@ const results = await Promise.all(
 );
 ```
 
-একই record-এ দুটি write স্বাধীন নয়, আর model জানেই না যে এরা সংঘর্ষ করে। Side effect একবারে একটি করে চালান। অথবা
-tool-গুলোকে idempotent করুন (দুবার চালালেও নিরাপদ), যাতে duplicate call কোনো ক্ষতি না করে।
+একই record-এ দুটি write স্বাধীন নয়, আর এরা যে সংঘর্ষ বাধায়, model তা জানেই না। Side effect একটি একটি করে চালান। নয়তো
+tool-গুলো idempotent করুন, মানে দুবার চললেও সমস্যা নেই, যাতে duplicate call কোনো ক্ষতি না করে।
 
 ### Permission boundary
 
@@ -118,131 +117,128 @@ async function dispatch(call: ToolCall, user: User): Promise<unknown> {
 }
 ```
 
-Tool argument untrusted input। Model যে document পড়েছে, সেটা এদের আকার দিতে পারে, তাই model-এর দেওয়া path-সহ
-`deleteFile({ path })` একটি path traversal, ঘটার অপেক্ষায়। **User-এর** permission-এর ভিত্তিতে authorise করুন,
-model-এর request-এর ভিত্তিতে কখনো নয়। ধ্বংসাত্মক tool-কে মানুষের approval-এর পেছনে রাখুন।
-[Chapter ?? — Prompt Injection](#ch-prompt-injection) ব্যাখ্যা করে, কেন এটাই সেই নিয়ন্ত্রণ যা আসলে গুরুত্বপূর্ণ।
+Tool-এর argument অবিশ্বস্ত input। Model যে document পড়েছে, সেটাও argument-কে প্রভাবিত করতে পারে। তাই model-এর দেওয়া
+path দিয়ে `deleteFile({ path })` মানে path traversal ঘটার অপেক্ষায় থাকা। Authorise করুন **user-এর** permission দেখে,
+model-এর request দেখে কখনো নয়। ক্ষতিকর tool-কে মানুষের approval-এর পেছনে রাখুন। কেন এই নিয়ন্ত্রণটাই আসল, তা বোঝানো আছে
+[Chapter ?? — Prompt Injection](#ch-prompt-injection)-এ।
 
 ## কখন ব্যবহার করবেন
 
 | প্রয়োজন | বাছাই | কেন |
 | --- | --- | --- |
-| বর্তমান বা private data, যা model-এর জানার উপায় নেই | একটি শুধু-read tool | অবাধে দেওয়া যায়, parallel-এ নিরাপদ |
-| সত্যিকারের প্রভাবওয়ালা action — send, create, refund | নিজস্ব tool, নিজস্ব permission, একটি approval gate | Authorise আর audit করা যায় |
-| ঘন ঘন ঘটা বহু-ধাপের ক্রম | একটি composite tool | Round trip আর ভুল হওয়ার সুযোগ বাঁচায় |
-| প্রতিটি request-এ একই context | কোনো tool নয় — call-এর আগেই retrieve করুন | Tool একটি round trip যোগ করে, আর বাদ পড়তে পারে |
-| নির্দিষ্ট, জানা একটি ধাপের ক্রম | কোনো tool নয় — code লিখুন | একটি `for` loop-এর কোনো খরচ নেই, আর কখনো ভুল branch বাছে না |
-| শুধু output-এর shape | কোনো tool নয় — [structured output](#ch-structured-output) | চালানোর মতো কিছু নেই |
+| এখনকার বা private data, যা model জানতে পারে না | শুধু-পড়ার একটি tool | অবাধে দেওয়া যায়, একসঙ্গে চালালেও নিরাপদ |
+| সত্যিকারের প্রভাব আছে এমন কাজ: পাঠানো, তৈরি করা, refund | নিজস্ব tool, নিজস্ব permission, একটি approval gate | Authorise আর audit করা যায় |
+| প্রায়ই ঘটে এমন কয়েক ধাপের sequence | একটি composite tool | Round trip বাঁচে, ভুল হওয়ার সুযোগও কমে |
+| প্রতিটি request-এ একই context | Tool নয়, call-এর আগেই retrieve করুন | Tool একটি বাড়তি round trip, আর বাদও পড়ে যেতে পারে |
+| নির্দিষ্ট, জানা ধাপের sequence | Tool নয়, code লিখুন | একটি `for` loop-এ কোনো খরচ নেই, আর কখনো ভুল শাখা বাছে না |
+| শুধু output-এর গড়ন | Tool নয়, [structured output](#ch-structured-output) | চালানোর মতো কিছুই নেই |
 
-## Tool Surface Design করা
+## Tool Surface design করা
 
-Assistant কাজ করবে কি না, তা সাধারণত prompt-এর চেয়ে বেশি ঠিক করে tool set।
+Assistant কাজ করবে কি না, সাধারণত তা prompt-এর চেয়ে বেশি ঠিক করে tool-এর সেটটা।
 
-### Granularity
+### কতটা ছোট বা বড়
 
-নিয়মটা হলো: **user-এর চোখে পড়া প্রতিটি উদ্দেশ্যের জন্য একটি tool।** একজন মানুষ যদি এটাকে একটি action বলেন, তাহলে
-এটা একটি tool। "Docs-এ search করা", "একটি ticket তৈরি করা" আর "build check করা" — প্রতিটি একটি করে। খুব সূক্ষ্ম tool
-বেশি প্রচলিত, আর বেশি দামি ভুল। `openFile`, `seek`, `readBytes`, `close` মানে চারটি পূর্ণ round trip,
-যেখানে `readFile(path)` একটি। মোটা দিকের প্রান্তে একটিমাত্র `execute(command)` tool নমনীয়। কিন্তু agent কী কী করতে
-পারে, তা আর আপনি বলতে পারবেন না।
+নিয়মটা হলো: **user-এর চোখে পড়া প্রতিটি উদ্দেশ্যের জন্য একটি tool।** একজন মানুষ যেটাকে একটি কাজ বলবেন, সেটা একটি tool।
+"Docs-এ search করা", "ticket তৈরি করা" আর "build check করা", প্রতিটিই একটি। খুব খুঁটিনাটি tool বানানোই বেশি দেখা যায়, আর
+সেটাই বেশি দামি ভুল। `openFile`, `seek`, `readBytes`, `close` মানে চারটি পুরো round trip, যেখানে `readFile(path)` একটি।
+উল্টো প্রান্তে, একটিমাত্র `execute(command)` tool নমনীয়। কিন্তু তখন আর বলা যায় না agent কী কী করতে পারে।
 
-### Description মানে prompt text
+### Description আসলে prompt text
 
-একটি tool *কখন* খাটে, তার একমাত্র signal model পায় description থেকে। তাই ভুল-tool-এর বেশিরভাগ bug আসলে description-এর
-bug। `'Searches the index.'` লেখা এমন একজন সহকর্মীর জন্য, যিনি source পড়তে পারেন। ওপরের
-`searchDocs` description বরং চারটি কাজ করে। এটা বলে **কী ফেরত দেয়**, **কখন ব্যবহার করবেন**,
-**কখন করবেন না** আর তার বদলে কী ব্যবহার করবেন, আর **failure দেখতে কেমন**। প্রতিটি এক শ্রেণির ভুল call দূর করে।
-Parameter description-ও prompt text।
+কোনো tool *কখন* খাটে, model-এর কাছে তার একমাত্র সংকেত description। তাই ভুল tool-এর বেশিরভাগ bug আসলে description-এর bug।
+`'Searches the index.'` লেখা এমন সহকর্মীর জন্য, যিনি source পড়তে পারেন। ওপরের `searchDocs`-এর description বদলে চারটি কাজ
+করে। এটা বলে **কী ফেরত দেয়**, **কখন ব্যবহার করতে হবে**, **কখন নয়** আর তার বদলে কী, আর **failure দেখতে কেমন**। প্রতিটি
+কথা এক এক ধরনের ভুল call সরিয়ে দেয়। Parameter-এর description-ও prompt text।
 
-নামও গুরুত্বপূর্ণ। কেউ `searchDocs` আর `lookupAccount` গুলিয়ে ফেলে না। `search` আর `query` সহজেই গুলিয়ে যায়,
-আর একটির ওপর আরেকটি পড়া tool-এর মধ্যে model দোলাচলে থাকে, কারণ কোনোটাই স্পষ্টভাবে ঠিক নয়।
+নামও জরুরি। `searchDocs` আর `lookupAccount` কেউ গুলিয়ে ফেলে না। `search` আর `query` সহজেই গুলিয়ে যায়। আর মিলে যাওয়া
+tool-গুলোর মধ্যে model এদিক-ওদিক করে, কারণ কোনোটাই স্পষ্টভাবে ঠিক নয়।
 
 ### এমন parameter, যা model ভরতে পারে
 
 | ❌ ভরা কঠিন | ✅ ভরা সহজ | কেন |
 | --- | --- | --- |
 | `userId: string` | `email: string` | Model-এর কাছে email আছে, আপনার internal id নেই |
-| `filters: Record<string, unknown>` | নামওয়ালা optional field | খোলা ঝুলি বানিয়ে লেখার আমন্ত্রণ জানায় |
-| `mode: string` | `mode: z.enum([...])` | Enum বানিয়ে লেখা যায় না |
+| `filters: Record<string, unknown>` | নাম দেওয়া optional field | খোলা থলে বানিয়ে বলতে ডাকে |
+| `mode: string` | `mode: z.enum([...])` | Enum বানানো যায় না |
 
-প্রথম row-টা সাধারণভাবেই খাটে: **এমন কোনো identifier কখনো চাইবেন না, যা model-এর জানার কোনো উপায় নেই।** Natural key
-(মানুষ যে নাম ব্যবহার করবে) নিন, আর tool-এর ভেতরে সেটা resolve করুন। অথবা একটি lookup tool যোগ করুন, যা আগে id ফেরত দেয়।
+প্রথম row-এর কথাটা সাধারণভাবেই খাটে: **এমন identifier কখনো চাইবেন না, যা model-এর জানার কোনো উপায় নেই।** Natural key
+নিন, মানে একজন মানুষ যে নাম ব্যবহার করতেন, আর tool-এর ভেতরে সেটা থেকে id বের করুন। নয়তো একটি lookup tool যোগ করুন, যা আগে
+id ফেরত দেয়।
 
 ### এমন error, যা পরের ধাপ শেখায়
 
-Tool যা-ই ফেরত দিক, সেটা prompt text হয়ে যায়। অকাজের একটি result অকাজের একটি পরের ধাপ তৈরি করে, সাধারণত আবার একই call।
+Tool যা-ই ফেরত দিক, সেটা prompt text হয়ে যায়। অকাজের ফল থেকে আসে অকাজের পরের ধাপ, সাধারণত আবার সেই একই call।
 
-| ❌ যা ফেরত আসে | ✅ আরও ভালো | Model কী করে |
+| ❌ যা ফেরত আসে | ✅ যা ভালো | Model যা করে |
 | --- | --- | --- |
-| `[]` | `{ found: false, hint: 'No match for "foo". Try broader keywords.' }` | একবার অন্যভাবে লেখে, তারপর সেটা জানিয়ে দেয় |
-| `Error: 500` | `Search is unavailable. Answer from the conversation or say you cannot check.` | Retry থামায়, সৎভাবে মান কমায় |
+| `[]` | `{ found: false, hint: 'No match for "foo". Try broader keywords.' }` | একবার অন্যভাবে বলে দেখে, তারপর সেটা জানিয়ে দেয় |
+| `Error: 500` | `Search is unavailable. Answer from the conversation or say you cannot check.` | Retry থামায়, সৎভাবে কম কাজ নিয়ে চলে |
 | `Invalid input` | `section must be one of: api, guides, changelog` | Argument ঠিক করে |
 
-খালি array-ই loop-এ আটকে যাওয়া agent-এর সবচেয়ে সাধারণ কারণ। এটা দেখতে ভাঙা tool-এর মতো, তাই model আবার চেষ্টা করে।
-বলে দিন কী হয়েছে, retry-তে লাভ আছে কি না, আর তার বদলে কী করতে হবে।
+Agent loop-এ আটকে যাওয়ার সবচেয়ে সাধারণ কারণ খালি array। দেখে মনে হয় tool ভাঙা, তাই model আবার চেষ্টা করে। কী হয়েছে,
+retry-এ লাভ হবে কি না, আর বদলে কী করা উচিত, সেটা বলে দিন।
 
-> ⚠️ কখনো একটি raw exception conversation-এ বসাবেন না। Stack trace file path আর ভেতরের খুঁটিনাটি এমন একটি window-তে
-> ফাঁস করে, যা log হতে পারে, একজন user-কে দেখানো হতে পারে, বা input বসানো কোনো attacker পড়তে পারে।
+> ⚠️ কাঁচা exception কখনো conversation-এ দেবেন না। Stack trace file path আর ভেতরের খুঁটিনাটি এমন একটি window-এ ফাঁস করে, যা
+> log হতে পারে, user-কে দেখানো হতে পারে, বা যে attacker input-টা বসিয়েছিল সে পড়তে পারে।
 
 ### কী বাদ রাখবেন
 
-সবচেয়ে শক্ত নিয়ন্ত্রণ হলো এমন একটি tool, যার অস্তিত্বই নেই। প্রতিটি tool হলো এমন একটি system-এর হাতে তুলে দেওয়া
-permission, যা untrusted document পড়ে। শুধু-read দিয়ে শুরু করুন, আর write যোগ করুন আলাদা, gate-ওয়ালা tool হিসেবে।
-`cancelSubscription(accountId)` authorise আর audit করা যায়। `runSql(query)` যায় না। Model-এর কালেভদ্রে যা দরকার, তা
-বাদ রাখুন। ছোট surface model-কে ঠিক tool বাছতেও সাহায্য করে।
+সবচেয়ে জোরালো নিয়ন্ত্রণ হলো এমন tool, যা নেই-ই। প্রতিটি tool মানে অবিশ্বস্ত document পড়া একটি system-এর হাতে তুলে দেওয়া
+একটি permission। শুধু-পড়া দিয়ে শুরু করুন, আর write যোগ করুন আলাদা, gate করা tool হিসেবে।
+`cancelSubscription(accountId)` authorise আর audit করা যায়। `runSql(query)` যায় না। Model-এর কদাচিৎ যা লাগে, তা বাদ রাখুন।
+Surface ছোট হলে model-এর পক্ষে ঠিক tool বাছাও সহজ হয়।
 
 ## সাধারণ ভুল
 
-**❌ কোনো step limit নেই**
+**❌ ধাপের কোনো সীমা নেই**
 
-> যে model তার থামার শর্ত পূরণ করতে পারে না, সে tool call করতেই থাকে। `stopWhen` ছাড়া সেটা একটি সীমাহীন bill,
-> যা পরদিন সকালে ধরা পড়ে।
+> যে model থামার শর্ত মেটাতে পারে না, সেটা tool call করতেই থাকে। `stopWhen` না থাকলে সেটা একটি সীমাহীন bill, যা ধরা পড়ে
+> পরদিন সকালে।
 
-**✅ বলে দিন, কখন tool-টা ব্যবহার *করবেন না***
+**✅ কখন tool-টা *ব্যবহার করবেন না*, সেটাও বলুন**
 
-> একটির ওপর আরেকটি পড়া tool-কে আলাদা করতে, আরও ইতিবাচক description-এর চেয়ে নেতিবাচক নির্দেশনা দ্রুত কাজ করে। এটা
-> model-কে সবচেয়ে কাছাকাছি দেখতে tool-টার দিকে হাত বাড়ানো থেকে থামায়।
+> মিলে যাওয়া tool-গুলোকে আলাদা করতে আরও ইতিবাচক বর্ণনার চেয়ে "কখন নয়" বলাটা দ্রুত কাজ করে। এতে model সবচেয়ে কাছাকাছি
+> দেখতে tool-টার দিকে হাত বাড়ানো বন্ধ করে।
 
 ## 🔑 মূল শিক্ষা
 
-- Model একটি tool call চায়। সেটা চলবে কি না, তা ঠিক করে আপনার dispatcher, আর সব ক্ষমতা থাকে সেখানেই।
-- Loop-এর প্রতিটি step পুরো conversation আবার পাঠায়, তাই খরচের একমাত্র সীমা হলো একটি কড়া step limit।
-- User-এর চোখে পড়া প্রতিটি উদ্দেশ্যের জন্য একটি tool design করুন, এমন description-সহ যা বলে কী ফেরত দেয় আর কখন ব্যবহার করবেন না।
-- Error আর খালি result prompt text: বলে দিন কী হয়েছে, retry করবে কি না, আর তার বদলে কী করবে।
-- সবচেয়ে শক্ত নিয়ন্ত্রণ হলো এমন tool, যার অস্তিত্বই নেই। User-এর ভিত্তিতে authorise করুন, আর ধ্বংসাত্মক সবকিছুর সামনে gate রাখুন।
+- Model tool call চায়। সেটা চলবে কি না ঠিক করে আপনার dispatcher, আর সব কর্তৃত্ব থাকে সেখানেই।
+- Loop-এর প্রতিটি ধাপ পুরো conversation আবার পাঠায়, তাই খরচের একমাত্র সীমা হলো কড়া একটি ধাপের সীমা।
+- User-এর চোখে পড়া প্রতিটি উদ্দেশ্যের জন্য একটি tool design করুন, আর description-এ বলুন কী ফেরত দেয় আর কখন ব্যবহার করবেন না।
+- Error আর খালি ফলও prompt text: কী হয়েছে, retry করবে কি না, আর বদলে কী করবে, তা বলে দিন।
+- সবচেয়ে জোরালো নিয়ন্ত্রণ হলো যে tool নেই-ই। User দেখে authorise করুন, আর ক্ষতিকর যেকোনো কিছু gate করুন।
 
 ## Interview-এর প্রশ্ন
 
-**Q: একটি model যখন একটি tool call করে, তখন কী কী ঘটে, ধাপে ধাপে বলুন।**
+**Q: Model যখন একটি tool call করে, তখন কী কী ঘটে, ধাপে ধাপে বলুন।**
 
-Model একটি tool-এর নাম আর আমার পাঠানো schema-র সঙ্গে মেলে এমন JSON argument ফেরত দেয়, আর generation থেমে যায়। আমার
-code argument validate করে, permission check করে, function চালায়, আর result-টা একটি tool message হিসেবে যোগ করে।
-তারপর আমি লম্বা হওয়া history নিয়ে model-কে আবার call করি। এটা চলতে থাকে যতক্ষণ না model উত্তর দেয় বা আমার step
-limit-এ পৌঁছায়। Model নিজে কখনো কিছু চালায় না।
+Model একটি tool-এর নাম আর আমার পাঠানো schema-র সঙ্গে মেলানো JSON argument ফেরত দেয়, আর generation থেমে যায়। আমার code
+argument validate করে, permission check করে, function চালায়, আর ফলটা tool message হিসেবে জুড়ে দেয়। তারপর লম্বা হওয়া history
+নিয়ে আমি model-কে আবার call করি। Model উত্তর না দেওয়া পর্যন্ত, বা আমার ধাপের সীমায় না ঠেকা পর্যন্ত এটা চলতে থাকে। Model
+নিজে কখনো কিছু চালায় না।
 
-**Q: আপনার agent বারবার একই argument দিয়ে একই tool call করছে। প্রথমে কী check করবেন?**
+**Q: আপনার agent একই argument দিয়ে বারবার একই tool call করছে। আগে কী দেখবেন?**
 
-কিছু না পাওয়া গেলে tool কী ফেরত দেয়। একটি খালি array বা শুধু একটি error দেখতে সাময়িক failure-এর মতোই, তাই retry
-করাটা যুক্তিসঙ্গত অনুমান। একটি স্পষ্ট "match নেই" আর সঙ্গে একটি hint ফেরত দিলে যেকোনো prompt পরিবর্তনের চেয়ে বেশি
-loop ঠিক হয়। এরপর আমি খুঁজি একটির ওপর আরেকটি পড়া description-ওয়ালা দুটি tool, আর এমন একটি থামার শর্ত, যা model
-পূরণ করতে পারে না।
+কিছু না পেলে tool কী ফেরত দেয়, সেটা। খালি array বা শুধু একটি error দেখতে ক্ষণস্থায়ী failure-এর মতোই, তাই retry করাটা
+যুক্তিসংগত আন্দাজ। স্পষ্ট একটি "মিল পাওয়া যায়নি", সঙ্গে একটি hint ফেরত দিলে যেকোনো prompt বদলের চেয়ে বেশি loop ঠিক হয়।
+তারপর দেখব এমন দুটি tool আছে কি না যাদের description মিলে যায়, আর এমন কোনো থামার শর্ত আছে কি না যা model মেটাতে পারে না।
 
-**Q: একটি tool-calling feature-কে production data delete করা থেকে কীভাবে থামাবেন?**
+**Q: Tool calling-এর একটি feature যাতে production data মুছে না ফেলে, তা কীভাবে নিশ্চিত করবেন?**
 
-বিপজ্জনক operation-টাকে শুধু নিরুৎসাহিত না করে, একেবারে অনুপলব্ধ করে দিয়ে। Surface শুধু ততটুকুই দেখায়, যতটুকু
-feature-এর দরকার, আর credential-ও সেই সীমায় বাঁধা। ধ্বংসাত্মক tool থাকে মানুষের approval-এর পেছনে। Dispatcher
-sign in করা user-এর ভিত্তিতে authorise করে। System prompt-এর একটি নিয়ম কোনো নিয়ন্ত্রণ নয়। Model untrusted content
-পড়ে, তাই কেউ যুক্তি দিয়ে সেটা সরিয়ে দিতে পারে।
+বিপজ্জনক কাজটা শুধু নিরুৎসাহিত না করে পুরোপুরি অপ্রাপ্য করে দিয়ে। Surface শুধু ততটুকুই খোলে, যতটুকু feature-এর দরকার, আর
+credential-ও ততটুকুতেই সীমিত। ক্ষতিকর tool থাকে মানুষের approval-এর পেছনে। Dispatcher authorise করে sign in করা user দেখে।
+System prompt-এর একটি নিয়ম কোনো নিয়ন্ত্রণ নয়। Model অবিশ্বস্ত content পড়ে, তাই কেউ যুক্তি দিয়ে নিয়মটা উড়িয়ে দিতে পারে।
 
-**Q: আপনার বিদ্যমান REST API-টাই কি সরাসরি tool হিসেবে দিয়ে দেওয়া যায়?**
+**Q: আপনার এখনকার REST API-টাই কি tool হিসেবে খুলে দেওয়া যায়?**
 
-যায়, আর সাধারণত খারাপভাবে কাজ করে। সেই API ধরে নেয় caller-এর কাছে documentation আর internal id আছে, আর এর error
-লেখা developer-দের জন্য। Model id বানিয়ে ফেলে, code ভুল পড়ে, আর এমন endpoint-এর মধ্যে বাছে, যাদের নাম কোনোভাবেই
-তাদের আলাদা করে না। আমি এটাকে তার আসল consumer-এর জন্য নতুন করে design করব: natural key, enum,
-prose description আর instruction হিসেবে লেখা error।
+যায়, আর সাধারণত সেটা খারাপভাবে কাজ করে। ওই API ধরে নেয় caller-এর কাছে documentation আর internal id আছে, আর এর error
+লেখা developer-দের জন্য। Model id বানায়, code ভুল পড়ে, আর এমন endpoint-গুলোর মধ্যে বাছে, যাদের নাম দেখে আলাদা করার কোনো
+উপায় নেই। আমি এটা নতুন করে design করব এর আসল consumer-এর কথা ভেবে: natural key, enum, গদ্যে লেখা description, আর
+instruction হিসেবে লেখা error।
 
 ## এরপর কী পড়বেন
 
 - [Chapter ?? — Agent আসলে কী, আর কখন একাধিক Agent লাগে](#ch-what-an-agent-actually-is) — এই loop, শেষ পর্যন্ত চালানো
-- [Chapter ?? — MCP (Model Context Protocol)](#ch-model-context-protocol) — একটি shared protocol হিসেবে tool definition
-- [Chapter ?? — Prompt Injection](#ch-prompt-injection) — কেন dispatcher একটি security boundary
+- [Chapter ?? — MCP (Model Context Protocol)](#ch-model-context-protocol) — ভাগাভাগির protocol হিসেবে tool definition
+- [Chapter ?? — Prompt Injection](#ch-prompt-injection) — dispatcher কেন একটি security boundary

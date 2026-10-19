@@ -1,34 +1,34 @@
 ---
 sourceHash: "f1a2c77daa2759a3d1b9553a414ea932957820d1ac60cde9714541bbf0a3a6c9"
 title: "Graph Algorithm"
-translatedAt: "2026-10-13T03:14:20.425Z"
+translatedAt: "2026-10-19T10:25:44.151Z"
 model: "claude-opus-5-5 (Claude Code)"
 ---
 
 # Graph Algorithm {#ch-graph-algorithms}
 
-> একটি graph নিয়ে চারটি প্রশ্ন করার আছে, আর সেগুলোর উত্তর দেয় চারটি algorithm।
+> Graph নিয়ে চারটি প্রশ্ন করুন। চারটি algorithm সেগুলোর উত্তর দেয়।
 
-**এই অধ্যায়ে:** representation বেছে নেওয়া · in-degree দিয়ে topological sort, আর বিনা খরচে যে cycle এটা ধরে ফেলে · Dijkstra, আর কেন এর heap লাগে · দুটি optimisation-সহ Union-Find · কোনো code লেখার আগে যে property-গুলো পরিষ্কার করে নিতে হয়
+**এই অধ্যায়ে:** representation বাছাই · in-degree দিয়ে topological sort, আর বিনা খরচে পাওয়া cycle detection · Dijkstra, আর তার কেন heap লাগে · দুটি optimisation-সহ Union-Find · code লেখার আগে যে বৈশিষ্ট্যগুলো পরিষ্কার করে নিতে হয়
 
 ## 💡 মূল ধারণা
 
-একটি graph হলো node আর edge, আর এটা প্রায় কোনো constraint-ই নয় — এ কারণেই "এটা একটি graph problem" বলা এখনো
-উত্তর নয়। সমস্যাটাকে সরু করে চারটি property। প্রথম কাজই হলো এগুলো নিয়ে প্রশ্ন করা:
+Graph মানে node আর edge। এটা প্রায় কোনো বাঁধনই নয়, তাই "এটা graph problem" বললে এখনো উত্তর দেওয়া হয় না। সমস্যাটা
+ছোট করে আনে চারটি বৈশিষ্ট্য, আর প্রথম কাজই হলো সেগুলো জিজ্ঞেস করা:
 
-| জিজ্ঞেস করুন                        | কারণ                                                       |
+| জিজ্ঞেস করুন                | কারণ                                                       |
 | -------------------------- | ------------------------------------------------------------- |
-| **Directed** নাকি undirected? | দুটির মধ্যে cycle detection পুরোপুরি আলাদা             |
-| **Weighted** নাকি unweighted? | Unweighted shortest path হলো BFS; weighted-এর জন্য Dijkstra লাগে       |
-| **Connected**, নাকি component-এ ভাগ করা? | হয়তো প্রতিটি unvisited node থেকে traversal শুরু করতে হবে |
-| এতে কি **cycle** থাকতে পারে?   | ঠিক করে visited set ঐচ্ছিক নাকি অপরিহার্য          |
+| **Directed** নাকি undirected? | দুটিতে cycle detection পুরোপুরি আলাদা                      |
+| **Weighted** নাকি unweighted? | Unweighted shortest path হলো BFS, weighted-এ লাগে Dijkstra  |
+| **Connected**, নাকি কয়েকটি component? | হয়তো প্রতিটি না-দেখা node থেকে traversal চালাতে হবে |
+| এতে কি **cycle** থাকতে পারে? | এটাই ঠিক করে visited set ঐচ্ছিক, নাকি অপরিহার্য             |
 
-Traversal নিজে অন্য জায়গায় আছে — [Chapter ?? — Depth-First Search](#ch-depth-first-search) আর
-[Chapter ?? — Breadth-First Search](#ch-breadth-first-search)। এই অধ্যায়ে আছে সেগুলোর ওপর তৈরি তিনটি algorithm,
-সাথে সেই structure, যেটা traversal-কে পুরোপুরি সরিয়ে দেয়।
+Traversal নিজে অন্য জায়গায় আছে: [Chapter ?? — Depth-First Search](#ch-depth-first-search) আর
+[Chapter ?? — Breadth-First Search](#ch-breadth-first-search)। এই অধ্যায়ে আছে সেগুলোর ওপর দাঁড়ানো তিনটি
+algorithm, আর এমন একটি structure, যা traversal-এর দরকারই মিটিয়ে দেয়।
 
-> বেশিরভাগ graph প্রশ্ন চারটি shape-এর একটি: **dependency মেনে জিনিস সাজানো** (topological sort),
-> **সবচেয়ে সস্তা route** (Dijkstra), **এই দুটি কি connected** (Union-Find), অথবা **explore করা** (DFS/BFS)।
+> বেশিরভাগ graph প্রশ্ন চারটি গড়নের কোনো একটি: **নির্ভরতা মেনে জিনিস সাজানো** (topological sort), **সবচেয়ে সস্তা
+> পথ** (Dijkstra), **এই দুটি কি যুক্ত** (Union-Find), অথবা **ঘুরে দেখা** (DFS/BFS)।
 
 ## কীভাবে কাজ করে
 
@@ -49,20 +49,19 @@ function buildGraph(n: number, edges: [number, number][], directed: boolean): Ad
 }
 ```
 
-| Representation       | Space      | "Edge আছে কি?" | একটি node-এর neighbour-গুলো ঘোরা | কখন ব্যবহার করবেন                       |
+| Representation       | Space      | "Edge আছে কি?" | একটি node-এর neighbour ঘোরা | কখন ব্যবহার করবেন                |
 | -------------------- | ---------- | ------------------- | --------------------------- | ------------------------------ |
-| **Adjacency list**   | `O(V + E)` | `O(degree)`         | `O(degree)`                 | প্রায় সবসময় — graph সাধারণত sparse |
-| **Adjacency matrix** | `O(V²)`    | `O(1)`              | `O(V)`                      | Dense graph, অথবা constant-time-এ edge খোঁজা |
-| **Edge list**        | `O(E)`     | `O(E)`              | `O(E)`                      | শুধু input format হিসেবে; কাজ শুরুর আগে রূপান্তর করুন |
+| **Adjacency list**   | `O(V + E)` | `O(degree)`         | `O(degree)`                 | প্রায় সবসময়, কারণ graph সাধারণত sparse |
+| **Adjacency matrix** | `O(V²)`    | `O(1)`              | `O(V)`                      | Dense graph, বা constant-time-এ edge খোঁজা লাগলে |
+| **Edge list**        | `O(E)`     | `O(E)`              | `O(E)`                      | শুধু input format হিসেবে; কাজের আগে বদলে নিন |
 
-না করার কারণ না থাকলে adjacency list বানান। Undirected graph-এ দ্বিতীয় `push` ভুলে যাওয়াই setup-এর সবচেয়ে
-সাধারণ bug। এতে এমন একটি graph তৈরি হয়, যার অর্ধেক চুপচাপ হারিয়ে গেছে।
+না নেওয়ার কারণ না থাকলে adjacency list বানান। Undirected graph-এ দ্বিতীয় `push` ভুলে যাওয়াই setup-এর সবচেয়ে বেশি
+হওয়া bug। এতে graph-এর অর্ধেকটা নিঃশব্দে হারিয়ে যায়।
 
 ### In-degree দিয়ে topological sort
 
-এমন একটি ক্রম, যেখানে প্রতিটি node তার ওপর নির্ভর করা সবকিছুর আগে আসে। Kahn's algorithm হলো in-degree-এর ওপর
-BFS। এর কাজের property হলো **এটা বিনা খরচে cycle ধরে ফেলে**: যদি `V`টির কম node বেরিয়ে আসে, বাকিগুলো একটি
-cycle-এ আছে।
+এমন একটি ক্রম, যেখানে প্রতিটি node তার ওপর নির্ভরশীল সবকিছুর আগে আসে। Kahn's algorithm হলো in-degree-এর ওপর BFS,
+আর এর কাজের বৈশিষ্ট্য হলো **cycle এটা বিনা খরচে ধরে ফেলে**। `V`-এর চেয়ে কম node বের হলে বাকিগুলো cycle-এর ভেতরে আছে।
 
 ```typescript
 // LC 210 — an order in which the courses can be taken, or [] if impossible
@@ -94,17 +93,17 @@ function findOrder(numCourses: number, prerequisites: [number, number][]): numbe
 // Time: O(V + E), Space: O(V + E)
 ```
 
-DFS বিকল্পটি তিনটি state ব্যবহার করে — unvisited, বর্তমান stack-এ আছে, পুরোপুরি explore করা হয়ে গেছে। Recursion
-return করার সময় node push করে, তারপর উল্টে দিয়ে এটা ক্রম তৈরি করে। Kahn's ঠিকভাবে লেখা সহজ, আর বাড়তি হিসাব
-ছাড়াই cycle check দেয়। তাই জিজ্ঞেস না করলে এটাকেই বেছে নিন।
+DFS দিয়ে বিকল্প পথে তিনটি state লাগে: না-দেখা, এখনকার stack-এ আছে, আর পুরো দেখা শেষ। Recursion return করার সময়
+node push করে, শেষে উল্টে দিলে ক্রম পাওয়া যায়। Kahn's ঠিকঠাক লেখা সহজ, আর বাড়তি হিসাব ছাড়াই cycle check দেয়।
+তাই আলাদা করে না বললে Kahn's-ই নিন।
 
-⚠️ Edge-এর দিক ধরে না নিয়ে problem statement থেকে পড়ুন। Course Schedule pair দেয় `[course, prerequisite]` হিসেবে,
-যেটা আপনি যে edge store করতে চান তার উল্টো।
+⚠️ Edge-এর দিক ধরে নেবেন না, problem statement থেকে পড়ুন। Course Schedule pair দেয় `[course, prerequisite]`
+আকারে, যা আপনি যে edge রাখতে চান তার ঠিক উল্টো।
 
-### Dijkstra — weight-সহ সবচেয়ে সস্তা route
+### Dijkstra: weight থাকলে সবচেয়ে সস্তা পথ
 
-BFS সবচেয়ে কম edge খুঁজে বের করে। যখন edge-এর খরচ থাকে, তখন সবচেয়ে কম মানেই সবচেয়ে সস্তা নয়। তাই frontier-কে
-পৌঁছানোর ক্রমে নয়, জমা হওয়া খরচের ক্রমে process করতে হবে। মানে queue-এর বদলে একটি min-heap।
+BFS সবচেয়ে কম edge-এর পথ খোঁজে। Edge-এর খরচ থাকলে সবচেয়ে কম মানেই সবচেয়ে সস্তা নয়। তাই frontier process করতে হয়
+পৌঁছানোর ক্রমে নয়, জমা খরচের ক্রমে। মানে queue-এর বদলে min-heap।
 
 ```typescript
 // `Heap<T>` is the comparator-driven min-heap from the Top K Elements chapter
@@ -141,18 +140,18 @@ function dijkstra(graph: WeightedGraph, start: number, n: number): number[] {
 // Time: O((V + E) log V), Space: O(V + E)
 ```
 
-`cost > distance[node]` line-টাই একটি বাস্তব implementation-এর পুরো কৌশল। Binary heap-এ কোনো decrease-key
-operation নেই। তাই একটি entry update করার বদলে আপনি দ্বিতীয় একটি push করেন, আর পুরোনো copy-টা ওপরে উঠে এলে বাদ
-দেন। এই check ছাড়াও algorithm শেষ হয়, কিন্তু settle হয়ে যাওয়া node আবার process করে।
+বাস্তবে কাজে লাগার মতো implementation-এর পুরো কৌশল `cost > distance[node]` line-টায়। Binary heap-এ decrease-key
+operation নেই। তাই entry update না করে আরেকটি push করা হয়, আর পুরনো copy ওপরে উঠে এলে ফেলে দেওয়া হয়। এই check
+না থাকলেও algorithm থামে, কিন্তু যে node-এর হিসাব মিটে গেছে, সেটা আবার process করে।
 
-Dijkstra-র সঠিকতা একটি assumption-এর ওপর দাঁড়িয়ে: **কোনো negative edge weight নেই।** একটি negative edge পরে কোনো
-settle হয়ে যাওয়া node-কে আরও সস্তা করে দিতে পারে। তাতে "একবার pop হলে চূড়ান্ত" নিশ্চয়তা ভেঙে যায়। Negative weight-এর
-জন্য Bellman-Ford লাগে, `O(V × E)`, যেটা negative cycle-ও ধরে।
+Dijkstra ঠিক থাকে একটি ধারণার ওপর: **কোনো edge-এর weight negative নয়।** Negative edge থাকলে যে node-এর হিসাব
+মিটে গেছে, সেটা পরে আরও সস্তা হয়ে যেতে পারে। তাতে "একবার pop হলে চূড়ান্ত" নিশ্চয়তা ভেঙে যায়। Negative weight-এ
+লাগে Bellman-Ford, `O(V × E)`, যা negative cycle-ও ধরে।
 
-### Union-Find — traversal ছাড়া connectivity
+### Union-Find: traversal ছাড়াই connectivity
 
-যখন প্রশ্নটা শুধু "এই দুটি কি একই group-এ", তখন traversal দরকারের চেয়ে বেশি যন্ত্রপাতি। Union-Find প্রতিটি
-group-এর জন্য একটি representative রাখে, আর প্রায় constant time-এ উত্তর দেয়।
+প্রশ্ন যদি শুধু হয় "এই দুটি কি একই দলে", তাহলে traversal দরকারের চেয়ে বেশি যন্ত্রপাতি। Union-Find প্রতিটি দলের
+একজন প্রতিনিধি রাখে, আর প্রায় constant time-এ উত্তর দেয়।
 
 ```typescript
 class DisjointSet {
@@ -189,34 +188,34 @@ class DisjointSet {
 // find and union: O(α(n)) amortised — effectively constant. Space: O(n)
 ```
 
-দুটি optimisation-ই লাগে। Path compression ছাড়া `find` এমন একটি chain ধরে হাঁটে, যেটা `O(n)` লম্বা হতে পারে।
-Union by rank ছাড়া chain-গুলো প্রথম জায়গাতেই তৈরি হয়। দুটি মিলে inverse-Ackermann bound দেয়, যেটা memory-তে আঁটে
+দুটি optimisation-ই লাগে। Path compression না থাকলে `find`-কে এমন chain ধরে হাঁটতে হয়, যা `O(n)` লম্বা হতে পারে।
+Union by rank না থাকলে সেই chain তৈরিই হয়। দুটি একসঙ্গে থাকলে পাওয়া যায় inverse-Ackermann সীমা, যা memory-তে আঁটে
 এমন যেকোনো input-এর জন্য 5-এর নিচে।
 
-`union`-এর return value-ই Redundant Connection-কে তিন line-এর problem বানায়: প্রথম যে edge `false` return করে,
-সেটাই একটি cycle বন্ধ করছে।
+Redundant Connection-কে তিন line-এর problem বানায় `union`-এর return value। যে প্রথম edge `false` return করে,
+সেটাই cycle বন্ধ করছে।
 
 ### কোন algorithm
 
-| প্রশ্ন যা চায়                                      | ব্যবহার করুন                      | খরচ                 |
+| প্রশ্নে যা জানতে চায়                                      | ব্যবহার করুন               | খরচ                 |
 | ------------------------------------------------------ | ------------------------ | -------------------- |
-| Dependency মেনে একটি ক্রম                       | Topological sort (Kahn's) | `O(V + E)`            |
-| একটি **directed** graph-এ cycle আছে কি না               | Kahn's, অথবা তিন state-সহ DFS | `O(V + E)`     |
-| একটি **undirected** graph-এ cycle আছে কি না            | Union-Find, অথবা parent track করা DFS | `O(E α(V))` |
-| একটি destination পর্যন্ত সবচেয়ে কম edge                          | BFS                      | `O(V + E)`            |
-| সবচেয়ে সস্তা route, non-negative weight                   | Dijkstra                 | `O((V + E) log V)`     |
-| সবচেয়ে সস্তা route, negative weight চলবে               | Bellman-Ford             | `O(V × E)`             |
-| **সব** pair-এর মধ্যে সবচেয়ে সস্তা route                  | Floyd-Warshall           | `O(V³)`                |
-| কতগুলো connected component                          | প্রতিটি unvisited node থেকে DFS, অথবা Union-Find | `O(V + E)` |
-| এই দুটি কি connected — edge আসতে থাকার সাথে বারবার জিজ্ঞেস করা | Union-Find            | প্রতি query-তে `O(α(n))`    |
+| নির্ভরতা মেনে একটি ক্রম                                  | Topological sort (Kahn's) | `O(V + E)`            |
+| **Directed** graph-এ cycle আছে কি                      | Kahn's, বা তিন state-এর DFS | `O(V + E)`     |
+| **Undirected** graph-এ cycle আছে কি                    | Union-Find, বা parent মনে রেখে DFS | `O(E α(V))` |
+| গন্তব্যে যেতে সবচেয়ে কম edge                             | BFS                      | `O(V + E)`            |
+| সবচেয়ে সস্তা পথ, weight negative নয়                      | Dijkstra                 | `O((V + E) log V)`     |
+| সবচেয়ে সস্তা পথ, negative weight-ও চলে                    | Bellman-Ford             | `O(V × E)`             |
+| **সব** জোড়ার মধ্যে সবচেয়ে সস্তা পথ                        | Floyd-Warshall           | `O(V³)`                |
+| কয়টি connected component                                 | প্রতিটি না-দেখা node থেকে DFS, বা Union-Find | `O(V + E)` |
+| এই দুটি কি যুক্ত, edge আসতে আসতে বারবার জিজ্ঞেস করা হয়     | Union-Find            | প্রতি query-তে `O(α(n))`    |
 
-**Undirected** graph-এ cycle detection-এর row-টাই সবচেয়ে বেশি ভুল হয়। সেখানে আগে visit করা node-এ পৌঁছানো
-cycle নয় — প্রতিটি edge দুই দিকেই চলে, তাই আপনি যে node থেকে এইমাত্র এলেন সেটা সবসময় দেখবেন। হয় parent track করে
-সেটা উপেক্ষা করুন, নয়তো Union-Find ব্যবহার করুন, যেখানে `false` return করা একটি `union` দ্ব্যর্থহীন।
+সবচেয়ে বেশি ভুল হয় **undirected** graph-এ cycle detection-এর row-টায়। সেখানে আগে দেখা node-এ পৌঁছানো মানে cycle
+নয়। প্রতিটি edge দুই দিকেই চলে, তাই যে node থেকে এইমাত্র এসেছেন, সেটা সবসময়ই চোখে পড়ে। হয় parent মনে রেখে
+সেটা বাদ দিন, নয়তো Union-Find ব্যবহার করুন। সেখানে `union` যদি `false` return করে, তাতে কোনো দ্ব্যর্থতা নেই।
 
 ## সাধারণ ভুল
 
-**এক দিকের edge দিয়ে undirected graph বানানো:**
+**Undirected graph বানানো একদিকের edge দিয়ে:**
 
 ```typescript
 // ❌ graph.get(from)!.push(to);                       // half the edges are missing
@@ -230,35 +229,35 @@ cycle নয় — প্রতিটি edge দুই দিকেই চল�
 // ✅ graph.get(prereq)!.push(course); inDegree[course]++;
 ```
 
-**Directed-cycle detection-এ একটিমাত্র visited flag:**
+**Directed cycle খুঁজতে একটিমাত্র visited flag:**
 
 ```typescript
 // ❌ a single Set reports a cycle whenever two paths reach the same finished node
 // ✅ three states: unvisited, on the current recursion stack, fully explored
 ```
 
-**Undirected graph-এ আবার visit করাকে cycle ধরা:**
+**Undirected graph-এ আবার দেখা node-কে cycle ধরা:**
 
 ```typescript
 // ❌ every edge looks like a cycle, because you can always walk back to the parent
 // ✅ skip the node you arrived from, or use Union-Find
 ```
 
-**Negative weight-সহ Dijkstra:**
+**Negative weight-এ Dijkstra:**
 
 ```typescript
 // ❌ a negative edge can improve an already-settled node — the guarantee is gone
 // ✅ Bellman-Ford, which also reports negative cycles
 ```
 
-**Dijkstra-য় stale-entry check বাদ দেওয়া:**
+**Dijkstra-য় পুরনো entry-র check বাদ দেওয়া:**
 
 ```typescript
 // ❌ processing every heap entry — settled nodes get reprocessed
 // ✅ if (cost > distance[node]) continue;
 ```
 
-**শুধু একটি optimisation-সহ Union-Find:**
+**মাত্র একটি optimisation-সহ Union-Find:**
 
 ```typescript
 // ❌ path compression without union by rank, or the reverse — find degrades toward O(n)
@@ -274,82 +273,80 @@ cycle নয় — প্রতিটি edge দুই দিকেই চল�
 
 ## অনুশীলনের জন্য Problem
 
-| #   | Problem                                                   | কঠিনতা | কী অনুশীলন করায়                                  |
+| #   | Problem                                                   | কঠিনতা     | কী অনুশীলন হয়                                     |
 | --- | --------------------------------------------------------- | ---------- | ----------------------------------------------- |
-| 207 | Course Schedule                                           | Medium     | In-degree, আর বিনা খরচে cycle check         |
-| 210 | Course Schedule II                                        | Medium     | একই algorithm, যেটা ক্রমটা return করে           |
-| 133 | Clone Graph                                               | Medium     | একটি `Map`, যেটা একই সাথে visited set আর output           |
-| 323 | Number of Connected Components in an Undirected Graph      | Medium     | প্রতিটি unvisited node থেকে DFS, অথবা Union-Find            |
-| 684 | Redundant Connection                                      | Medium     | প্রথম যে `union` false return করে                |
-| 261 | Graph Valid Tree                                          | Medium     | Connected **আর** acyclic, `V - 1`টি edge-সহ     |
-| 743 | Network Delay Time                                        | Medium     | Dijkstra, আর stale entry বাদ দেওয়া               |
-| 787 | Cheapest Flights Within K Stops                           | Medium     | কেন hop limit সাধারণ Dijkstra-কে অপর্যাপ্ত করে দেয় |
-| 269 | Alien Dictionary                                          | Hard       | Sort করার আগে edge-গুলো বের করা           |
+| 207 | Course Schedule                                           | Medium     | In-degree, আর বিনা খরচে cycle check               |
+| 210 | Course Schedule II                                        | Medium     | একই algorithm, যা ক্রমটা return করে               |
+| 133 | Clone Graph                                               | Medium     | একটি `Map`, যা একসঙ্গে visited set আর output      |
+| 323 | Number of Connected Components in an Undirected Graph      | Medium     | প্রতিটি না-দেখা node থেকে DFS, বা Union-Find       |
+| 684 | Redundant Connection                                      | Medium     | প্রথম যে `union` false return করে                 |
+| 261 | Graph Valid Tree                                          | Medium     | Connected **আর** acyclic, edge ঠিক `V - 1`টি      |
+| 743 | Network Delay Time                                        | Medium     | Dijkstra, আর পুরনো entry skip করা                  |
+| 787 | Cheapest Flights Within K Stops                           | Medium     | Hop-এর সীমা থাকলে সাধারণ Dijkstra কেন যথেষ্ট নয়    |
+| 269 | Alien Dictionary                                          | Hard       | Sort করার আগে edge-গুলো বের করা                    |
 
-207, তারপর 210 করুন — একই code, একটি boolean return করে আর একটি ক্রম। তারপর 743, আর ঠিক তার পরেই 787। কারণ hop
-constraint-ই দেখায় আপনি বুঝেছেন Dijkstra কেন কাজ করে।
+আগে 207, তারপর 210। একই code, একটি boolean return করে, অন্যটি ক্রম। তারপর 743, আর ঠিক পরেই 787। Hop-এর শর্তটাই
+দেখায় Dijkstra কেন কাজ করে তা আপনি সত্যিই বুঝেছেন কি না।
 
 ## 🔑 মূল শিক্ষা
 
-- আগে চারটি property পরিষ্কার করুন: directed, weighted, connected, cyclic। এগুলোই আপনার হয়ে algorithm বেছে দেয়।
+- আগে চারটি বৈশিষ্ট্য পরিষ্কার করুন: directed, weighted, connected, cyclic। Algorithm এরাই বেছে দেয়।
 - Adjacency list বানান, আর graph undirected হলে **দুই** দিকেই push করুন।
-- Kahn's algorithm একই pass-এ topological order দেয় আর cycle ধরে — output ছোট হলে মানে cycle আছে।
-- Dijkstra BFS-এর queue-কে min-heap দিয়ে বদলায়, আর non-negative weight চায়। Negative edge মানে Bellman-Ford।
-- Union-Find কার্যত constant time-এ connectivity-র উত্তর দেয়, কিন্তু এর path compression আর union by rank **দুটিই** লাগে।
+- Kahn's algorithm একই pass-এ topological order দেয় আর cycle ধরে। Output ছোট হলে মানেই cycle আছে।
+- Dijkstra BFS-এর queue-এর জায়গায় min-heap বসায়, আর weight negative হলে চলে না। Negative edge থাকলে Bellman-Ford।
+- Union-Find কার্যত constant time-এ connectivity-র উত্তর দেয়, কিন্তু path compression আর union by rank **দুটিই** লাগে।
 
 ## Interview-এর প্রশ্ন
 
-**Q: কোনো graph code লেখার আগে কী জিজ্ঞেস করেন?**
+**Q: Graph-এর code লেখার আগে কী জিজ্ঞেস করবেন?**
 
-Graph-টি directed কি না, edge-গুলো weighted কি না, এটা connected হওয়ার নিশ্চয়তা আছে কি না, আর cycle থাকতে পারে কি
-না। প্রতিটি উত্তর কিছু algorithm বাদ দেয়: unweighted আর shortest path মানে BFS, weighted মানে Dijkstra, dependency
-ক্রম মানে topological sort। আর "connected?" ঠিক করে traversal শুধু একটি node থেকে নয়, প্রতিটি node থেকে শুরু করতে
-হবে কি না।
+Graph directed কি না, edge weighted কি না, connected হওয়ার নিশ্চয়তা আছে কি না, আর cycle থাকতে পারে কি না। প্রতিটি
+উত্তর কিছু algorithm বাদ দিয়ে দেয়। Unweighted-এ shortest path মানে BFS, weighted মানে Dijkstra, নির্ভরতার ক্রম মানে
+topological sort। আর "connected কি না" ঠিক করে traversal একটি node থেকে চালালেই হবে, নাকি প্রতিটি node থেকে।
 
-**Q: Kahn's algorithm কীভাবে cycle ধরে?**
+**Q: Kahn's algorithm cycle কীভাবে ধরে?**
 
-এটা শুধু সেই node-গুলোকে enqueue করে, যাদের in-degree শূন্যে পৌঁছেছে — মানে প্রতিটি prerequisite পূরণ হয়েছে।
-একটি cycle-এর ভেতরের node-এর সবসময় অন্তত একটি পূরণ না-হওয়া prerequisite থাকে — একই cycle-এর অন্য একটি node।
-তাই এর in-degree কখনো শূন্যে পৌঁছায় না, আর এটা কখনো enqueue হয় না। Output-এ যদি `V`টির কম node থাকে, বাদ পড়া
-node-গুলো অন্তত একটি cycle তৈরি করে।
+এটা শুধু সেই node-গুলো enqueue করে, যাদের in-degree শূন্যে নেমেছে, মানে সব prerequisite পূরণ হয়েছে। Cycle-এর
+ভেতরের node-এর অন্তত একটি prerequisite সবসময় অপূর্ণ থাকে, আর সেটা একই cycle-এর অন্য কোনো node। তাই তার in-degree
+কখনো শূন্য হয় না, আর সেটা কখনো enqueue হয় না। Output-এ `V`-এর চেয়ে কম node থাকলে যেগুলো বাদ পড়েছে, তারা অন্তত
+একটি cycle তৈরি করে।
 
-**Q: BFS-এর শুধু queue লাগে, Dijkstra-র কেন heap লাগে?**
+**Q: BFS-এর queue হলেই চলে, অথচ Dijkstra-র heap লাগে কেন?**
 
-BFS-এর নিশ্চয়তা আসে edge সংখ্যার ক্রমে node process করা থেকে। প্রতিটি edge-এর খরচ সমান হলে একটি FIFO queue এটা
-বিনা খরচে দেয়। Weight থাকলে পৌঁছানোর ক্রম আর খরচের ক্রম আলাদা হয়ে যায় — তিনটি সস্তা edge একটি দামি edge-কে হারাতে
-পারে। তাই frontier-কে সবচেয়ে সস্তাটা আগে, এভাবে process করতে হয়, আর min-heap ঠিক এটাই দেয়। `log V` factor
-সেখান থেকেই আসে।
+BFS-এর নিশ্চয়তা আসে edge-এর সংখ্যার ক্রমে node process করা থেকে। প্রতিটি edge-এর খরচ সমান হলে FIFO queue এই ক্রম
+বিনা খরচেই দেয়। Weight থাকলে পৌঁছানোর ক্রম আর খরচের ক্রম আলাদা হয়ে যায়, কারণ তিনটি সস্তা edge একটি দামি edge-কে
+হারাতে পারে। তাই frontier process করতে হয় সবচেয়ে সস্তাটা আগে রেখে, আর min-heap ঠিক সেটাই দেয়। `log V` গুণফলটা
+আসে এখান থেকেই।
 
-**Q: Negative edge weight-এ Dijkstra কেন ভেঙে যায়?**
+**Q: Negative edge weight থাকলে Dijkstra-র কী ভাঙে?**
 
-এর মূল invariant হলো, একবার একটি node pop হলে তার distance চূড়ান্ত। এটা খাটে কারণ পরের প্রতিটি ধাপ শুধু
-non-negative খরচ যোগ করে। একটি negative edge পরে একটি settle হয়ে যাওয়া node-কে আরও সস্তা করে দিতে পারে। তখন
-invariant ভেঙে যায়, আর উত্তর ভুল হতে পারে। Bellman-Ford সব edge `V - 1` বার relax করে এটা সামলায়, `O(V × E)`-তে।
-আর এর পরের কোনো relaxation যদি তখনো কিছু উন্নত করে, সেটা প্রমাণ করে একটি negative cycle আছে।
+এর মূল invariant হলো, কোনো node একবার pop হলে তার distance চূড়ান্ত। এটা খাটে কারণ প্রতিটি পরের ধাপ শুধু
+non-negative খরচ যোগ করে। Negative edge থাকলে হিসাব মিটে যাওয়া node পরে আরও সস্তা হয়ে যেতে পারে। তখন invariant
+ভেঙে যায়, আর উত্তর ভুল আসতে পারে। Bellman-Ford সব edge `V - 1` বার relax করে এটা সামলায়, খরচ `O(V × E)`। এরপর
+আরেকবার relax করলেও যদি কিছু কমে, তাহলে প্রমাণ হয় যে negative cycle আছে।
 
 **Q: কখন DFS বা BFS-এর বদলে Union-Find ব্যবহার করবেন?**
 
-যখন প্রশ্নটা পুরোপুরি connectivity নিয়ে, আর edge ধীরে ধীরে আসে: "এই দুটি কি connected", "কোন edge একটি cycle তৈরি
-করে", "এখন কতগুলো group"। Union-Find আবার traverse না করে প্রতিটির উত্তর কার্যত constant time-এ দেয়, যেখানে DFS-এ
-প্রতি query-তে `O(V + E)` খরচ হতো। যখন path, distance বা একটি ক্রম দরকার, তখন DFS-ই ঠিক tool — Union-Find group
-চেনে, route নয়।
+যখন প্রশ্ন শুধু connectivity নিয়ে, আর edge আসে একটু একটু করে: "এই দুটি কি যুক্ত", "কোন edge cycle বানায়", "এখন
+কয়টি দল"। Union-Find আবার traversal না করেই প্রতিটির উত্তর দেয় কার্যত constant time-এ। DFS-এ প্রতি query-তে খরচ হতো
+`O(V + E)`। তবে path, distance বা কোনো ক্রম লাগলে DFS-ই ঠিক হাতিয়ার। Union-Find দল চেনে, পথ চেনে না।
 
-**Q: Undirected graph-এ cycle detection কেন আলাদা?**
+**Q: Undirected graph-এ cycle detection আলাদা কেন?**
 
-Directed graph-এ একটি cycle হলো এমন node-এ একটি back edge, যেটা এখনো recursion stack-এ আছে। Undirected graph-এ
-প্রতিটি edge দুই দিকেই চলা যায়, তাই আপনি যে node থেকে এইমাত্র এলেন সেটা সবসময় পাবেন — সেটা cycle নয়। আপনাকে
-parent-কে স্পষ্টভাবে বাদ দিতে হবে, নয়তো Union-Find ব্যবহার করতে হবে। সেখানে আগে থেকেই একই set-এ থাকা দুটি node-এর
-মধ্যে একটি edge কোনো দ্ব্যর্থতা ছাড়াই cycle।
+Directed graph-এ cycle মানে এখনো recursion stack-এ থাকা node-এ back edge। Undirected graph-এ প্রতিটি edge দুই দিকেই
+চলা যায়। তাই যে node থেকে এইমাত্র এসেছেন, সেটা সবসময়ই সামনে পড়ে, আর সেটা cycle নয়। Parent-কে আলাদা করে skip
+করতে হয়। নয়তো Union-Find ব্যবহার করুন। সেখানে আগে থেকেই একই set-এ থাকা দুটি node-এর মধ্যে edge মানেই cycle,
+কোনো দ্ব্যর্থতা ছাড়া।
 
-**Q: সাধারণ Dijkstra কেন Cheapest Flights Within K Stops solve করে না?**
+**Q: সাধারণ Dijkstra কেন Cheapest Flights Within K Stops সমাধান করতে পারে না?**
 
-কারণ state এখন আর শুধু node নয়। Hop limit থাকলে অনেক stop-এর পর সস্তায় একটি শহরে পৌঁছানো কম stop-এ দামি পথে
-পৌঁছানোর চেয়ে খারাপ হতে পারে। তাই "একবার settle হলে চূড়ান্ত" নিয়মটা শুধু node-এর ওপর খাটে না। সমাধান হলো state-কে
-`(city, stops used)` বানানো — অথবা Bellman-Ford ব্যবহার করা, যার `k`টি relaxation round স্বাভাবিকভাবেই `k`টি hop-এর
-সাথে মেলে।
+কারণ state এখন আর শুধু node নয়। Hop-এর সীমা থাকলে অনেক stop পেরিয়ে কম খরচে কোনো শহরে পৌঁছানো, কম stop-এ বেশি
+খরচে পৌঁছানোর চেয়ে খারাপ হতে পারে। তাই শুধু node ধরে "একবার মিটলে চূড়ান্ত" নিয়ম খাটে না। সমাধান হলো state-কে
+`(city, stops used)` বানানো। অথবা Bellman-Ford ব্যবহার করা, যার `k` round-এর relaxation স্বাভাবিকভাবেই `k` hop-এর
+সঙ্গে মিলে যায়।
 
 ## এরপর কী পড়বেন
 
-- [Chapter ?? — Breadth-First Search](#ch-breadth-first-search) — unweighted shortest path, যার সাধারণ রূপ হলো Dijkstra
-- [Chapter ?? — Depth-First Search](#ch-depth-first-search) — topological sort-এর বিকল্প রূপের নিচে থাকা traversal
+- [Chapter ?? — Breadth-First Search](#ch-breadth-first-search) — unweighted shortest path, যাকে Dijkstra সাধারণ রূপ দেয়
+- [Chapter ?? — Depth-First Search](#ch-depth-first-search) — topological sort-এর বিকল্প রূপের নিচে যে traversal
 - [Chapter ?? — Top K Element](#ch-top-k-elements) — যে min-heap-এর ওপর Dijkstra চলে
