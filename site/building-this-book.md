@@ -214,7 +214,7 @@ export default withMermaid(
 
 Every page of the website also exists in Bangla, at `/handbook/bn/`. The EN/BN switch in the nav bar opens the same page in the other language.
 
-The pages are translated by Claude, in Claude Code sessions. No script calls a model, and no API key is needed anywhere. The translations are committed to `i18n/bn/`, which works as a cache:
+The Bangla is machine-translated. Claude translates each page in a Claude Code session, and the result is reviewed against a translation brief, `i18n/TRANSLATION-BRIEF.md`. No script calls a model, and no API key is needed anywhere. The translations are committed to `i18n/bn/`, which works as a cache:
 
 | Step | Command | What happens |
 | ---- | ------- | ------------ |
@@ -228,6 +228,8 @@ Each cached page records a SHA-256 hash of the English it came from. Edit a chap
 The validator checks that code, inline code, link targets, Mermaid source and the `**Q: **` markers come back byte for byte. Chapter titles never come from the translator. They come from `i18n/titles.bn.json`, so the sidebar and every cross-reference agree on what a chapter is called. The rules for the Bangla itself — natural spoken Bangla, short sentences, technical terms kept in English — are in `i18n/TRANSLATION-BRIEF.md`.
 
 Bangla text is set in Noto Sans Bengali from Google Fonts, with more line height than English, because Bengali vowel signs stack above and below the line.
+
+The Bangla edition is web only. The PDF and the EPUB stay English, because both are built from the manuscript and never read `i18n/bn/`.
 
 ## Tracking Reading Progress
 

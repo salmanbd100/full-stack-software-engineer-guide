@@ -29,6 +29,10 @@ Rules it enforces, worth knowing up front:
 
 Most existing files predate this standard. Editing one means bringing it up to standard, not patching around it.
 
+**Every chapter edit makes its Bangla page stale.** Run `pnpm site:translate --list`, translate each
+stale page to `i18n/TRANSLATION-BRIEF.md` (`--source` out, `--write` back in), then commit the
+`i18n/bn/` cache with the chapter.
+
 ## Before Writing a New Chapter
 
 Check `BOOK-SPEC.md` § 6. If the topic is out of scope — Terraform, Linux administration, shell or Python
@@ -77,6 +81,9 @@ pnpm check:versions   # version-gated claims with no version named; --check fail
 pnpm check:stale      # terms with no correct present-tense use left; --check fails on any (CI)
 pnpm site:dev         # the free web edition, generated from the manuscript
 pnpm site:build       # static build into site/.vitepress/dist
+pnpm site:translate   # the Bangla cache: missing / stale / fresh. --list names the routes, --check fails on stale or invalid
+                      #   --source=<route> prints the English, fences masked; --write=<route> --from=<file> validates and stores
+                      #   the rules: i18n/TRANSLATION-BRIEF.md; Bangla titles: i18n/titles.bn.json
 ```
 
 **The web edition is generated, never hand-edited.** `scripts/build-site.ts` writes
@@ -85,7 +92,12 @@ are gitignored, and `site/` is in `EXCLUDED_DIRS` so the generated copies never 
 part's budget. Only `site/index.md`, `site/building-this-book.md` (the developer guide to this build and the
 portfolio connection — web only, never in the PDF or EPUB) `site/.vitepress/config.ts` and `site/.vitepress/theme/`
 (a wider measure, larger type and the portfolio's teal brand colour, web only) are written by hand; `site/public/` holds the
-portfolio's favicons. The theme also carries the **reading-progress tracker**: a checkbox per
+portfolio's favicons. **The Bangla edition** (served at `/handbook/bn/`) is built the same way into
+`site/bn/book/**`, also gitignored, from `i18n/bn/` — a **committed, generated translation cache**
+keyed by a SHA-256 of each English body. A stale or missing page falls back to English with a notice.
+Translation runs in Claude Code sessions, never through the API; hand-fix a cached page only if you
+accept that the next re-translation overwrites it. `site/bn/index.md` is hand-written and guarded by
+the same `HAND_WRITTEN` check as the English home page. The theme also carries the **reading-progress tracker**: a checkbox per
 sidebar entry (`ProgressSidebarItem.vue`, a copy of VitePress's internal `VPSidebarItem.vue` swapped in
 by a `vite.resolve.alias` in `config.ts` — re-diff it on every VitePress upgrade), a progress bar in the
 nav, and a name-and-email sign-in. Progress is stored by `api/progress.ts`, a Vercel function over
