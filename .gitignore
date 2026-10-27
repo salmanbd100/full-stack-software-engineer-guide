@@ -22,3 +22,6 @@ site/bn/book/
 .env.*
 !.env.example
 .env*
+
+# a stray VitePress cache from running it against the wrong root (4d4707a)
+docs/
