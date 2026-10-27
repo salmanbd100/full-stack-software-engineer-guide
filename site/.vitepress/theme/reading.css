@@ -10,7 +10,16 @@
   /* 272px left "The Senior Full Stack Handbook" running under the sidebar's scrollbar,
      because the nav title shares the sidebar's width. */
   --vp-sidebar-width: 320px;
-  --vp-layout-max-width: 1680px;
+}
+
+/* VitePress sizes the nav title and the sidebar from 1440px up as
+   (100% - (max-width - 64px)) / 2 + sidebar - 32px, which goes negative while the viewport is
+   narrower than the max width: at 1440px a 1680px max left the title 168px and cut off the
+   sidebar labels. Widen the layout only once the viewport can hold it. */
+@media (min-width: 1680px) {
+  :root {
+    --vp-layout-max-width: 1680px;
+  }
 }
 
 /* --- Brand ------------------------------------------------------------- */
@@ -50,10 +59,11 @@
   }
 }
 
-/* VitePress swaps the hamburger for the inline links at 768px, but six links beside the
-   title need about 1180px — below that they ran off the right edge (and scrolled the page
-   on a portrait tablet). Keep the hamburger and its full-screen menu until they fit. */
-@media (min-width: 768px) and (max-width: 1179px) {
+/* VitePress swaps the hamburger for the inline links at 768px, but six links, the appearance
+   switch, "Track progress" and the EN/BN switch beside the title need about 1380px — below that
+   they ran off the right edge (and scrolled the page on a portrait tablet). Keep the hamburger
+   and its full-screen menu until they fit. */
+@media (min-width: 768px) and (max-width: 1379px) {
   #app .VPNavBarMenu,
   #app .VPNavBarExtra {
     display: none;
