@@ -168,9 +168,10 @@ const LOCALES: Record<"en" | "bn", Locale> = {
 
 function writePage(locale: Locale, doc: Doc, title: string, source: string): void {
   let body: string = rewriteLinks(tidyChapterRefs(source), routes, locale.prefix);
-  // The H1 is carried by the generated front matter, so drop the one in the source —
-  // VitePress would otherwise render the title twice.
-  body = body.replace(/^#\s+.*$/m, "").replace(/^\n+/, "");
+  // VitePress's doc layout sets the tab title from front matter but draws no heading, so the
+  // page needs its own H1. It is rebuilt from `title` rather than kept from the source, because
+  // the source H1 carries the print-only `{#ch-…}` anchor and a cached Bangla body may not have one.
+  body = `# ${title}\n\n${body.replace(/^#\s+.*$/m, "").replace(/^\n+/, "")}`;
 
   const file: string = join(locale.dir, `${routes.get(slugFor(doc))!.slice("/book/".length)}.md`);
   mkdirSync(dirname(file), { recursive: true });
